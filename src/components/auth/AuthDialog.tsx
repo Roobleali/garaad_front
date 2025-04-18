@@ -42,7 +42,8 @@ export function AuthDialog() {
   const [isLogin] = useState(true);
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { error, isLoading } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth);
+  const { error, loading, isAuthenticated } = authState;
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,6 +53,22 @@ export function AuthDialog() {
       password: "",
     },
   });
+
+  // Reset form and error when dialog opens/closes
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+      dispatch(resetError());
+    }
+  }, [open, form, dispatch]);
+
+  // Handle successful authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      setOpen(false);
+      router.push("/courses");
+    }
+  }, [isAuthenticated, router]);
 
   // Auto-hide error after 5 seconds
   useEffect(() => {
@@ -78,11 +95,7 @@ export function AuthDialog() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       if (isLogin) {
-        const result = await dispatch(login(data)).unwrap();
-        if (result && result.user) {
-          setOpen(false); // Close the dialog
-          router.push("/courses");
-        }
+        await dispatch(login(data)).unwrap();
       } else {
         const signupData = {
           ...data,
@@ -93,14 +106,11 @@ export function AuthDialog() {
           math_level: "intermediate",
           minutes_per_day: 30,
         };
-        const result = await dispatch(signup(signupData)).unwrap();
-        if (result && result.user) {
-          setOpen(false); // Close the dialog
-          router.push("/courses");
-        }
+        await dispatch(signup(signupData)).unwrap();
       }
     } catch (error) {
       console.error("Auth error:", error);
+      // Error handling is already done by the auth slice
     }
   };
 
@@ -208,7 +218,7 @@ export function AuthDialog() {
                         <Input
                           placeholder="email@example.com"
                           {...field}
-                          disabled={isLoading}
+                          disabled={loading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -225,7 +235,7 @@ export function AuthDialog() {
                         <Input
                           type="password"
                           {...field}
-                          disabled={isLoading}
+                          disabled={loading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -236,11 +246,11 @@ export function AuthDialog() {
                   type="submit"
                   className={cn(
                     "w-full relative",
-                    isLoading && "animate-bounce"
+                    loading && "animate-bounce"
                   )}
-                  disabled={isLoading}
+                  disabled={loading}
                 >
-                  {isLoading ? (
+                  {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Soo galaya...

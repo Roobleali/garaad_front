@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import RootLayoutClient from "./layout-client";
 import { inter } from "@/lib/fonts";
+import ClientLayout from "./client-layout";
 
 export const metadata: Metadata = {
   title: {
@@ -189,10 +189,10 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <RootLayoutClient>
+        <ClientLayout>
           {children}
           <Toaster />
-        </RootLayoutClient>
+        </ClientLayout>
       </body>
     </html>
   );

@@ -1,25 +1,15 @@
 // src/store/features/learningSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type { Course, Category } from "@/types/learning";
+import type {
+  Course,
+  Category,
+  Lesson,
+  LessonContentBlock,
+} from "@/types/learning";
 import axios from "axios";
 import AuthService from "@/services/auth";
 
-interface LessonType {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  progress: number;
-  type: string;
-  problem: {
-    options: string[];
-    question: string;
-    solution: string;
-    explanation: string;
-  };
-  module: string;
-  progress_id?: string;
-}
+type LessonType = Lesson;
 
 interface ModuleType {
   id: number;
@@ -44,6 +34,11 @@ interface LearningState {
     error: string | null;
   };
   currentLesson: LessonType | null;
+  answerState: {
+    isCorrect: boolean | null;
+    showAnswer: boolean;
+    lastAttempt: string | null;
+  };
   error: string | null;
   isLoading: boolean;
 }
@@ -62,6 +57,11 @@ const initialState: LearningState = {
     error: null,
   },
   currentLesson: null,
+  answerState: {
+    isCorrect: null,
+    showAnswer: false,
+    lastAttempt: null,
+  },
   error: null,
   isLoading: false,
 };
@@ -74,7 +74,7 @@ export const fetchCategories = createAsyncThunk(
       const authService = AuthService.getInstance();
       const response = await authService.makeAuthenticatedRequest<Category[]>(
         "get",
-        "/api/categories/"
+        "/api/lms/categories/"
       );
       return response;
     } catch (error) {
@@ -152,15 +152,64 @@ export const fetchModuleLessons = createAsyncThunk(
   }
 );
 
-export const submitLessonAnswer = createAsyncThunk(
-  "learning/submitLessonAnswer",
+export const submitAnswer = createAsyncThunk(
+  "learning/submitAnswer",
   async ({ lessonId, answer }: { lessonId: string; answer: string }) => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/${lessonId}/submit_answer/`,
-        { answer }
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      // First, get the lesson details
+      const lessonResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/${lessonId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      return response.data;
+
+      if (!lessonResponse.ok) {
+        throw new Error("Failed to fetch lesson details");
+      }
+
+      const lessonData = await lessonResponse.json();
+
+      // Get the problem block from the lesson's content blocks
+      const problemBlock = lessonData.content_blocks?.find(
+        (block: { block_type: string; content: unknown }) =>
+          block.block_type === "problem"
+      );
+
+      if (!problemBlock) {
+        throw new Error("No problem found in this lesson");
+      }
+
+      // Handle the problem content based on its type
+      let problemContent;
+      if (typeof problemBlock.content === "string") {
+        try {
+          problemContent = JSON.parse(problemBlock.content);
+        } catch {
+          problemContent = problemBlock.content;
+        }
+      } else {
+        problemContent = problemBlock.content;
+      }
+
+      // Validate the answer against the correct_answer in the problem content
+      const isCorrect = answer === problemContent.correct_answer;
+      console.log(problemContent.correct_answer);
+      console.log(answer);
+      return {
+        correct: isCorrect,
+        feedback: isCorrect ? "Correct!" : "That's incorrect. Try again.",
+        explanation: problemContent.explanation,
+        correctAnswer: problemContent.correct_answer,
+        lastAttempt: answer,
+      };
     } catch (error) {
       console.error("Error submitting answer:", error);
       throw error;
@@ -220,6 +269,16 @@ const learningSlice = createSlice({
         data: null,
         status: "idle",
         error: null,
+      };
+    },
+    revealAnswer: (state) => {
+      state.answerState.showAnswer = true;
+    },
+    resetAnswerState: (state) => {
+      state.answerState = {
+        isCorrect: null,
+        showAnswer: false,
+        lastAttempt: null,
       };
     },
   },
@@ -301,24 +360,31 @@ const learningSlice = createSlice({
         state.error = action.error.message || "Failed to fetch lesson";
       })
       // Submit answer reducers
-      .addCase(submitLessonAnswer.pending, (state) => {
+      .addCase(submitAnswer.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(submitLessonAnswer.fulfilled, (state, action) => {
+      .addCase(submitAnswer.fulfilled, (state, action) => {
         state.isLoading = false;
-        if (state.currentLesson) {
-          state.currentLesson.progress = action.payload.progress;
-        }
-        state.error = null;
+        state.answerState = {
+          isCorrect: action.payload.correct,
+          showAnswer: false,
+          lastAttempt: action.payload.lastAttempt,
+        };
       })
-      .addCase(submitLessonAnswer.rejected, (state, action) => {
+      .addCase(submitAnswer.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || "Failed to submit answer";
       });
   },
 });
 
-export const { setCurrentLesson, setError, setLoading, clearCurrentModule } =
-  learningSlice.actions;
+export const {
+  setCurrentLesson,
+  setError,
+  setLoading,
+  clearCurrentModule,
+  revealAnswer,
+  resetAnswerState,
+} = learningSlice.actions;
 export default learningSlice.reducer;

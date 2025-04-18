@@ -1,4 +1,5 @@
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 export interface SignUpData {
   name: string;
@@ -52,18 +53,27 @@ export interface SignInResponse {
   };
 }
 
+interface JWTPayload {
+  exp: number;
+  iat: number;
+  user_id: number;
+}
+
 class AuthService {
   private static instance: AuthService;
   private token: string | null = null;
   private refreshToken: string | null = null;
   private baseURL: string =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+  private refreshTimeout: NodeJS.Timeout | null = null;
+  private isRefreshing = false;
+  private refreshSubscribers: Array<(token: string) => void> = [];
 
   private constructor() {
     // Initialize tokens from localStorage if they exist
     if (typeof window !== "undefined") {
-      this.token = localStorage.getItem("access_token");
-      this.refreshToken = localStorage.getItem("refresh_token");
+      this.token = localStorage.getItem("accessToken");
+      this.refreshToken = localStorage.getItem("refreshToken");
     }
   }
 
@@ -75,11 +85,41 @@ class AuthService {
   }
 
   private getAuthHeaders() {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("accessToken");
     return {
       "Content-Type": "application/json",
       Authorization: token ? `Bearer ${token}` : "",
     };
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode<JWTPayload>(token);
+      // Check if token expires in less than 1 minute
+      return decoded.exp * 1000 <= Date.now() + 60000;
+    } catch {
+      return true;
+    }
+  }
+
+  public async ensureValidToken(): Promise<string | null> {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      return null;
+    }
+
+    if (this.isTokenExpired(token)) {
+      try {
+        return await this.refreshAccessToken();
+      } catch (error) {
+        console.error("Failed to refresh token:", error);
+        this.logout();
+        return null;
+      }
+    }
+
+    return token;
   }
 
   public async signUp(data: SignUpData): Promise<SignUpResponse> {
@@ -160,6 +200,7 @@ class AuthService {
 
   public async signIn(data: SignInData): Promise<SignInResponse> {
     try {
+      console.log(data);
       console.log("Attempting to sign in with:", { email: data.email });
       console.log("API URL:", `${this.baseURL}/api/auth/signin/`);
 
@@ -237,7 +278,7 @@ class AuthService {
   }
 
   public isAuthenticated(): boolean {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("accessToken");
     const user = this.getCurrentUser();
     return !!token && !!user;
   }
@@ -266,8 +307,15 @@ class AuthService {
   }
 
   private setTokens(accessToken: string, refreshToken: string) {
-    localStorage.setItem("access_token", accessToken);
-    localStorage.setItem("refresh_token", refreshToken);
+    // Set in localStorage
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+
+    // Set in cookies
+    document.cookie = `accessToken=${accessToken}; path=/`;
+    document.cookie = `refreshToken=${refreshToken}; path=/`;
+
+    // Set in instance
     this.token = accessToken;
     this.refreshToken = refreshToken;
   }
@@ -275,22 +323,25 @@ class AuthService {
   private setToken(token: string): void {
     this.token = token;
     if (typeof window !== "undefined") {
-      localStorage.setItem("access_token", token);
+      localStorage.setItem("accessToken", token);
     }
   }
 
   public clearAuthData() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    // Clear localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
-    this.token = null;
-    this.refreshToken = null;
 
-    // Clear cookies if they exist
+    // Clear cookies
     document.cookie =
       "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie =
       "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+    // Clear instance variables
+    this.token = null;
+    this.refreshToken = null;
   }
 
   // Add a method to make authenticated requests
@@ -300,71 +351,97 @@ class AuthService {
     data?: Record<string, unknown>
   ): Promise<T> {
     try {
+      const token = await this.ensureValidToken();
+
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
       const response = await axios({
         method,
         url: `${this.baseURL}${url}`,
         data,
-        headers: this.getAuthHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        try {
-          const newToken = await this.refreshTokenIfNeeded();
-          // Retry the request with the new token
-          const response = await axios({
-            method,
-            url: `${this.baseURL}${url}`,
-            data,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${newToken}`,
-            },
-          });
-          return response.data;
-        } catch (refreshError) {
-          console.error("Token refresh failed:", refreshError);
-          this.clearTokens();
-          throw new Error("Session expired. Please sign in again.");
-        }
+        // If we get a 401 even after refreshing, we need to log out
+        this.logout();
       }
       throw error;
     }
   }
 
-  private async refreshTokenIfNeeded() {
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (!refreshToken) {
-      throw new Error("No refresh token available");
+  private async refreshAccessToken() {
+    if (this.isRefreshing) {
+      return new Promise((resolve) => {
+        this.refreshSubscribers.push(resolve);
+      });
+    }
+
+    this.isRefreshing = true;
+
+    try {
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        throw new Error("No refresh token available");
+      }
+
+      const response = await axios.post(`${this.baseURL}/api/auth/refresh/`, {
+        refresh: refreshToken,
+      });
+
+      const { access } = response.data;
+      localStorage.setItem("accessToken", access);
+
+      // Set up the next refresh
+      this.setupRefreshTimer(access);
+
+      // Notify subscribers
+      this.refreshSubscribers.forEach((callback) => callback(access));
+      this.refreshSubscribers = [];
+
+      return access;
+    } catch (error) {
+      // If refresh fails, log out the user
+      this.logout();
+      throw error;
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  private setupRefreshTimer(token: string) {
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
     }
 
     try {
-      const response = await axios.post(
-        `${this.baseURL}/api/auth/refresh/`,
-        { refresh: refreshToken },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const decoded = jwtDecode<JWTPayload>(token);
+      const expiresIn = decoded.exp * 1000 - Date.now();
+      // Refresh 5 minutes before expiration
+      const refreshTime = Math.max(0, expiresIn - 5 * 60 * 1000);
 
-      if (response.data.access) {
-        this.setTokens(response.data.access, refreshToken);
-        return response.data.access;
-      }
+      this.refreshTimeout = setTimeout(() => {
+        this.refreshAccessToken();
+      }, refreshTime);
     } catch (error) {
-      console.error("Token refresh failed:", error);
-      this.clearTokens();
-      throw error;
+      console.error("Error setting up refresh timer:", error);
     }
   }
 
-  private clearTokens() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+  private _signOut(): void {
     this.token = null;
     this.refreshToken = null;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
   }
 
   private async _refreshAccessToken(): Promise<string> {
@@ -394,13 +471,22 @@ class AuthService {
     }
   }
 
-  private _signOut(): void {
+  initializeAuth() {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      this.setupRefreshTimer(token);
+    }
+  }
+
+  logout() {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout);
+    }
     this.token = null;
     this.refreshToken = null;
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-    }
   }
 }
 

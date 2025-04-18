@@ -117,7 +117,7 @@ export const login = createAsyncThunk<
           .filter((entry) => Array.isArray(entry[1]) && entry[1].length > 0)
           .map(([key, value]) => `${key}: ${(value as string[]).join(", ")}`)
           .join("; ");
-
+        console.log(fieldErrors);
         if (fieldErrors) {
           return rejectWithValue({
             message: `Cilad ayaa dhacday: ${fieldErrors}`,

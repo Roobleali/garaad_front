@@ -424,7 +424,7 @@ The visual is an SVG of a scale, stored at `/public/images/scale-2s-12-4s.svg`. 
 
 ### Step 5: How It Works
 1. **Fetch the Lesson**:
-   - The Next.js page sends a GET request to `/api/lessons/1` (proxied to your Django backend, e.g., `http://localhost:8000/api/lessons/1/`).
+   - The Next.js page sends a GET request to `/api/lessons/1` (proxied to your Django backend, e.g., `https://api.garaad.org/api/lessons/1/`).
    - Django returns the lesson data as JSON.
 
 2. **Render the Lesson**:

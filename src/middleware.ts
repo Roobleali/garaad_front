@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // List of protected routes that require authentication
-const protectedRoutes = ["/courses", "/profile", "/courses", "/practice"];
+const protectedRoutes = ["/courses", "/profile", "/practice"];
 
 export function middleware(request: NextRequest) {
   // Get the pathname of the request
@@ -13,16 +13,16 @@ export function middleware(request: NextRequest) {
     path.startsWith(route)
   );
 
-  // Get the token from the cookies
-  const token = request.cookies.get("accessToken")?.value;
+  // Get the token from cookies
+  const cookieToken = request.cookies.get("accessToken")?.value;
 
   // If it's a protected route and there's no token, redirect to welcome page
-  if (isProtectedRoute && !token) {
+  if (isProtectedRoute && !cookieToken) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   // If it's the welcome page and there's a token, redirect to dashboard
-  if (path === "/" && token) {
+  if (path === "/" && cookieToken) {
     return NextResponse.redirect(new URL("/courses", request.url));
   }
 

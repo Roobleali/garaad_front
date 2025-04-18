@@ -19,7 +19,7 @@ const ProgressBadge = () => (
 
 export const CategoryCard = ({ id, title, description, image, progress, courseCount }: CategoryCardProps) => {
     return (
-        <Link href={`/categories/${id}/courses`}>
+        <Link href={`/lms/categories/${id}/courses`}>
             <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
                 <div className="relative w-full h-48 mb-4">
                     <Image
