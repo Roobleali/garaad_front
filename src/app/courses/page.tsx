@@ -159,7 +159,7 @@ export default function CoursesPage() {
               </div>
             ) : (
               <div className="space-y-16">
-                {mockCategories.map((category: Category) => (
+                {items.map((category) => (
                   <div key={category.id}>
                     <div className="flex items-start gap-6 mb-8">
                       <CategoryImage
@@ -168,13 +168,13 @@ export default function CoursesPage() {
                       />
                       <div>
                         <div className="flex flex-col gap-3">
-                          <span>
-                            {category.inProgress && (
+                          {/* <span>
+                            {category.in_progress && (
                               <span className="bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md uppercase">
                                 In Progress
                               </span>
                             )}
-                          </span>
+                          </span> */}
                           <div className="flex items-center gap-2">
                             <h2 className="text-2xl font-bold text-prima mb-1">
                               {category.title}
@@ -191,7 +191,7 @@ export default function CoursesPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 bg-accent p-4 rounded-lg">
-                      {category.courses?.map((course: Course) => (
+                      {category.courses?.map((course) => (
                         <Link key={course.id} href={`/courses/${course.slug}`}>
                           <Card className="group overflow-hidden bg-white rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]">
                             <div className="relative">
@@ -199,7 +199,7 @@ export default function CoursesPage() {
                                 src={course.thumbnail}
                                 alt={course.title}
                               />
-                              {course.isNew && (
+                              {course.is_new && (
                                 <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md">
                                   NEW
                                 </span>
