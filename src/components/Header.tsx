@@ -17,7 +17,6 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { name: "Guriga", href: "/home", icon: HomeIcon },
     { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
   ];
 
@@ -41,7 +40,7 @@ export function Header() {
                   className={clsx(
                     "text-gray-600 hover:text-black transition-all font-medium flex items-center gap-2 py-1",
                     pathname === href &&
-                      "text-primary border-b-2 border-primary"
+                    "text-primary border-b-2 border-primary"
                   )}
                 >
                   {/* icon */}

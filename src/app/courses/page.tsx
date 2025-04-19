@@ -10,11 +10,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Header } from "@/components/Header";
-import type { Course, Category } from "@/types/lms";
 import { useRouter } from "next/navigation";
 import AuthService from "@/services/auth";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { mockCategories } from "./data";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
 const defaultCourseImage = "/images/placeholder-course.svg";
@@ -192,7 +190,7 @@ export default function CoursesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 bg-accent p-4 rounded-lg">
                       {category.courses?.map((course) => (
-                        <Link key={course.id} href={`/courses/${course.slug}`}>
+                        <Link key={course.id} href={`/courses/${category.id}/${course.slug}`}>
                           <Card className="group overflow-hidden bg-white rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]">
                             <div className="relative">
                               <CourseImage
