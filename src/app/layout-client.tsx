@@ -5,18 +5,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { inter } from "@/lib/fonts";
 
 export default function RootLayoutClient({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <html lang="so">
-            <body className={inter.className}>
-                <Providers>
-                    {children}
-                    <Toaster />
-                </Providers>
-            </body>
-        </html>
-    );
-} 
+  return (
+    <html lang="so">
+      <body className={inter.className}>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
+      </body>
+    </html>
+  );
+}

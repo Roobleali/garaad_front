@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+"use client";
 import { useState } from "react";
 import * as Progress from "@radix-ui/react-progress";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from 'react-redux';
-import { signup, selectAuthError, selectIsLoading } from '@/store/features/authSlice';
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signup,
+  selectAuthError,
+  selectIsLoading,
+} from "@/store/features/authSlice";
 import { useToast } from "@/hooks/use-toast";
-import type { AppDispatch } from '@/store';
-
+import type { AppDispatch } from "@/store";
 
 // Step titles
 const stepTitles = [
@@ -22,12 +25,10 @@ const stepTitles = [
   "Fadlan geli Xogtaaga:", // Please enter your email
 ];
 
-
-
 // Step 1: Initial goal selection
 const goals = [
   {
-    id: 'Horumarinta xirfadaha',
+    id: "Horumarinta xirfadaha",
     text: "Horumarinta xirfadaha",
     badge: "Hal adkaanta hal daal ma leh",
     icon: (
@@ -83,45 +84,46 @@ const goals = [
     id: "Caawinta ardaydayda",
     text: "Caawinta ardaydayda",
     badge: "Macallin waa iftiin",
-    icon: (<svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
-      <path
-        fill="currentColor"
-        d="M12,5A3.5,3.5 0 0,0 8.5,8.5A3.5,3.5 0 0,0 12,12A3.5,3.5 0 0,0 15.5,8.5A3.5,3.5 0 0,0 12,5M12,7A1.5,1.5 0 0,1 13.5,8.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 10.5,8.5A1.5,1.5 0 0,1 12,7M5.5,8A2.5,2.5 0 0,0 3,10.5C3,11.44 3.53,12.25 4.29,12.68C4.65,12.88 5.06,13 5.5,13C5.94,13 6.35,12.88 6.71,12.68C7.08,12.47 7.39,12.17 7.62,11.81C6.89,10.86 6.5,9.7 6.5,8.5C6.5,8.41 6.5,8.31 6.5,8.22C6.2,8.08 5.86,8 5.5,8M18.5,8C18.14,8 17.8,8.08 17.5,8.22C17.5,8.31 17.5,8.41 17.5,8.5C17.5,9.7 17.11,10.86 16.38,11.81C16.5,12 16.63,12.15 16.78,12.3C16.94,12.45 17.1,12.58 17.29,12.68C17.65,12.88 18.06,13 18.5,13C18.94,13 19.35,12.88 19.71,12.68C20.47,12.25 21,11.44 21,10.5A2.5,2.5 0 0,0 18.5,8M12,14C9.66,14 5,15.17 5,17.5V19H19V17.5C19,15.17 14.34,14 12,14M4.71,14.55C2.78,14.78 0,15.76 0,17.5V19H3V17.07C3,16.06 3.69,15.22 4.71,14.55M19.29,14.55C20.31,15.22 21,16.06 21,17.07V19H24V17.5C24,15.76 21.22,14.78 19.29,14.55M12,16C13.53,16 15.24,16.5 16.23,17H7.77C8.76,16.5 10.47,16 12,16Z"
-      />
-    </svg>
-
-    )
-  }
+    icon: (
+      <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M12,5A3.5,3.5 0 0,0 8.5,8.5A3.5,3.5 0 0,0 12,12A3.5,3.5 0 0,0 15.5,8.5A3.5,3.5 0 0,0 12,5M12,7A1.5,1.5 0 0,1 13.5,8.5A1.5,1.5 0 0,1 12,10A1.5,1.5 0 0,1 10.5,8.5A1.5,1.5 0 0,1 12,7M5.5,8A2.5,2.5 0 0,0 3,10.5C3,11.44 3.53,12.25 4.29,12.68C4.65,12.88 5.06,13 5.5,13C5.94,13 6.35,12.88 6.71,12.68C7.08,12.47 7.39,12.17 7.62,11.81C6.89,10.86 6.5,9.7 6.5,8.5C6.5,8.41 6.5,8.31 6.5,8.22C6.2,8.08 5.86,8 5.5,8M18.5,8C18.14,8 17.8,8.08 17.5,8.22C17.5,8.31 17.5,8.41 17.5,8.5C17.5,9.7 17.11,10.86 16.38,11.81C16.5,12 16.63,12.15 16.78,12.3C16.94,12.45 17.1,12.58 17.29,12.68C17.65,12.88 18.06,13 18.5,13C18.94,13 19.35,12.88 19.71,12.68C20.47,12.25 21,11.44 21,10.5A2.5,2.5 0 0,0 18.5,8M12,14C9.66,14 5,15.17 5,17.5V19H19V17.5C19,15.17 14.34,14 12,14M4.71,14.55C2.78,14.78 0,15.76 0,17.5V19H3V17.07C3,16.06 3.69,15.22 4.71,14.55M19.29,14.55C20.31,15.22 21,16.06 21,17.07V19H24V17.5C24,15.76 21.22,14.78 19.29,14.55M12,16C13.53,16 15.24,16.5 16.23,17H7.77C8.76,16.5 10.47,16 12,16Z"
+        />
+      </svg>
+    ),
+  },
 ];
 const learningApproach = [
-
   {
     id: "Aroorti Subaxda inta aan quraacaynayo",
-    "text": "Aroorti Subaxda inta aan quraacaynayo",
-    badge: "قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ (الزمر: 9)",
+    text: "Aroorti Subaxda inta aan quraacaynayo",
+    badge:
+      "قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ (الزمر: 9)",
     icon: "☀",
   },
   {
     id: " Waqtiga Nasashasha intaan Khadaynayo.",
-    "text": " Waqtiga Nasashasha intaan Khadaynayo.",
+    text: " Waqtiga Nasashasha intaan Khadaynayo.",
     badge: "وَقُل رَّبِّ زِدْنِي عِلْمًا (طه: 114)",
     icon: "🍔",
   },
   {
     id: "Habeenki ah ka dib cashada ama Kahor intan seexanin",
-    "text": "Habeenki ah ka dib cashada ama Kahor intan seexanin",
-    badge: "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ (المجادلة: 11)",
+    text: "Habeenki ah ka dib cashada ama Kahor intan seexanin",
+    badge:
+      "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ (المجادلة: 11)",
 
     icon: "🌙",
   },
   {
     id: "Waqti kale oo maalintayda ah",
-    "text": "Waqti kale oo maalintayda ah",
-    badge: "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنْتُمْ لَا تَعْلَمُونَ (النحل: 43)",
+    text: "Waqti kale oo maalintayda ah",
+    badge:
+      "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنْتُمْ لَا تَعْلَمُونَ (النحل: 43)",
     icon: "📺",
   },
 ];
-
 
 // Step 3: Topic selection
 
@@ -157,7 +159,8 @@ const topics = [
   {
     id: "data-analysis",
     text: "Xogta Falanqeynta",
-    badge: "Fahan xogta iyo muhiimkeeda", disabled: true,
+    badge: "Fahan xogta iyo muhiimkeeda",
+    disabled: true,
 
     icon: (
       <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
@@ -171,7 +174,8 @@ const topics = [
   {
     id: "logical-reasoning",
     text: "Fikirka iyo Xalinta",
-    badge: "Xalinta mushkiladaha ayaa muhiim ah", disabled: true,
+    badge: "Xalinta mushkiladaha ayaa muhiim ah",
+    disabled: true,
 
     icon: (
       <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
@@ -185,7 +189,8 @@ const topics = [
   {
     id: "puzzles",
     text: "Tijaabooyinka (puzzles)",
-    badge: "Ku tababar maskaxdaada xalinta dhibta", disabled: true,
+    badge: "Ku tababar maskaxdaada xalinta dhibta",
+    disabled: true,
 
     icon: (
       <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
@@ -198,14 +203,12 @@ const topics = [
   },
 ];
 
-
-
-
 // Step 4: Math comfort level with all levels
 const topicLevels = [
   {
     title: "Xisaabta aasaasiga ah",
-    description: "Waxaan doonayaa inaan ka bilaabo aasaaska xisaabta si aan u fahmo",
+    description:
+      "Waxaan doonayaa inaan ka bilaabo aasaaska xisaabta si aan u fahmo",
     example: "2,000 + 500 = ?",
     level: "Arithmetic",
     icon: (
@@ -219,7 +222,8 @@ const topicLevels = [
   },
   {
     title: "Aljebra aasaasiga ah",
-    description: "Waxaan fahmi karaa isticmaalka xarfaha iyo calaamadaha xisaabta",
+    description:
+      "Waxaan fahmi karaa isticmaalka xarfaha iyo calaamadaha xisaabta",
     example: "x + 5 = 12",
     level: "Basic Algebra",
     icon: (
@@ -233,7 +237,8 @@ const topicLevels = [
   },
   {
     title: "Aljebra sare",
-    description: "Waxaan si fiican u fahmi karaa xiriirka xisaabta iyo jaantuskeeda",
+    description:
+      "Waxaan si fiican u fahmi karaa xiriirka xisaabta iyo jaantuskeeda",
     example: "y = 2x + 1",
     level: "Algebra",
     icon: (
@@ -262,7 +267,8 @@ const topicLevels = [
   {
     title: "Xisaabta nolol maalmeedka",
     description: "Waxaan ku dabbiqi karaa xisaabta arrimaha nolol maalmeedka",
-    example: "Haddii alaab qiimaheedu yahay $50, cashuurta (VAT) 15% tahay, waa maxay qiimaha guud?",
+    example:
+      "Haddii alaab qiimaheedu yahay $50, cashuurta (VAT) 15% tahay, waa maxay qiimaha guud?",
     level: "Real-World Algebra",
     icon: (
       <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24">
@@ -328,7 +334,8 @@ const topicLevels = [
   },
   {
     title: "Tilmaamayaasha xisaabeed",
-    description: "Waxaan fahmi karaa tilmaamayaasha xisaabeed iyo isticmaalkooda",
+    description:
+      "Waxaan fahmi karaa tilmaamayaasha xisaabeed iyo isticmaalkooda",
     example: "A = (2,3) iyo B = (4,6) ka hel masaafada u dhexeysa",
     level: "Vectors",
     icon: (
@@ -341,7 +348,6 @@ const topicLevels = [
     ),
   },
 ];
-
 
 const learningGoals = [
   {
@@ -370,11 +376,11 @@ const learningGoals = [
   },
 ];
 
-
 export default function Page() {
-
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>({});
+  const [selections, setSelections] = useState<Record<number, number | string>>(
+    {}
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [Name, setName] = useState("");
@@ -382,7 +388,10 @@ export default function Page() {
   const isEmailStep = currentStep === steps.length;
   const [showSubmitAlert, setShowSubmitAlert] = useState(false);
   const router = useRouter();
-  const progress = ((isEmailStep ? steps.length + 1 : Object.keys(selections).length) / (steps.length + 1)) * 100;
+  const progress =
+    ((isEmailStep ? steps.length + 1 : Object.keys(selections).length) /
+      (steps.length + 1)) *
+    100;
 
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
@@ -433,17 +442,17 @@ export default function Page() {
         learning_approach: String(selections[1]).trim(),
         topic: String(selections[2]).trim(),
         math_level: String(selections[3]).trim(),
-        minutes_per_day: parseInt(selections[4].toString().split(' ')[0]) // Extract number from "5 daqiiqo?" format
+        minutes_per_day: parseInt(selections[4].toString().split(" ")[0]), // Extract number from "5 daqiiqo?" format
       };
 
-      console.log('Submitting signup data:', signUpData);
+      console.log("Submitting signup data:", signUpData);
 
       // Show loading state
       setShowSubmitAlert(false);
 
       // Use Redux for signup instead of direct authService call
       await dispatch(signup(signUpData)).unwrap();
-      console.log('Signup successful');
+      console.log("Signup successful");
 
       // Show success message and redirect
       setShowSubmitAlert(true);
@@ -473,7 +482,6 @@ export default function Page() {
     }
   };
 
-
   const currentOptions = steps[currentStep];
 
   return (
@@ -491,17 +499,15 @@ export default function Page() {
         </Progress.Root>
 
         <div className="space-y-8">
-          <div
-            className="py-8"
-          >
+          <div className="py-8">
             {/* Step Title */}
-            <h2 className="text-2xl font-bold mb-8">{stepTitles[currentStep]}</h2>
+            <h2 className="text-2xl font-bold mb-8">
+              {stepTitles[currentStep]}
+            </h2>
 
             {showSubmitAlert && (
               <Alert className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md bg-green-50 border-green-200 text-green-800 shadow-lg border-r-4 border-r-green-500">
-                <div
-                  className="flex items-center gap-3"
-                >
+                <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <AlertTitle className="text-green-900 flex items-center gap-2">
                       Mahadsanid! <span className="text-xl">🎉</span>
@@ -531,9 +537,7 @@ export default function Page() {
             {currentStep < 3 && (
               <div className="grid gap-4">
                 {currentOptions.map((option: any) => (
-                  <div
-                    key={option.id}
-                  >
+                  <div key={option.id}>
                     <button
                       onClick={() => handleSelect(option.id)}
                       className="w-full group relative"
@@ -552,7 +556,9 @@ export default function Page() {
                         <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
                           {option.icon}
                         </div>
-                        <div className="flex-1 text-left px-4">{option.text}</div>
+                        <div className="flex-1 text-left px-4">
+                          {option.text}
+                        </div>
                         {option.disabled && (
                           <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
                             Dhowaan
@@ -561,9 +567,7 @@ export default function Page() {
                       </div>
 
                       {selections[currentStep] === option.id && (
-                        <div
-                          className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]"
-                        >
+                        <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
                           {option.badge}
                         </div>
                       )}
@@ -575,9 +579,7 @@ export default function Page() {
             {currentStep == 4 && (
               <div className="grid gap-4">
                 {currentOptions.map((option: any) => (
-                  <div
-                    key={option.id}
-                  >
+                  <div key={option.id}>
                     <button
                       onClick={() => handleSelect(option.id)}
                       className="w-full group relative"
@@ -596,7 +598,9 @@ export default function Page() {
                         <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
                           {option.icon}
                         </div>
-                        <div className="flex-1 text-left px-4">{option.text}</div>
+                        <div className="flex-1 text-left px-4">
+                          {option.text}
+                        </div>
                         {option.disabled && (
                           <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
                             Dhowaan
@@ -605,9 +609,7 @@ export default function Page() {
                       </div>
 
                       {selections[currentStep] === option.id && (
-                        <div
-                          className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]"
-                        >
+                        <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
                           {option.badge}
                         </div>
                       )}
@@ -650,26 +652,30 @@ export default function Page() {
             {currentStep === 3 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {topicLevels.map((level) => (
-                  <div
-                    key={level.level}
-                  >
+                  <div key={level.level}>
                     <button
                       onClick={() => handleSelect(level.level)}
                       className="w-full text-left"
                       disabled={isLoading}
                     >
-                      <div className={cn(
-                        "p-6 rounded-lg border transition-all h-full",
-                        "hover:border-primary/50 hover:shadow-sm",
-                        selections[currentStep] === level.level
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200"
-                      )}>
+                      <div
+                        className={cn(
+                          "p-6 rounded-lg border transition-all h-full",
+                          "hover:border-primary/50 hover:shadow-sm",
+                          selections[currentStep] === level.level
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200"
+                        )}
+                      >
                         <div className="w-12 h-12 rounded-lg bg-white shadow-sm p-2 mb-4">
                           {level.icon}
                         </div>
-                        <h3 className="font-bold text-lg mb-2">{level.title}</h3>
-                        <p className="text-gray-600 text-sm mb-4">{level.description}</p>
+                        <h3 className="font-bold text-lg mb-2">
+                          {level.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm mb-4">
+                          {level.description}
+                        </p>
                         <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
                           {level.example}
                         </div>
@@ -680,9 +686,7 @@ export default function Page() {
               </div>
             )}
 
-            <div
-              className="mt-8"
-            >
+            <div className="mt-8">
               <Button
                 className={cn(
                   "w-full rounded-full py-4 font-semibold transition-colors",
@@ -691,8 +695,8 @@ export default function Page() {
                       ? "bg-primary text-white hover:bg-primary/90"
                       : "bg-gray-200 text-gray-500 cursor-not-allowed"
                     : selections[currentStep]
-                      ? "bg-primary text-white hover:bg-primary/90"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={
@@ -701,21 +705,39 @@ export default function Page() {
                       ? handleSubmit
                       : undefined
                     : selections[currentStep] && !isLoading
-                      ? handleContinue
-                      : undefined
+                    ? handleContinue
+                    : undefined
                 }
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     <span>Waa la socodaa...</span>
                   </div>
+                ) : isEmailStep ? (
+                  "Gudbi"
                 ) : (
-                  isEmailStep ? "Gudbi" : "Sii wad"
+                  "Sii wad"
                 )}
               </Button>
             </div>
@@ -724,4 +746,4 @@ export default function Page() {
       </div>
     </div>
   );
-} 
+}

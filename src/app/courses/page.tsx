@@ -8,16 +8,13 @@ import type { RootState } from "@/store/store";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Header } from "@/components/Header";
-import type { Course, Category } from "@/types/learning";
+import type { Course, Category } from "@/types/lms";
 import { useRouter } from "next/navigation";
 import AuthService from "@/services/auth";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { mockCategories } from "./data";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
 const defaultCourseImage = "/images/placeholder-course.svg";
@@ -87,7 +84,9 @@ const CourseImage = ({ src, alt }: { src?: string; alt: string }) => {
 export default function CoursesPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { items, status, error } = useAppSelector((state: RootState) => state.learning.categories);
+  const { items, status, error } = useAppSelector(
+    (state: RootState) => state.learning.categories
+  );
 
   useEffect(() => {
     // Check if user is authenticated
@@ -100,6 +99,8 @@ export default function CoursesPage() {
     // Only fetch categories if authenticated
     dispatch(fetchCategories());
   }, [dispatch, router]);
+
+  console.log(items);
 
   if (error) {
     return (
@@ -118,7 +119,7 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="hidden max-w-7xl mx-auto md:block">
+      <div className="max-w-7xl mx-auto">
         <Header />
       </div>
 
@@ -126,8 +127,12 @@ export default function CoursesPage() {
         <div className="p-4 sm:p-6 md:p-8">
           <div className="max-w-[1200px] mx-auto">
             <div className="mb-8">
-              <h1 className="text-[32px] font-bold text-[#1A1D1E] mb-2">Wadooyinka Waxbarashad</h1>
-              <p className="text-[18px] text-[#6B7280]">Wadooyin isku xiga oo loo maro hanashada</p>
+              <h1 className="text-[28px] font-bold text-[#1A1D1E] mb-2">
+                Wadooyinka Waxbarashada
+              </h1>
+              <p className="text-[16px] text-[#6B7280]">
+                Wadooyin isku xiga oo loo maro hanashada
+              </p>
             </div>
 
             {status === "loading" ? (
@@ -143,7 +148,10 @@ export default function CoursesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                       {[...Array(4)].map((_, index) => (
-                        <Skeleton key={index} className="h-[220px] rounded-2xl" />
+                        <Skeleton
+                          key={index}
+                          className="h-[220px] rounded-2xl"
+                        />
                       ))}
                     </div>
                   </div>
@@ -151,27 +159,56 @@ export default function CoursesPage() {
               </div>
             ) : (
               <div className="space-y-16">
-                {items.map((category: Category) => (
+                {mockCategories.map((category: Category) => (
                   <div key={category.id}>
                     <div className="flex items-start gap-6 mb-8">
-                      <CategoryImage src={category.image} alt={category.title} />
+                      <CategoryImage
+                        src={category.image}
+                        alt={category.title}
+                      />
                       <div>
-                        <h2 className="text-2xl font-bold text-[#1A1D1E] mb-1">{category.title}</h2>
-                        <p className="text-[#6B7280] text-lg">{category.description}</p>
+                        <div className="flex flex-col gap-3">
+                          <span>
+                            {category.inProgress && (
+                              <span className="bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md uppercase">
+                                In Progress
+                              </span>
+                            )}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-2xl font-bold text-prima mb-1">
+                              {category.title}
+                            </h2>
+                            <p className="text-[#6B7280] text-sm">
+                              {category.courses?.length} courses
+                            </p>
+                          </div>
+                        </div>
+
+                        <p className="text-[#6B7280] text-lg">
+                          {category.description}
+                        </p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 bg-accent p-4 rounded-lg">
                       {category.courses?.map((course: Course) => (
-                        <Link key={course.id} href={`/courses/${category.id}/${course.slug}`}>
+                        <Link key={course.id} href={`/courses/${course.slug}`}>
                           <Card className="group overflow-hidden bg-white rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]">
                             <div className="relative">
-                              <CourseImage src={course.thumbnail} alt={course.title} />
-                              {course.is_new && (
-                                <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded">NEW</span>
+                              <CourseImage
+                                src={course.thumbnail}
+                                alt={course.title}
+                              />
+                              {course.isNew && (
+                                <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md">
+                                  NEW
+                                </span>
                               )}
                             </div>
                             <div className="p-4">
-                              <h3 className="font-medium text-base text-center text-[#1A1D1E] group-hover:text-[#2563EB] transition-colors">{course.title}</h3>
+                              <h3 className="font-medium text-base text-center text-[#1A1D1E] group-hover:text-[#2563EB] transition-colors">
+                                {course.title}
+                              </h3>
                             </div>
                           </Card>
                         </Link>

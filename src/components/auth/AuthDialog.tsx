@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDispatch, useSelector } from 'react-redux';
-import { login, resetError } from '@/store/features/authSlice';
-import type { AppDispatch } from '@/store';
+import { useDispatch, useSelector } from "react-redux";
+import { login, resetError } from "@/store/features/authSlice";
+import type { AppDispatch } from "@/store";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { signup } from "@/store/features/authSlice";
@@ -35,7 +35,9 @@ import { useRouter } from "next/navigation";
 // Define the form schema
 const formSchema = z.object({
   email: z.string().email("Fadlan geli email sax ah"),
-  password: z.string().min(6, "Password-ka waa inuu ahaadaa ugu yaraan 6 xaraf"),
+  password: z
+    .string()
+    .min(6, "Password-ka waa inuu ahaadaa ugu yaraan 6 xaraf"),
 });
 
 export function AuthDialog() {
@@ -43,7 +45,7 @@ export function AuthDialog() {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const authState = useSelector((state: RootState) => state.auth);
-  const { error, loading, isAuthenticated } = authState;
+  const { error, isLoading, isAuthenticated } = authState;
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -218,7 +220,7 @@ export function AuthDialog() {
                         <Input
                           placeholder="email@example.com"
                           {...field}
-                          disabled={loading}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -235,7 +237,7 @@ export function AuthDialog() {
                         <Input
                           type="password"
                           {...field}
-                          disabled={loading}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -246,11 +248,11 @@ export function AuthDialog() {
                   type="submit"
                   className={cn(
                     "w-full relative",
-                    loading && "animate-bounce"
+                    isLoading && "animate-bounce"
                   )}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Soo galaya...
