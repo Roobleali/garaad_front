@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-https://api.garaad.org
+https://api.garaad.org/api/lms/
 ```
 
 ## Authentication
@@ -102,6 +102,38 @@ Response:
 }
 ```
 
+### Modules
+
+#### Get Module
+```http
+GET /modules/{id}/
+```
+**Purpose**: Similar to Brilliant.org's module structure, this endpoint provides:
+- Module overview
+- Lesson organization
+- Learning path structure
+- Progress tracking within the module
+
+Response:
+```json
+{
+    "id": "string",
+    "title": "string",
+    "description": "string",
+    "course": "string",
+    "lessons": [
+        {
+            "id": "string",
+            "title": "string",
+            "slug": "string",
+            "lesson_number": number,
+            "estimated_time": number,
+            "is_published": boolean
+        }
+    ]
+}
+```
+
 ### Lessons
 
 #### Get Lesson Content
@@ -136,13 +168,77 @@ Response:
 }
 ```
 
+### Content Blocks
+
+#### Get Content Block
+```http
+GET /content-blocks/{id}/
+```
+**Purpose**: Similar to Brilliant.org's interactive content elements, this endpoint provides:
+- Different types of content (text, video, interactive)
+- Structured learning materials
+- Ordered content presentation
+- Rich media support
+
+Response:
+```json
+{
+    "id": "string",
+    "block_type": "string",
+    "content": {},
+    "order": number,
+    "lesson": "string"
+}
+```
+
+### Problems
+
+#### Get Problem
+```http
+GET /problems/{id}/
+```
+**Purpose**: Like Brilliant.org's practice problems, this endpoint provides:
+- Interactive problem content
+- Multiple question types
+- Hints and solutions
+- Difficulty levels
+- Immediate feedback
+
+Response:
+```json
+{
+    "id": "string",
+    "question_text": "string",
+    "image": "string",
+    "question_type": "string",
+    "options": {},
+    "correct_answer": {},
+    "explanation": "string",
+    "difficulty": "string",
+    "hints": [
+        {
+            "id": "string",
+            "content": "string",
+            "order": number
+        }
+    ],
+    "solution_steps": [
+        {
+            "id": "string",
+            "explanation": "string",
+            "order": number
+        }
+    ]
+}
+```
+
 ### Practice Sets
 
 #### Get Practice Set
 ```http
 GET /practice-sets/{id}/
 ```
-**Purpose**: Like Brilliant.org's practice problems, this endpoint provides:
+**Purpose**: Like Brilliant.org's practice problem sets, this endpoint provides:
 - Interactive problem sets
 - Immediate feedback
 - Difficulty levels
@@ -174,6 +270,37 @@ Response:
             }
         }
     ]
+}
+```
+
+### Practice Set Problems
+
+#### Get Practice Set Problem
+```http
+GET /practice-set-problems/{id}/
+```
+**Purpose**: Similar to Brilliant.org's problem organization, this endpoint:
+- Links problems to practice sets
+- Maintains problem order
+- Provides problem details
+- Enables problem navigation
+
+Response:
+```json
+{
+    "id": "string",
+    "problem": "string",
+    "order": number,
+    "practice_set": "string",
+    "problem_details": {
+        "id": "string",
+        "question_text": "string",
+        "question_type": "string",
+        "options": {},
+        "correct_answer": {},
+        "explanation": "string",
+        "difficulty": "string"
+    }
 }
 ```
 
