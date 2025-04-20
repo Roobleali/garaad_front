@@ -190,7 +190,10 @@ export default function CoursesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 bg-accent p-4 rounded-lg">
                       {category.courses?.map((course) => (
-                        <Link key={course.id} href={`/courses/${category.id}/${course.slug}`}>
+                        <Link
+                          key={course.id}
+                          href={`/courses/${category.id}/${course.slug}`}
+                        >
                           <Card className="group overflow-hidden bg-white rounded-2xl hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]">
                             <div className="relative">
                               <CourseImage
