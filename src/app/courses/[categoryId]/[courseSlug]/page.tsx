@@ -2,7 +2,7 @@
 
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourse } from "@/store/features/learningSlice";
 import { AppDispatch, RootState } from "@/store";
@@ -12,9 +12,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
 // New imports
-import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
-import { LevelIndicator } from "@/components/learning/ui/LevelIndicator";
+// import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
+// import { LevelIndicator } from "@/components/learning/ui/LevelIndicator";
 import { Header } from "@/components/Header";
+import ModuleZigzag from "@/components/learning/ui/ModuleZigzag";
+import { Module } from "@/types/learning";
 
 const defaultCourseImage = "/images/placeholder-course.svg";
 
@@ -25,6 +27,11 @@ export default function CourseDetailPage() {
   const { currentCourse, isLoading, error } = useSelector(
     (state: RootState) => state.learning
   );
+  const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
+
+  const handleModuleClick = (moduleId: number) => {
+    setActiveModuleId(activeModuleId === moduleId ? null : moduleId);
+  };
 
   useEffect(() => {
     if (params.categoryId && params.courseSlug) {
@@ -37,11 +44,11 @@ export default function CourseDetailPage() {
     }
   }, [dispatch, params.categoryId, params.courseSlug]);
 
-  const handleModuleClick = (moduleId: string | number) => {
-    router.push(
-      `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
-    );
-  };
+  // const handleModuleClick = (moduleId: string | number) => {
+  //   router.push(
+  //     `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
+  //   );
+  // };
 
   if (error) {
     return (
@@ -68,6 +75,366 @@ export default function CourseDetailPage() {
       </div>
     );
   }
+
+  const modules: Module[] = [
+    {
+      id: 1,
+      title: "Finding Unknowns",
+      description:
+        "Learn how to identify and solve for unknown variables in equations.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 1,
+          title: "Introduction to Variables",
+          slug: "intro-to-variables",
+          module_id: 1,
+          lesson_number: 1,
+          estimated_time: "10 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 2,
+      title: "Practice Finding Unknowns",
+      description:
+        "Practice exercises to reinforce your understanding of finding unknown variables.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 2,
+          title: "Practice Set 1",
+          slug: "practice-set-1",
+          module_id: 2,
+          lesson_number: 1,
+          estimated_time: "15 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 3,
+      title: "Equations With Unknowns",
+      description:
+        "Learn how to set up and solve equations with unknown variables.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 3,
+          title: "Setting Up Equations",
+          slug: "setting-up-equations",
+          module_id: 3,
+          lesson_number: 1,
+          estimated_time: "12 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 4,
+      title: "Practice Equations With Unknowns",
+      description:
+        "Practice solving various types of equations with unknown variables.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 4,
+          title: "Equation Practice",
+          slug: "equation-practice",
+          module_id: 4,
+          lesson_number: 1,
+          estimated_time: "20 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 5,
+      title: "Building Expressions",
+      description: "Learn how to build and manipulate algebraic expressions.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 5,
+          title: "Expression Basics",
+          slug: "expression-basics",
+          module_id: 5,
+          lesson_number: 1,
+          estimated_time: "15 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 6,
+      title: "Practice Building Expressions",
+      description: "Practice creating and simplifying algebraic expressions.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 6,
+          title: "Expression Drills",
+          slug: "expression-drills",
+          module_id: 6,
+          lesson_number: 1,
+          estimated_time: "18 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 7,
+      title: "Working with Unknowns",
+      description:
+        "Advanced techniques for working with unknown variables in complex equations.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 7,
+          title: "Advanced Variables",
+          slug: "advanced-variables",
+          module_id: 7,
+          lesson_number: 1,
+          estimated_time: "25 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+    {
+      id: 8,
+      title: "Practice Working with Unknowns",
+      description:
+        "Practice applying advanced techniques with unknown variables.",
+      course_id: 1,
+      lessons: [
+        {
+          id: 8,
+          title: "Advanced Practice",
+          slug: "advanced-practice",
+          module_id: 8,
+          lesson_number: 1,
+          estimated_time: "30 min",
+          is_published: true,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    },
+  ];
+
+  // const modules: Module[] = [
+  //   {
+  //     id: 1,
+  //     title: "Level",
+  //     description: "Starting point for the learning journey",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 1,
+  //         title: "Introduction",
+  //         slug: "introduction",
+  //         module_id: 1,
+  //         lesson_number: 1,
+  //         estimated_time: "5 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Finding Unknowns",
+  //     description:
+  //       "Learn how to identify and solve for unknown variables in equations.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 2,
+  //         title: "Introduction to Variables",
+  //         slug: "intro-to-variables",
+  //         module_id: 2,
+  //         lesson_number: 1,
+  //         estimated_time: "10 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Practice Finding Unknowns",
+  //     description:
+  //       "Practice exercises to reinforce your understanding of finding unknown variables.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 3,
+  //         title: "Practice Set 1",
+  //         slug: "practice-set-1",
+  //         module_id: 3,
+  //         lesson_number: 1,
+  //         estimated_time: "15 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Equations With Unknowns",
+  //     description:
+  //       "Learn how to set up and solve equations with unknown variables.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 4,
+  //         title: "Setting Up Equations",
+  //         slug: "setting-up-equations",
+  //         module_id: 4,
+  //         lesson_number: 1,
+  //         estimated_time: "12 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Practice Equations With Unknowns",
+  //     description:
+  //       "Practice solving various types of equations with unknown variables.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 5,
+  //         title: "Equation Practice",
+  //         slug: "equation-practice",
+  //         module_id: 5,
+  //         lesson_number: 1,
+  //         estimated_time: "20 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 6,
+  //     title: "Building Expressions",
+  //     description: "Learn how to build and manipulate algebraic expressions.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 6,
+  //         title: "Expression Basics",
+  //         slug: "expression-basics",
+  //         module_id: 6,
+  //         lesson_number: 1,
+  //         estimated_time: "15 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 7,
+  //     title: "Practice Building Expressions",
+  //     description: "Practice creating and simplifying algebraic expressions.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 7,
+  //         title: "Expression Drills",
+  //         slug: "expression-drills",
+  //         module_id: 7,
+  //         lesson_number: 1,
+  //         estimated_time: "18 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 8,
+  //     title: "Working with Unknowns",
+  //     description:
+  //       "Advanced techniques for working with unknown variables in complex equations.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 8,
+  //         title: "Advanced Variables",
+  //         slug: "advanced-variables",
+  //         module_id: 8,
+  //         lesson_number: 1,
+  //         estimated_time: "25 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 9,
+  //     title: "Practice Working with Unknowns",
+  //     description:
+  //       "Practice applying advanced techniques with unknown variables.",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 9,
+  //         title: "Advanced Practice",
+  //         slug: "advanced-practice",
+  //         module_id: 9,
+  //         lesson_number: 1,
+  //         estimated_time: "30 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     id: 10,
+  //     title: "Level",
+  //     description: "Next level in the learning journey",
+  //     course_id: 1,
+  //     lessons: [
+  //       {
+  //         id: 10,
+  //         title: "Level 2 Introduction",
+  //         slug: "level-2-introduction",
+  //         module_id: 10,
+  //         lesson_number: 1,
+  //         estimated_time: "5 min",
+  //         is_published: true,
+  //         created_at: "",
+  //         updated_at: "",
+  //       },
+  //     ],
+  //   },
+  // ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -120,7 +487,7 @@ export default function CourseDetailPage() {
                 {/* <LevelMarker level={1} isLocked={false} /> */}
               </div>
 
-              <div className="relative flex flex-col items-center gap-24">
+              <div className="relative flex flex-col items-center gap-12">
                 {/* Connecting line */}
                 <div className="absolute w-1 h-full bg-gradient-to-b from-blue-200 to-transparent left-1/2 -translate-x-1/2 z-0" />
 
@@ -128,10 +495,9 @@ export default function CourseDetailPage() {
                   <div key={module.id} className="relative z-10 ">
                     {/* Level Indicator */}
 
-
                     {/* Module Block */}
                     <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
-                      <ModuleBlock
+                      {/* <ModuleBlock
                         title={module.title}
                         description={module.description}
                         icon={
@@ -146,8 +512,13 @@ export default function CourseDetailPage() {
                         lessons={module.lessons?.length || 0}
                         prerequisites={index > 0 ? 1 : 0}
                         onClick={() => !index && handleModuleClick(module.id)}
-                      />
+                      /> */}
 
+                      <ModuleZigzag
+                        modules={[module]}
+                        activeModuleId={activeModuleId}
+                        onModuleClick={handleModuleClick}
+                      />
                       {/* Progress connector */}
                       {index < (currentCourse.modules?.length ?? 0) - 1 && (
                         <div className="absolute left-1/2 bottom-0 translate-y-24 -translate-x-1/2 text-blue-500">

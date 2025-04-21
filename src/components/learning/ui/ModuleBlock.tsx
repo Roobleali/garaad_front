@@ -98,19 +98,19 @@ export function ModuleBlock({
           {getIcon()}
         </div>
 
-        <h3 className="text-white font-bold text-center mb-1 text-lg">
+        <h3 className="text-foreground font-bold text-center mb-1 text-lg">
           {title}
         </h3>
 
         {description && (
-          <p className="text-white text-opacity-90 text-xs text-center mb-2 line-clamp-2">
+          <p className="text-foreground text-opacity-90 text-xs text-center mb-2 line-clamp-2">
             {description}
           </p>
         )}
 
         <div className="flex items-center gap-3 mt-1">
           {lessons > 0 && (
-            <div className="flex items-center text-xs text-white text-opacity-80 font-medium">
+            <div className="flex items-center text-xs text-foreground text-opacity-80 font-medium">
               <BookOpen className="h-3 w-3 mr-1" />
               {lessons}
             </div>
@@ -120,7 +120,7 @@ export function ModuleBlock({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <div className="flex items-center text-xs text-white text-opacity-80 font-medium">
+                  <div className="flex items-center text-xs text-foreground text-opacity-80 font-medium">
                     <AlertTriangle className="h-3 w-3 mr-1" />
                     {prerequisites}
                   </div>
