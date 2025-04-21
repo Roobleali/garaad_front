@@ -2,18 +2,24 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 export interface SignUpData {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  goal: string;
-  learning_approach: string;
-  topic: string;
-  math_level: string;
-  minutes_per_day: number;
+  onboarding_data?: {
+    goal: string;
+    learning_approach: string;
+    topic: string;
+    math_level: string;
+    minutes_per_day: number;
+  };
+  profile?: {
+    qabiil: string;
+    laan: string;
+  };
 }
 
 export interface SignUpResponse {
-  message: string;
+  message?: string;
   user: {
     id: number;
     username: string;
@@ -24,7 +30,8 @@ export interface SignUpResponse {
     has_completed_onboarding: boolean;
     subscription_status: "premium" | "basic";
   };
-  tokens: {
+  token: string;
+  tokens?: {
     refresh: string;
     access: string;
   };
@@ -36,7 +43,7 @@ export interface SignInData {
 }
 
 export interface SignInResponse {
-  message: string;
+  message?: string;
   user: {
     id: number;
     username: string;
@@ -47,7 +54,8 @@ export interface SignInResponse {
     has_completed_onboarding: boolean;
     subscription_status: "premium" | "basic";
   };
-  tokens: {
+  token: string;
+  tokens?: {
     refresh: string;
     access: string;
   };
@@ -64,7 +72,7 @@ class AuthService {
   private token: string | null = null;
   private refreshToken: string | null = null;
   private baseURL: string =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   private refreshTimeout: NodeJS.Timeout | null = null;
   private isRefreshing = false;
   private refreshSubscribers: Array<(token: string) => void> = [];
@@ -142,17 +150,36 @@ class AuthService {
 
       console.log("Signup response:", response.data);
 
-      // Store tokens and user data
-      if (response.data.tokens) {
-        this.setTokens(
-          response.data.tokens.access,
-          response.data.tokens.refresh
-        );
+      // Store token and user data
+      if (response.data.token) {
+        console.log("Attempting to store token from signup response");
+        // Convert single token to tokens format
+        const tokens = {
+          access: response.data.token,
+          refresh: response.data.token, // Using the same token for refresh for now
+        };
+
+        this.setTokens(tokens.access, tokens.refresh);
         // Store user data
         this.setCurrentUser(response.data.user);
-      }
 
-      return response.data;
+        // Verify storage after signup
+        const storedAccessToken = localStorage.getItem("accessToken");
+        console.log("Verifying token storage after signup:", {
+          expectedToken: tokens.access,
+          storedToken: storedAccessToken,
+          matches: storedAccessToken === tokens.access,
+        });
+
+        // Return the response in the expected format
+        return {
+          ...response.data,
+          tokens,
+        };
+      } else {
+        console.error("No token received in signup response");
+        throw new Error("No token received from server");
+      }
     } catch (error) {
       console.error("Signup error:", error);
 
@@ -165,6 +192,13 @@ class AuthService {
 
         const responseData = error.response?.data;
 
+        // Check for username already exists error
+        if (responseData?.error === "Username already exists") {
+          return Promise.reject(
+            "Magaca aad isticmaashay ayaa horey loo isticmaalay. Fadlan isticmaal magac kale."
+          );
+        }
+
         // Check for email already exists error
         if (
           responseData?.email &&
@@ -173,35 +207,37 @@ class AuthService {
             msg.includes("already exists")
           )
         ) {
-          throw new Error(
+          return Promise.reject(
             "Emailkan aad isticmaashay ayaa horey loo isticmaalay. Fadlan isticmaal email kale ama ku soo bilow."
           );
         }
 
         // Handle other validation errors
         if (responseData?.detail) {
-          throw new Error(responseData.detail);
+          return Promise.reject(responseData.detail);
         }
 
         // Handle other error formats
         if (responseData?.message) {
-          throw new Error(responseData.message);
+          return Promise.reject(responseData.message);
         }
 
         if (responseData?.error) {
-          throw new Error(responseData.error);
+          return Promise.reject(responseData.error);
         }
       }
 
       // Generic error
-      throw new Error("Cilad ayaa dhacday. Fadlan mar kale isku day.");
+      return Promise.reject("Cilad ayaa dhacday. Fadlan mar kale isku day.");
     }
   }
 
   public async signIn(data: SignInData): Promise<SignInResponse> {
     try {
-      console.log(data);
-      console.log("Attempting to sign in with:", { email: data.email });
+      console.log("SignIn attempt with data:", {
+        email: data.email,
+        password: data.password ? "***" : "undefined",
+      });
       console.log("API URL:", `${this.baseURL}/api/auth/signin/`);
 
       const response = await axios.post<SignInResponse>(
@@ -214,27 +250,53 @@ class AuthService {
         }
       );
 
-      console.log("Sign in successful:", { userId: response.data.user.id });
+      console.log("Sign in response:", response.data);
 
-      // Store tokens and user data
-      if (response.data.tokens) {
-        this.setTokens(
-          response.data.tokens.access,
-          response.data.tokens.refresh
-        );
+      // Store token and user data
+      if (response.data.token) {
+        console.log("Storing token from signin response");
+        // Convert single token to tokens format
+        const tokens = {
+          access: response.data.token,
+          refresh: response.data.token, // Using the same token for refresh for now
+        };
+
+        this.setTokens(tokens.access, tokens.refresh);
         // Store user data
         this.setCurrentUser(response.data.user);
-      }
 
-      return response.data;
+        // Verify storage
+        const storedAccessToken = localStorage.getItem("accessToken");
+        console.log("Token storage verification:", {
+          expectedToken: tokens.access,
+          storedToken: storedAccessToken,
+          matches: storedAccessToken === tokens.access,
+        });
+
+        // Return the response in the expected format
+        return {
+          ...response.data,
+          tokens,
+        };
+      } else {
+        console.error("No token received in signin response");
+        throw new Error("No token received from server");
+      }
     } catch (error) {
       console.error("Signin error details:", {
         error,
         response: axios.isAxiosError(error) ? error.response?.data : undefined,
         status: axios.isAxiosError(error) ? error.response?.status : undefined,
+        headers: axios.isAxiosError(error)
+          ? error.response?.headers
+          : undefined,
+        config: axios.isAxiosError(error) ? error.config : undefined,
       });
 
       if (axios.isAxiosError(error)) {
+        const responseData = error.response?.data;
+        console.log("Error response data:", responseData);
+
         // Handle 401 Unauthorized
         if (error.response?.status === 401) {
           throw new Error(
@@ -243,20 +305,19 @@ class AuthService {
         }
 
         // Handle other status codes
-        if (error.response?.data) {
-          const data = error.response.data;
-          if (typeof data === "object" && data !== null) {
-            // Check for various error message formats
-            const message =
-              data.detail ||
-              data.message ||
-              data.error ||
-              (Array.isArray(data.non_field_errors)
-                ? data.non_field_errors[0]
+        if (responseData) {
+          // Check for specific error formats
+          if (typeof responseData === "object") {
+            const errorMessage =
+              responseData.detail ||
+              responseData.message ||
+              responseData.error ||
+              (Array.isArray(responseData.non_field_errors)
+                ? responseData.non_field_errors[0]
                 : null);
 
-            if (message) {
-              throw new Error(message);
+            if (errorMessage) {
+              throw new Error(errorMessage);
             }
           }
         }
@@ -307,17 +368,54 @@ class AuthService {
   }
 
   private setTokens(accessToken: string, refreshToken: string) {
-    // Set in localStorage
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
+    console.log("Setting tokens:", { accessToken, refreshToken });
 
-    // Set in cookies
-    document.cookie = `accessToken=${accessToken}; path=/`;
-    document.cookie = `refreshToken=${refreshToken}; path=/`;
+    try {
+      // Set in localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
 
-    // Set in instance
-    this.token = accessToken;
-    this.refreshToken = refreshToken;
+        // Verify storage immediately
+        const storedAccessToken = localStorage.getItem("accessToken");
+        const storedRefreshToken = localStorage.getItem("refreshToken");
+
+        console.log("Tokens stored in localStorage:", {
+          storedAccessToken,
+          storedRefreshToken,
+          matchesOriginal:
+            storedAccessToken === accessToken &&
+            storedRefreshToken === refreshToken,
+        });
+
+        if (
+          storedAccessToken !== accessToken ||
+          storedRefreshToken !== refreshToken
+        ) {
+          console.error("Token storage verification failed!");
+          throw new Error("Token storage verification failed");
+        }
+      } else {
+        console.warn(
+          "window is undefined - cannot store tokens in localStorage"
+        );
+      }
+
+      // Set in cookies
+      document.cookie = `accessToken=${accessToken}; path=/; SameSite=Strict`;
+      document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Strict`;
+
+      // Set in instance
+      this.token = accessToken;
+      this.refreshToken = refreshToken;
+      console.log("Tokens set in instance:", {
+        instanceToken: this.token,
+        instanceRefreshToken: this.refreshToken,
+      });
+    } catch (error) {
+      console.error("Error setting tokens:", error);
+      throw error;
+    }
   }
 
   private setToken(token: string): void {

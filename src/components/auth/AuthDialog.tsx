@@ -21,7 +21,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
-import { login, resetError } from "@/store/features/authSlice";
+import { login, clearError } from "@/store/features/authSlice";
 import type { AppDispatch } from "@/store";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -60,7 +60,7 @@ export function AuthDialog() {
   useEffect(() => {
     if (!open) {
       form.reset();
-      dispatch(resetError());
+      dispatch(clearError());
     }
   }, [open, form, dispatch]);
 
@@ -76,7 +76,7 @@ export function AuthDialog() {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        dispatch(resetError());
+        dispatch(clearError());
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -202,7 +202,7 @@ export function AuthDialog() {
                     <button
                       type="button"
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                      onClick={() => dispatch(resetError())}
+                      onClick={() => dispatch(clearError())}
                     >
                       <X size={16} />
                     </button>
