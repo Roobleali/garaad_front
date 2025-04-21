@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type Problem } from "@/types/learning";
 import dynamic from 'next/dynamic';
+import { type CodeEditor as CodeEditorType } from "@/components/ui/code-editor";
 
 // Dynamically import the code editor to avoid SSR issues
-const CodeEditor = dynamic(() => import('@/components/ui/code-editor'), {
+const CodeEditor = dynamic<React.ComponentProps<typeof CodeEditorType>>(() => import('@/components/ui/code-editor').then(mod => mod.CodeEditor), {
     ssr: false,
     loading: () => (
         <div className="w-full h-32 bg-muted animate-pulse rounded-md" />
@@ -77,7 +78,7 @@ export function ProblemBlock({ content }: ProblemBlockProps) {
                             <CodeEditor
                                 value={selectedAnswer}
                                 onChange={setSelectedAnswer}
-                                language={problem.language || "javascript"}
+                                language="javascript"
                                 theme="vs-dark"
                                 height="200px"
                             />

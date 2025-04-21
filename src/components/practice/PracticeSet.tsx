@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import {
   PracticeSet as IPracticeSet,
   PracticeSetProblem,
-} from "@/services/lessons";
+} from "@/services/practice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -82,7 +82,7 @@ export const PracticeSet: React.FC<PracticeSetProps> = ({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    {problem.problem_details.options.map((option, index) => (
+                    {problem.problem_details.options?.map((option, index) => (
                       <button
                         key={index}
                         className={cn(

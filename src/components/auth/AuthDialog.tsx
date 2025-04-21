@@ -31,6 +31,7 @@ import { X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import type { SignUpData } from "@/types/auth";
 
 // Define the form schema
 const formSchema = z.object({
@@ -45,7 +46,8 @@ export function AuthDialog() {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const authState = useSelector((state: RootState) => state.auth);
-  const { error, isLoading, isAuthenticated } = authState;
+  const { error, loading: isLoading, user } = authState;
+  const isAuthenticated = !!user;
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -87,32 +89,35 @@ export function AuthDialog() {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Cilad ayaa dhacday",
-        description: error,
         variant: "destructive",
+        title: "Khalad ayaa dhacay",
+        description: error,
       });
+      dispatch(clearError());
     }
-  }, [error, toast]);
+  }, [error, toast, dispatch]);
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isLogin) {
-        await dispatch(login(data)).unwrap();
+        const result = await dispatch(login({ email: values.email, password: values.password }));
+        if (result) {
+          router.push("/courses");
+        }
       } else {
-        const signupData = {
-          ...data,
-          name: data.email.split("@")[0],
-          goal: "learn",
-          learning_approach: "structured",
-          topic: "general",
-          math_level: "intermediate",
-          minutes_per_day: 30,
+        const signupData: SignUpData = {
+          email: values.email,
+          password: values.password,
+          first_name: values.email.split("@")[0],
+          last_name: ""
         };
-        await dispatch(signup(signupData)).unwrap();
+        const result = await dispatch(signup(signupData));
+        if (result) {
+          router.push("/courses");
+        }
       }
     } catch (error) {
       console.error("Auth error:", error);
-      // Error handling is already done by the auth slice
     }
   };
 

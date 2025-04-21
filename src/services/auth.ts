@@ -2,9 +2,10 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 export interface SignUpData {
-  username: string;
   email: string;
   password: string;
+  first_name: string;
+  last_name: string;
   onboarding_data?: {
     goal: string;
     learning_approach: string;
@@ -140,7 +141,10 @@ class AuthService {
 
       const response = await axios.post<SignUpResponse>(
         `${this.baseURL}/api/auth/signup/`,
-        data,
+        {
+          ...data,
+          username: `${data.first_name.toLowerCase()}_${data.last_name.toLowerCase()}`,
+        },
         {
           headers: {
             "Content-Type": "application/json",

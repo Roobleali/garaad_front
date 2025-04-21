@@ -14,6 +14,26 @@ import {
 } from "@/store/features/authSlice";
 import { useToast } from "@/hooks/use-toast";
 import type { AppDispatch } from "@/store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const abtirsiData = {
+  Daarood: ["Majeerteen", "Dhulbahante", "Warsangeli", "Mareexaan", "Ogaden"],
+  Hawiye: ["Abgaal", "Habar Gidir", "Murursade", "Duduble", "Sheekhaal"],
+  Dir: ["Gadabuursi", "Ciise", "Biimaal", "Surre"],
+  Isaaq: ["Habar Awal", "Habar Jeclo", "Habar Yoonis", "Garhajis"],
+  Raxanweyn: ["Digil", "Mirifle", "Sagaal", "Hubeer"],
+  Jareerweyne: ["Bantu", "Gosha", "Makane", "Shidle"],
+  Benadiri: ["Reer Xamar", "Reer Merka", "Reer Baraawe"],
+  Gabooye: ["Tumaal", "Yibir", "Madhiban"],
+  Ashraaf: ["Shariif", "Reer Faqi"]
+};
 
 // Step titles
 const stepTitles = [
@@ -378,20 +398,16 @@ const learningGoals = [
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>(
-    {}
-  );
+  const [selections, setSelections] = useState<Record<number, number | string>>({});
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [Name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [profile, setProfile] = useState<{ qabiil: string; laan: string }>({ qabiil: '', laan: '' });
   const steps = [goals, learningApproach, topics, topicLevels, learningGoals];
-  const isEmailStep = currentStep === steps.length;
   const [showSubmitAlert, setShowSubmitAlert] = useState(false);
   const router = useRouter();
-  const progress =
-    ((isEmailStep ? steps.length + 1 : Object.keys(selections).length) /
-      (steps.length + 1)) *
-    100;
+  const progress = ((currentStep) / (steps.length + 2)) * 100;
 
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
@@ -403,46 +419,92 @@ export default function Page() {
     setSelections((prev) => ({ ...prev, [currentStep]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleProfileChange = (newProfile: { qabiil: string; laan: string }) => {
+    setProfile(newProfile);
+  };
+
+  const handleContinue = () => {
+    // Only validate inputs when moving from inputs step to profile selection
+    if (currentStep === 5) {
+      if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Fadlan buuxi dhammaan xogtaaga",
+        });
+        return;
+      }
+    }
+
+    // Allow progression through all steps except final submission
+    if (currentStep < steps.length + 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      // Validate form data
-      if (!Name.trim()) {
-        throw new Error("Fadlan geli magacaaga");
+      // Only validate on final submission (step 6)
+      if (currentStep !== 6) {
+        return;
+      }
+
+      // Validate all data only on final submission
+      if (!firstName.trim() || !lastName.trim()) {
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Fadlan geli magacaaga",
+        });
+        return;
       }
 
       if (!email.trim()) {
-        throw new Error("Fadlan geli emailkaaga");
-      }
-
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email.trim())) {
-        throw new Error("Fadlan geli email sax ah");
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Fadlan geli emailkaaga",
+        });
+        return;
       }
 
       if (!password.trim()) {
-        throw new Error("Fadlan geli passwordkaaga");
-      }
-
-      if (password.trim().length < 6) {
-        throw new Error("Passwordka waa inuu ahaadaa ugu yaraan 6 xaraf");
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Fadlan geli passwordkaaga",
+        });
+        return;
       }
 
       // Check if all selections are made
       if (Object.keys(selections).length < 5) {
-        throw new Error("Fadlan buuxi dhammaan su'aalaha");
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Fadlan buuxi dhammaan su'aalaha",
+        });
+        return;
       }
 
       // Format the request body exactly as expected by the backend
       const signUpData = {
-        name: Name.trim(),
         email: email.trim(),
         password: password.trim(),
-        goal: String(selections[0]).trim(),
-        learning_approach: String(selections[1]).trim(),
-        topic: String(selections[2]).trim(),
-        math_level: String(selections[3]).trim(),
-        minutes_per_day: parseInt(selections[4].toString().split(" ")[0]), // Extract number from "5 daqiiqo?" format
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        onboarding_data: {
+          goal: String(selections[0]).trim(),
+          learning_approach: String(selections[1]).trim(),
+          topic: String(selections[2]).trim(),
+          math_level: String(selections[3]).trim(),
+          minutes_per_day: parseInt(String(selections[4]).split(" ")[0])
+        },
+        profile: profile.qabiil && profile.laan ? {
+          qabiil: profile.qabiil,
+          laan: profile.laan
+        } : undefined
       };
 
       console.log("Submitting signup data:", signUpData);
@@ -450,20 +512,29 @@ export default function Page() {
       // Show loading state
       setShowSubmitAlert(false);
 
-      // Use Redux for signup instead of direct authService call
-      await dispatch(signup(signUpData)).unwrap();
-      console.log("Signup successful");
+      // Use Redux for signup
+      const result = await dispatch(signup(signUpData));
 
-      // Show success message and redirect
-      setShowSubmitAlert(true);
-      router.push("/courses");
+      if (result) {
+        console.log("Signup successful");
+        router.push("/courses");
+      } else {
+        console.error("Signup failed");
+        toast({
+          variant: "destructive",
+          title: "Khalad ayaa dhacay",
+          description: "Cilad ayaa dhacday. Fadlan mar kale isku day.",
+        });
+      }
     } catch (error) {
       console.error("Submission failed:", error);
 
       // Extract the error message
       let errorMessage = "Cilad ayaa dhacday. Fadlan mar kale isku day.";
 
-      if (error instanceof Error) {
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
 
@@ -476,274 +547,382 @@ export default function Page() {
     }
   };
 
-  const handleContinue = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep((prev) => prev + 1);
-    }
-  };
-
   const currentOptions = steps[currentStep];
 
+  const getLaanOptions = () => {
+    if (!profile.qabiil || !abtirsiData[profile.qabiil as keyof typeof abtirsiData]) {
+      return [];
+    }
+    return abtirsiData[profile.qabiil as keyof typeof abtirsiData];
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto px-4 py-16">
-        {/* Progress bar */}
-        <Progress.Root
-          className="relative overflow-hidden bg-[#E6F4EA] h-1"
-          value={progress}
-        >
-          <Progress.Indicator
-            className="bg-[#137333] w-full h-full transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${100 - progress}%)` }}
-          />
-        </Progress.Root>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="max-w-3xl mx-auto">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Progress bar */}
+                <Progress.Root
+                  className="relative overflow-hidden bg-[#E6F4EA] h-1"
+                  value={progress}
+                >
+                  <Progress.Indicator
+                    className="bg-[#137333] w-full h-full transition-transform duration-700 ease-in-out"
+                    style={{ transform: `translateX(-${100 - progress}%)` }}
+                  />
+                </Progress.Root>
 
-        <div className="space-y-8">
-          <div className="py-8">
-            {/* Step Title */}
-            <h2 className="text-2xl font-bold mb-8">
-              {stepTitles[currentStep]}
-            </h2>
+                <div className="space-y-8">
+                  <div className="py-8">
+                    {/* Step Title */}
+                    <h2 className="text-2xl font-bold mb-8">
+                      {currentStep <= steps.length ? stepTitles[currentStep] : "Fadlan geli Xogtaaga"}
+                    </h2>
 
-            {showSubmitAlert && (
-              <Alert className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md bg-green-50 border-green-200 text-green-800 shadow-lg border-r-4 border-r-green-500">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <AlertTitle className="text-green-900 flex items-center gap-2">
-                      Mahadsanid! <span className="text-xl">🎉</span>
-                    </AlertTitle>
-                    <AlertDescription className="text-green-800">
-                      Waxaan u shaqeynaa mowduucyo cajiib ah oo xiiso badan
-                      Nagusoo Noqo muddo kooban kadib
-                    </AlertDescription>
+                    {showSubmitAlert && (
+                      <Alert className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md bg-green-50 border-green-200 text-green-800 shadow-lg border-r-4 border-r-green-500">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1">
+                            <AlertTitle className="text-green-900 flex items-center gap-2">
+                              Mahadsanid! <span className="text-xl">🎉</span>
+                            </AlertTitle>
+                            <AlertDescription className="text-green-800">
+                              Waxaan u shaqeynaa mowduucyo cajiib ah oo xiiso badan
+                              Nagusoo Noqo muddo kooban kadib
+                            </AlertDescription>
+                          </div>
+                        </div>
+                      </Alert>
+                    )}
+
+                    {/* Display Redux error if it exists */}
+                    {error && (
+                      <Alert className="mb-6 bg-red-50 border-red-200 text-red-800 border-r-4 border-r-red-500">
+                        <AlertTitle className="text-red-900 flex items-center gap-2">
+                          Khalad ayaa dhacay <span className="text-xl">⚠️</span>
+                        </AlertTitle>
+                        <AlertDescription className="text-red-800">
+                          {error}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Options Grid */}
+                    {currentStep < 3 && (
+                      <div className="grid gap-4">
+                        {currentOptions.map((option: any) => (
+                          <div key={option.id}>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleSelect(option.id);
+                              }}
+                              className="w-full group relative"
+                              disabled={option.disabled || isLoading}
+                            >
+                              <div
+                                className={cn(
+                                  "flex items-center p-4 rounded-lg border transition-all",
+                                  "hover:border-primary/50 hover:shadow-sm",
+                                  selections[currentStep] === option.id
+                                    ? "border-primary bg-primary/5"
+                                    : "border-gray-200",
+                                  option.disabled && "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
+                                  {option.icon}
+                                </div>
+                                <div className="flex-1 text-left px-4">
+                                  {option.text}
+                                </div>
+                                {option.disabled && (
+                                  <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
+                                    Dhowaan
+                                  </span>
+                                )}
+                              </div>
+
+                              {selections[currentStep] === option.id && (
+                                <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
+                                  {option.badge}
+                                </div>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {currentStep === 3 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {topicLevels.map((level) => (
+                          <div key={level.level}>
+                            <button
+                              onClick={() => handleSelect(level.level)}
+                              className="w-full text-left"
+                              disabled={isLoading}
+                            >
+                              <div
+                                className={cn(
+                                  "p-6 rounded-lg border transition-all h-full",
+                                  "hover:border-primary/50 hover:shadow-sm",
+                                  selections[currentStep] === level.level
+                                    ? "border-primary bg-primary/5"
+                                    : "border-gray-200"
+                                )}
+                              >
+                                <div className="w-12 h-12 rounded-lg bg-white shadow-sm p-2 mb-4">
+                                  {level.icon}
+                                </div>
+                                <h3 className="font-bold text-lg mb-2">
+                                  {level.title}
+                                </h3>
+                                <p className="text-gray-600 text-sm mb-4">
+                                  {level.description}
+                                </p>
+                                <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
+                                  {level.example}
+                                </div>
+                              </div>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {currentStep === 4 && (
+                      <div className="grid gap-4">
+                        {currentOptions.map((option: any) => (
+                          <div key={option.id}>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleSelect(option.id);
+                              }}
+                              className="w-full group relative"
+                              disabled={option.disabled || isLoading}
+                            >
+                              <div
+                                className={cn(
+                                  "flex items-center p-4 rounded-lg border transition-all",
+                                  "hover:border-primary/50 hover:shadow-sm",
+                                  selections[currentStep] === option.id
+                                    ? "border-primary bg-primary/5"
+                                    : "border-gray-200",
+                                  option.disabled && "opacity-50 cursor-not-allowed"
+                                )}
+                              >
+                                <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
+                                  {option.icon}
+                                </div>
+                                <div className="flex-1 text-left px-4">
+                                  {option.text}
+                                </div>
+                                {option.disabled && (
+                                  <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
+                                    Dhowaan
+                                  </span>
+                                )}
+                              </div>
+
+                              {selections[currentStep] === option.id && (
+                                <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
+                                  {option.badge}
+                                </div>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {currentStep === 5 && (
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          placeholder="Magacaaga Hore"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                          disabled={isLoading}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Magacaaga Dambe"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                          disabled={isLoading}
+                        />
+                        <input
+                          type="email"
+                          placeholder="Emailkaaga"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                          disabled={isLoading}
+                        />
+                        <input
+                          type="password"
+                          placeholder="Passwordkaaga"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                          disabled={isLoading}
+                        />
+                      </div>
+                    )}
+
+                    {currentStep === 6 && (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="relative">
+                          <Select
+                            onValueChange={(value) => handleProfileChange({ ...profile, qabiil: value })}
+                            value={profile.qabiil}
+                          >
+                            <SelectTrigger className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white transition-all duration-200 ease-in-out">
+                              <SelectValue placeholder="Fadlan Geli beeshaada / ka gudub" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                              {Object.keys(abtirsiData).map((qabiil) => (
+                                <SelectItem
+                                  key={qabiil}
+                                  value={qabiil}
+                                  className="transition-colors duration-150 hover:bg-primary/5"
+                                >
+                                  {qabiil}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button className="absolute right-14 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors">
+                                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                  <path
+                                    fill="currentColor"
+                                    d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+                                  />
+                                </svg>
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md animate-in fade-in-0 zoom-in-95 duration-300">
+                              <DialogHeader className="animate-in slide-in-from-top-4 duration-300">
+                                <DialogTitle className="text-center mb-4">Sababta Qabiilka loo Doortay</DialogTitle>
+                                <div className="text-sm text-muted-foreground text-center space-y-4 animate-in fade-in-50 duration-300">
+                                  <p className="text-base">
+                                    Waxaan rabnaa waxbarashu iney xiiso yeelato madama dadkeenu yihiin bulsho qabiil ku saleysan.
+                                    Waxaan go&apos;aansanay qaab reer caafimad qaba in lagu tartamo.
+                                  </p>
+                                  <p className="text-lg font-arabic text-primary mt-4 leading-relaxed">
+                                    يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُم مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا ۚ إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ
+                                  </p>
+                                  <p className="text-sm text-gray-500 mt-2">
+                                    &ldquo;Dadow, waxaan idinka abuuray lab iyo dhaddig, waxaana idinka dhignay shucuub iyo qabaa&apos;il si aad isugu garataan&rdquo;
+                                  </p>
+                                </div>
+                              </DialogHeader>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+
+                        <Select
+                          onValueChange={(value) => handleProfileChange({ ...profile, laan: value })}
+                          value={profile.laan}
+                        >
+                          <SelectTrigger className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white transition-all duration-200 ease-in-out">
+                            <SelectValue placeholder={profile.qabiil ? `${abtirsiData[profile.qabiil as keyof typeof abtirsiData][0]}...` : "Dooro qabiilka marka hore"} />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-[300px] overflow-y-auto">
+                            {profile.qabiil && getLaanOptions().map((laan) => (
+                              <SelectItem
+                                key={laan}
+                                value={laan}
+                                className="transition-colors duration-150 hover:bg-primary/5"
+                              >
+                                {laan}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="mt-8">
+                      <Button
+                        className={cn(
+                          "w-full rounded-full py-4 font-semibold transition-colors",
+                          currentStep === 6
+                            ? profile.qabiil && profile.laan
+                              ? "bg-primary text-white hover:bg-primary/90"
+                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : currentStep === 5
+                              ? email && password && firstName && lastName
+                                ? "bg-primary text-white hover:bg-primary/90"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                              : selections[currentStep]
+                                ? "bg-primary text-white hover:bg-primary/90"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                          isLoading && "opacity-70 cursor-wait"
+                        )}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentStep === 6) {
+                            if (profile.qabiil && profile.laan && !isLoading) {
+                              handleSubmit(e);
+                            }
+                          } else {
+                            if (currentStep < 5 && selections[currentStep]) {
+                              handleContinue();
+                            } else if (currentStep === 5 && email && password && firstName && lastName) {
+                              handleContinue();
+                            }
+                          }
+                        }}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center justify-center">
+                            <svg
+                              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <span>Waa la socodaa...</span>
+                          </div>
+                        ) : currentStep === 6 ? (
+                          "Gudbi"
+                        ) : (
+                          "Sii wad"
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </Alert>
-            )}
-
-            {/* Display Redux error if it exists */}
-            {error && (
-              <Alert className="mb-6 bg-red-50 border-red-200 text-red-800 border-r-4 border-r-red-500">
-                <AlertTitle className="text-red-900 flex items-center gap-2">
-                  Khalad ayaa dhacay <span className="text-xl">⚠️</span>
-                </AlertTitle>
-                <AlertDescription className="text-red-800">
-                  {error}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {/* Options Grid */}
-            {currentStep < 3 && (
-              <div className="grid gap-4">
-                {currentOptions.map((option: any) => (
-                  <div key={option.id}>
-                    <button
-                      onClick={() => handleSelect(option.id)}
-                      className="w-full group relative"
-                      disabled={option.disabled || isLoading}
-                    >
-                      <div
-                        className={cn(
-                          "flex items-center p-4 rounded-lg border transition-all",
-                          "hover:border-primary/50 hover:shadow-sm",
-                          selections[currentStep] === option.id
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200",
-                          option.disabled && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
-                          {option.icon}
-                        </div>
-                        <div className="flex-1 text-left px-4">
-                          {option.text}
-                        </div>
-                        {option.disabled && (
-                          <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                            Dhowaan
-                          </span>
-                        )}
-                      </div>
-
-                      {selections[currentStep] === option.id && (
-                        <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
-                          {option.badge}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {currentStep == 4 && (
-              <div className="grid gap-4">
-                {currentOptions.map((option: any) => (
-                  <div key={option.id}>
-                    <button
-                      onClick={() => handleSelect(option.id)}
-                      className="w-full group relative"
-                      disabled={option.disabled || isLoading}
-                    >
-                      <div
-                        className={cn(
-                          "flex items-center p-4 rounded-lg border transition-all",
-                          "hover:border-primary/50 hover:shadow-sm",
-                          selections[currentStep] === option.id
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200",
-                          option.disabled && "opacity-50 cursor-not-allowed"
-                        )}
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
-                          {option.icon}
-                        </div>
-                        <div className="flex-1 text-left px-4">
-                          {option.text}
-                        </div>
-                        {option.disabled && (
-                          <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                            Dhowaan
-                          </span>
-                        )}
-                      </div>
-
-                      {selections[currentStep] === option.id && (
-                        <div className="absolute -top-2 left-4 px-3 py-1 bg-[#FFFBE6] text-[#594214] text-sm rounded-full border border-[#FFE588]">
-                          {option.badge}
-                        </div>
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Math Comfort Level Selection */}
-            {isEmailStep && (
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Magacaaga"
-                  value={Name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                  disabled={isLoading}
-                />
-                <input
-                  type="email"
-                  placeholder="Emailkaaga"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                  disabled={isLoading}
-                />
-                <input
-                  type="password"
-                  placeholder="Passwordkaaga"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                  disabled={isLoading}
-                />
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {topicLevels.map((level) => (
-                  <div key={level.level}>
-                    <button
-                      onClick={() => handleSelect(level.level)}
-                      className="w-full text-left"
-                      disabled={isLoading}
-                    >
-                      <div
-                        className={cn(
-                          "p-6 rounded-lg border transition-all h-full",
-                          "hover:border-primary/50 hover:shadow-sm",
-                          selections[currentStep] === level.level
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200"
-                        )}
-                      >
-                        <div className="w-12 h-12 rounded-lg bg-white shadow-sm p-2 mb-4">
-                          {level.icon}
-                        </div>
-                        <h3 className="font-bold text-lg mb-2">
-                          {level.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-4">
-                          {level.description}
-                        </p>
-                        <div className="p-3 bg-gray-50 rounded-lg font-mono text-sm">
-                          {level.example}
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-8">
-              <Button
-                className={cn(
-                  "w-full rounded-full py-4 font-semibold transition-colors",
-                  isEmailStep
-                    ? email
-                      ? "bg-primary text-white hover:bg-primary/90"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : selections[currentStep]
-                    ? "bg-primary text-white hover:bg-primary/90"
-                    : "bg-gray-200 text-gray-500 cursor-not-allowed",
-                  isLoading && "opacity-70 cursor-wait"
-                )}
-                onClick={
-                  isEmailStep
-                    ? email && !isLoading
-                      ? handleSubmit
-                      : undefined
-                    : selections[currentStep] && !isLoading
-                    ? handleContinue
-                    : undefined
-                }
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>Waa la socodaa...</span>
-                  </div>
-                ) : isEmailStep ? (
-                  "Gudbi"
-                ) : (
-                  "Sii wad"
-                )}
-              </Button>
+              </form>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

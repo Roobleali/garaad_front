@@ -13,7 +13,6 @@ import { AlertCircle, ChevronRight } from "lucide-react";
 
 // New imports
 import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
-import { LevelIndicator } from "@/components/learning/ui/LevelIndicator";
 import { Header } from "@/components/Header";
 
 const defaultCourseImage = "/images/placeholder-course.svg";

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { type LessonContentBlock } from "@/types/learning";
+import { type LessonContentBlock, TextContent, ImageContent } from "@/types/learning";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 
@@ -11,21 +11,27 @@ interface LessonBlockProps {
 export function LessonBlock({ block, className }: LessonBlockProps) {
     switch (block.block_type) {
         case "text":
+            const textContent = block.content as TextContent;
             return (
                 <div className={cn("prose dark:prose-invert max-w-none", className)}>
-                    <ReactMarkdown>{block.content}</ReactMarkdown>
+                    <ReactMarkdown>{textContent.text}</ReactMarkdown>
                 </div>
             );
 
         case "image":
+            const imageContent = block.content as ImageContent;
             return (
                 <div className={cn("relative w-full aspect-video rounded-lg overflow-hidden", className)}>
                     <Image
-                        src={block.content}
-                        alt="Lesson image"
-                        fill
+                        src={imageContent.url}
+                        alt={imageContent.alt}
+                        width={imageContent.width}
+                        height={imageContent.height}
                         className="object-cover"
                     />
+                    {imageContent.caption && (
+                        <p className="text-sm text-muted-foreground mt-2">{imageContent.caption}</p>
+                    )}
                 </div>
             );
 
@@ -33,7 +39,7 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             return (
                 <div className={cn("relative w-full aspect-video rounded-lg overflow-hidden", className)}>
                     <iframe
-                        src={block.content}
+                        src={block.content as string}
                         className="w-full h-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -42,9 +48,10 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             );
 
         case "example":
+            const exampleContent = block.content as TextContent;
             return (
                 <div className={cn("bg-muted p-4 rounded-lg", className)}>
-                    <ReactMarkdown>{block.content}</ReactMarkdown>
+                    <ReactMarkdown>{exampleContent.text}</ReactMarkdown>
                 </div>
             );
 
@@ -52,7 +59,7 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             // You can implement custom interactive components here
             return (
                 <div className={cn("p-4 border rounded-lg", className)}>
-                    {block.content}
+                    {typeof block.content === 'string' ? block.content : JSON.stringify(block.content)}
                 </div>
             );
 

@@ -1,140 +1,69 @@
-import { useEffect } from "react";
-import {
-  useRive,
-  Alignment,
-  Layout,
-  LayoutParameters,
-  Fit,
-} from "@rive-app/react-canvas";
-import RiveCanvas from "@rive-app/react-canvas";
-// import { NodeData } from "./types";
-
-// move types folder
-export interface CourseData {
-  id: string;
-  title: string;
-  description: string;
-  stats: {
-    lessonCount: number;
-    practiceCount: number;
-  };
-  nodes: NodeData[];
-  connections: ConnectionData[];
-}
+import React from "react";
+import { Handle, Position, NodeProps } from "reactflow";
+import { useRive } from "@rive-app/react-canvas";
+import { useNodeStatus } from "@/hooks/useNodeStatus";
 
 export interface NodeData {
   id: string;
-  title: string;
-  state: number; // LOCKED(0), AVAILABLE(1), ACTIVE(2), COMPLETED(3)
-  color: number;
-  isComplete: boolean;
   position: {
     row: number;
     column: number;
   };
-}
-
-export interface ConnectionData {
-  fromNodeId: string;
-  toNodeId: string;
+  isComplete: boolean;
   isActive: boolean;
-  progressValue?: number;
+  status?: "completed" | "current" | "locked";
+  onStateChange?: (nodeId: string) => void;
 }
 
-export const nodeStates = {
-  LOCKED: 0,
-  AVAILABLE: 1,
-  ACTIVE: 2,
-  COMPLETED: 3,
-};
-
-export const nodeColors = {
-  blue: 1,
-  green: 2,
-  orange: 3,
-  gray: 4,
-  purple: 5,
-  teal: 0,
-};
-
-interface LearningPathNodeProps {
-  nodeData: NodeData;
-  onStateChange: (nodeId: string) => void;
+export interface CourseData {
+  nodes: NodeData[];
+  connections: {
+    fromNodeId: string;
+    toNodeId: string;
+    isActive: boolean;
+    progressValue: number;
+  }[];
 }
 
-export const LearningPathNode = ({
-  nodeData,
-  onStateChange,
-}: LearningPathNodeProps) => {
-  const { rive, RiveComponent } = useRive({
-    src: "/rive/learning-path-node.riv",
-    stateMachines: ["NodeState"],
+export const LearningPathNode = ({ data, isConnectable }: NodeProps<NodeData>) => {
+  const { status } = useNodeStatus(data);
+  const { RiveComponent } = useRive({
+    src: "/animations/node.riv",
+    stateMachines: "State Machine 1",
+    artboard: "New Artboard",
     autoplay: true,
-    layout: {
-      fit: Fit.Contain,
-      alignment: Alignment.Center,
-      // cachedRuntimeFit: undefined,
-      // cachedRuntimeAlignment: undefined,
-      // layoutScaleFactor: 0,
-      // minX: 0,
-      // minY: 0,
-      // maxX: 0,
-      // maxY: 0,
-      // copyWith: function ({ fit, alignment, layoutScaleFactor, minX, minY, maxX, maxY, }: LayoutParameters): Layout {
-      //   throw new Error("Function not implemented.");
-      // },
-      //   runtimeFit: function (rive: any): Fit {
-      //     throw new Error("Function not implemented.");
-      //   },
-      //   runtimeAlignment: function (rive: any): Alignment {
-      //     throw new Error("Function not implemented.");
-      //   }
-    },
   });
 
-  useEffect(() => {
-    if (!rive) return;
-
-    const inputs = rive.stateMachineInputs("NodeState");
-    const colorInput = inputs.find((input) => input.name === "Color");
-    const completeInput = inputs.find((input) => input.name === "isComplete");
-    const activeInput = inputs.find((input) => input.name === "isActive");
-    const lockedInput = inputs.find((input) => input.name === "isLocked");
-    // const motionInput = inputs.find(input => input.name === "isLimited")
-
-    if (colorInput) colorInput.value = nodeData.color;
-    if (completeInput) completeInput.value = nodeData.isComplete;
-    if (activeInput) activeInput.value = nodeData.state === nodeStates.ACTIVE;
-    if (lockedInput) lockedInput.value = nodeData.state === nodeStates.LOCKED;
-    // if (motionInput)
-    //   motionInput.value = window.matchMedia(
-    //     "(prefers-reduced-motion: reduce)"
-    //   ).matches;
-  }, [rive, nodeData]);
+  const handleClick = () => {
+    if (data.onStateChange) {
+      data.onStateChange(data.id);
+    }
+  };
 
   return (
-    <div className="node-container">
-      <RiveComponent
-        onClick={() => onStateChange(nodeData.id)}
-        role="button"
-        aria-label={`${nodeData.title} node, ${getStateLabel(nodeData.state)}`}
+    <div className="relative" onClick={handleClick}>
+      <Handle
+        type="target"
+        position={Position.Top}
+        isConnectable={isConnectable}
+        className="w-3 h-3 !bg-gray-400"
       />
-      <div className="node-title">{nodeData.title}</div>
+      <div
+        className={`w-16 h-16 rounded-full flex items-center justify-center bg-white border-2 ${status === "completed"
+          ? "border-green-500"
+          : status === "current"
+            ? "border-blue-500"
+            : "border-gray-300"
+          }`}
+      >
+        <RiveComponent className="w-12 h-12" />
+      </div>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        isConnectable={isConnectable}
+        className="w-3 h-3 !bg-gray-400"
+      />
     </div>
   );
-};
-
-const getStateLabel = (state: number) => {
-  switch (state) {
-    case nodeStates.LOCKED:
-      return "Locked";
-    case nodeStates.AVAILABLE:
-      return "Available";
-    case nodeStates.ACTIVE:
-      return "Active";
-    case nodeStates.COMPLETED:
-      return "Completed";
-    default:
-      return "";
-  }
 };
