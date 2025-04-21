@@ -18,9 +18,10 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
             {/* Progress bar */}
             <div className="absolute top-0 left-0 right-0 h-2 bg-[#E5E5E5]">
                 <div
-                    className="h-full bg-[#58CC02] transition-all duration-300 ease-out"
+                    className="h-full bg-primary/30 transition-all duration-300 ease-out"
                     style={{ width: `${progress}%` }}
                 />
+
             </div>
 
             {/* Header content */}
@@ -41,8 +42,8 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
                         <div
                             key={index}
                             className={`
-                                w-2 h-2 rounded-full transition-all duration-300
-                                ${index < currentQuestion ? 'bg-[#58CC02]' : 'bg-[#E5E5E5]'}
+                                w-3 h-3 rounded-full transition-all duration-300
+                                ${index < currentQuestion ? 'bg-primary' : 'bg-[#E5E5E5]'}
                                 ${index === currentQuestion ? 'scale-150' : 'scale-100'}
                             `}
                         />

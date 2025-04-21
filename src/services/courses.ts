@@ -190,39 +190,6 @@ export const coursesService = {
     }
   },
 
-  // Modules
-  async getCourseModules(courseId: number) {
-    // Get the token from localStorage
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("accessToken")
-        : null;
-
-    try {
-      const response = await fetch(
-        `${baseURL}/api/lms/modules/course/${courseId}/`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || "Failed to fetch course modules");
-      }
-
-      const data = await response.json();
-      return data as Module[];
-    } catch (error) {
-      console.error("Error fetching course modules:", error);
-      throw error;
-    }
-  },
-
   // Lessons
   async getModuleLessons(moduleId: number) {
     // Get the token from localStorage

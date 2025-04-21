@@ -1,11 +1,6 @@
 // src/store/features/learningSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type {
-  Course,
-  Category,
-  Lesson,
-  LessonContentBlock,
-} from "@/types/learning";
+import type { Course, Category, Lesson } from "@/types/learning";
 import axios from "axios";
 import AuthService from "@/services/auth";
 
@@ -112,7 +107,7 @@ export const fetchCourse = createAsyncThunk(
 
       // Fetch the modules for this course using the course ID
       const modulesResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/modules/?course=${course.id}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/?course=${course.id}`
       );
 
       // Combine course data with modules
@@ -133,7 +128,7 @@ export const fetchModuleLessons = createAsyncThunk(
     try {
       // First fetch the module details
       const moduleResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/modules/${moduleId}/`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/${moduleId}/`
       );
 
       // Then fetch all lessons
@@ -222,7 +217,7 @@ export const fetchModule = createAsyncThunk(
   async (moduleId: string) => {
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/modules/${moduleId}/`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/${moduleId}/`
       );
       return response.data;
     } catch (error) {

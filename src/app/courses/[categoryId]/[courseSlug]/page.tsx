@@ -7,13 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchCourse } from "@/store/features/learningSlice";
 import { AppDispatch, RootState } from "@/store";
 import Image from "next/image";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
 // New imports
-import { LevelMarker } from "@/components/learning/ui/LevelMarker";
 import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
 import { LevelIndicator } from "@/components/learning/ui/LevelIndicator";
 import { Header } from "@/components/Header";
@@ -41,7 +39,7 @@ export default function CourseDetailPage() {
 
   const handleModuleClick = (moduleId: string | number) => {
     router.push(
-      `/courses/${params.categoryId}/${params.courseSlug}/modules/${moduleId}`
+      `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
     );
   };
 
@@ -129,9 +127,7 @@ export default function CourseDetailPage() {
                 {(currentCourse?.modules ?? []).map((module, index) => (
                   <div key={module.id} className="relative z-10 ">
                     {/* Level Indicator */}
-                    <div className="absolute left-1/2 -translate-x-8 -translate-y-10">
-                      <LevelIndicator level={index + 1} isLocked={index > 0} />
-                    </div>
+
 
                     {/* Module Block */}
                     <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
@@ -140,7 +136,7 @@ export default function CourseDetailPage() {
                         description={module.description}
                         icon={
                           ["question", "formula", "blocks", "puzzle"][
-                            index % 4
+                          index % 4
                           ] as "question" | "formula" | "blocks" | "puzzle"
                         }
                         progress={index === 0 ? 45 : 0}

@@ -47,13 +47,6 @@ export const fetchCourseDetails = createAsyncThunk(
   }
 );
 
-export const fetchCourseModules = createAsyncThunk(
-  "courses/fetchCourseModules",
-  async (courseId: number) => {
-    return await coursesService.getCourseModules(courseId);
-  }
-);
-
 export const fetchModuleLessons = createAsyncThunk(
   "courses/fetchModuleLessons",
   async (moduleId: number) => {
@@ -130,25 +123,7 @@ const coursesSlice = createSlice({
           status: (action.error as ApiError).status,
         };
       })
-      // Fetch Course Modules
-      .addCase(fetchCourseModules.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(fetchCourseModules.fulfilled, (state, action) => {
-        if (state.currentCourse) {
-          state.currentCourse.modules = action.payload;
-        }
-        state.status = "succeeded";
-        state.error = null;
-      })
-      .addCase(fetchCourseModules.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = {
-          message: action.error.message || "Something went wrong",
-          status: (action.error as ApiError).status,
-        };
-      })
+
       // Fetch Module Lessons
       .addCase(fetchModuleLessons.fulfilled, (state, action) => {
         if (state.currentModule) {

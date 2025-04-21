@@ -43,27 +43,53 @@ export interface Lesson {
   exercises?: Exercise[];
 }
 
+export type BlockType =
+  | "text"
+  | "image"
+  | "video"
+  | "example"
+  | "problem"
+  | "note"
+  | "code"
+  | "quiz"
+  | "exercise"
+  | "interactive";
+
+export interface TextContent {
+  desc: string;
+  text: string;
+  format: "markdown";
+}
+
+export interface ImageContent {
+  url: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption?: string;
+}
+
 export interface LessonContentBlock {
-  id: number;
-  lesson_id: number;
-  block_type:
-    | "text"
-    | "image"
-    | "video"
-    | "example"
-    | "problem"
-    | "interactive";
-  content: string | ProblemContent;
-  order: number;
-  created_at: string;
+  block_type: BlockType;
+  content: string | TextContent | ImageContent | ProblemContent;
+  order?: number;
 }
 
 export interface ProblemContent {
   question: string;
+  question_text?: string;
+  question_type?: "mcq" | "short_input" | "code";
   options: string[];
   correct_answer: string;
-  explanation: string;
+  explanation?: string;
   image?: string;
+  language?: string;
+  hints?: Array<{
+    content: string;
+  }>;
+  solution_steps?: Array<{
+    explanation: string;
+  }>;
 }
 
 export interface Exercise {

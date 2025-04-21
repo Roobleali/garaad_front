@@ -6,10 +6,11 @@ import { RootState, AppDispatch } from '@/store';
 import { fetchLesson, submitAnswer } from '@/store/features/learningSlice';
 import AnswerFeedback from '@/components/AnswerFeedback';
 import LessonHeader from '@/components/LessonHeader';
-import type { LessonContentBlock, ProblemContent } from '@/types/learning';
+import type { LessonContentBlock, ProblemContent, TextContent } from '@/types/learning';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, AlertCircle, Scale, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface ScaleBalanceProblem {
     equation: string;
@@ -127,6 +128,7 @@ const LessonPage = () => {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
     const [showExplanation, setShowExplanation] = useState(false);
+    const continueSound = new Audio('/sounds/continue.mp3');
 
     useEffect(() => {
         if (params.lessonId) {
@@ -137,6 +139,7 @@ const LessonPage = () => {
     const handleContinue = () => {
         const contentBlocks = currentLesson?.content_blocks || [];
         if (contentBlocks.length > 0) {
+            continueSound.play();
             setCurrentBlockIndex(prev => Math.min(prev + 1, contentBlocks.length - 1));
             setSelectedOption(null);
             setShowExplanation(false);
@@ -155,7 +158,22 @@ const LessonPage = () => {
         }
     };
 
+    const renderContinueButton = (isLastBlock: boolean) => (
+        <Button
+            onClick={handleContinue}
+            className="px-8 py-6 text-lg rounded-full"
+        >
+            {isLastBlock ? 'Finish' : 'Continue'}
+            <ChevronRight className="ml-2 h-5 w-5" />
+        </Button>
+    );
+
     const renderBlock = (block: LessonContentBlock) => {
+        const sortedBlocks = [...(currentLesson?.content_blocks || [])].sort((a, b) =>
+            (a.order || 0) - (b.order || 0)
+        );
+        const isLastBlock = currentBlockIndex === sortedBlocks.length - 1;
+
         switch (block.block_type) {
             case 'problem': {
                 const content = typeof block.content === 'string'
@@ -251,28 +269,24 @@ const LessonPage = () => {
             }
             case 'text': {
                 const textContent = typeof block.content === 'string'
-                    ? block.content
-                    : 'text' in block.content
-                        ? (block.content as { text: string }).text
-                        : JSON.stringify(block.content);
+                    ? JSON.parse(block.content) as TextContent
+                    : block.content as TextContent;
 
                 return (
-                    <div className="space-y-6">
-                        <div className="prose dark:prose-invert max-w-none">
-                            <div
-                                className="text-lg"
-                                dangerouslySetInnerHTML={{
-                                    __html: textContent
-                                }}
-                            />
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
+                        <div className="w-full space-y-6">
+                            {textContent.text && (
+                                <ReactMarkdown>{textContent.text}</ReactMarkdown>
+                            )}
+                            {textContent.desc && (
+                                <div className="text-muted-foreground mt-4">
+                                    <ReactMarkdown>{textContent.desc}</ReactMarkdown>
+                                </div>
+                            )}
+                            <div className="flex justify-center">
+                                {renderContinueButton(isLastBlock)}
+                            </div>
                         </div>
-                        <Button
-                            onClick={handleContinue}
-                            className="w-full sm:w-auto"
-                        >
-                            Continue
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
                     </div>
                 );
             }
@@ -307,48 +321,49 @@ const LessonPage = () => {
                 );
             }
             case 'image': {
-                const content = typeof block.content === 'string'
-                    ? { image_url: block.content }
-                    : 'image_url' in block.content
-                        ? block.content as { image_url: string; caption?: string; alt_text?: string }
-                        : null;
+                const imageContent = typeof block.content === 'string'
+                    ? JSON.parse(block.content)
+                    : block.content;
 
-                if (!content?.image_url) {
+                if (!imageContent?.url) {
                     return (
-                        <div className="p-4 border rounded-lg">
-                            <p className="text-muted-foreground">Image not available</p>
-                            <Button
-                                onClick={handleContinue}
-                                className="mt-4 w-full sm:w-auto"
-                            >
-                                Continue
-                                <ChevronRight className="ml-2 h-4 w-4" />
-                            </Button>
+                        <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
+                            <div className="p-4 border rounded-lg text-center">
+                                <p className="text-muted-foreground">Image not available</p>
+                                <div className="flex justify-center">
+                                    {renderContinueButton(isLastBlock)}
+                                </div>
+                            </div>
                         </div>
                     );
                 }
 
                 return (
-                    <div className="space-y-6">
-                        <figure className="space-y-2">
-                            <img
-                                src={content.image_url}
-                                alt={content.alt_text || "Lesson content"}
-                                className="w-full rounded-lg shadow-sm"
-                            />
-                            {content.caption && (
-                                <figcaption className="text-center text-sm text-muted-foreground">
-                                    {content.caption}
-                                </figcaption>
-                            )}
-                        </figure>
-                        <Button
-                            onClick={handleContinue}
-                            className="w-full sm:w-auto"
-                        >
-                            Continue
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
+                        <div className="w-full space-y-6">
+                            <figure className="space-y-3">
+                                <div className="flex justify-center">
+                                    <div className="relative rounded-lg overflow-hidden shadow-lg" style={{ maxWidth: '320px', maxHeight: '320px' }}>
+                                        <img
+                                            src={imageContent.url}
+                                            alt={imageContent.alt || "Lesson content"}
+                                            width={imageContent.width}
+                                            height={imageContent.height}
+                                            className="w-full h-full object-contain"
+                                            style={{ aspectRatio: `${imageContent.width} / ${imageContent.height}` }}
+                                        />
+                                    </div>
+                                </div>
+                                {imageContent.caption && (
+                                    <figcaption className="text-center text-base text-muted-foreground">
+                                        {imageContent.caption}
+                                    </figcaption>
+                                )}
+                            </figure>
+                            <div className="flex justify-center">
+                                {renderContinueButton(isLastBlock)}
+                            </div>
+                        </div>
                     </div>
                 );
             }
@@ -411,35 +426,20 @@ const LessonPage = () => {
     console.log(currentBlock)
     return (
         <div className="min-h-screen bg-white">
-            <LessonHeader
-                currentQuestion={currentBlockIndex + 1}
-                totalQuestions={sortedBlocks.length}
-            />
-            <main className="max-w-3xl mx-auto px-4 pt-20 pb-32">
-                <div className="space-y-8">
+
+            <div className="max-w-2xl mx-auto px-4 mt-8 flex justify-between items-center">
+                <LessonHeader
+                    currentQuestion={currentBlockIndex + 1}
+                    totalQuestions={sortedBlocks.length}
+                />
+
+            </div>
+            <main className="pt-20 pb-32">
+                <div>
                     {currentBlock && renderBlock(currentBlock)}
                 </div>
 
-                <div className="mt-8 flex justify-between items-center">
-                    <div className="flex gap-1">
-                        {sortedBlocks.map((_, index) => (
-                            <div
-                                key={index}
-                                className={cn(
-                                    "w-2 h-2 rounded-full",
-                                    index === currentBlockIndex
-                                        ? "bg-primary"
-                                        : index < currentBlockIndex
-                                            ? "bg-primary/30"
-                                            : "bg-gray-200"
-                                )}
-                            />
-                        ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                        {currentBlockIndex + 1} of {sortedBlocks.length}
-                    </span>
-                </div>
+
             </main>
             <AnswerFeedback />
         </div>

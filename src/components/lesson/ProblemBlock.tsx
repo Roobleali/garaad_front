@@ -6,6 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type Problem } from "@/types/learning";
+import dynamic from 'next/dynamic';
+
+// Dynamically import the code editor to avoid SSR issues
+const CodeEditor = dynamic(() => import('@/components/ui/code-editor'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-32 bg-muted animate-pulse rounded-md" />
+    ),
+});
 
 interface ProblemBlockProps {
     content: string;
@@ -31,102 +40,107 @@ export function ProblemBlock({ content }: ProblemBlockProps) {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Question */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{problem.question_text}</h3>
+        <Card className="p-6">
+            <div className="space-y-6">
+                {/* Question */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">{problem.question_text}</h3>
 
-                {/* Multiple Choice */}
-                {problem.question_type === "mcq" && problem.options && (
-                    <RadioGroup
-                        value={selectedAnswer}
-                        onValueChange={setSelectedAnswer}
-                        className="space-y-2"
-                    >
-                        {problem.options.map((option, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                                <RadioGroupItem value={option} id={`option-${index}`} />
-                                <Label htmlFor={`option-${index}`}>{option}</Label>
-                            </div>
-                        ))}
-                    </RadioGroup>
-                )}
-
-                {/* Short Input */}
-                {problem.question_type === "short_input" && (
-                    <Input
-                        value={selectedAnswer}
-                        onChange={(e) => setSelectedAnswer(e.target.value)}
-                        placeholder="Enter your answer"
-                    />
-                )}
-
-                {/* Code Input - You can integrate a code editor here */}
-                {problem.question_type === "code" && (
-                    <textarea
-                        value={selectedAnswer}
-                        onChange={(e) => setSelectedAnswer(e.target.value)}
-                        className="w-full h-32 font-mono p-2 border rounded"
-                        placeholder="Write your code here..."
-                    />
-                )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-4">
-                <Button onClick={handleSubmit}>Submit Answer</Button>
-                <Button
-                    variant="outline"
-                    onClick={() => setShowHints(true)}
-                    disabled={!problem.hints?.length}
-                >
-                    Show Hints
-                </Button>
-                <Button
-                    variant="outline"
-                    onClick={() => setShowSolution(true)}
-                    disabled={!problem.solution_steps?.length}
-                >
-                    Show Solution
-                </Button>
-            </div>
-
-            {/* Feedback */}
-            {isCorrect !== null && (
-                <Alert variant={isCorrect ? "default" : "destructive"}>
-                    <AlertDescription>
-                        {isCorrect ? "Correct!" : "Try again. Check the hints if you need help."}
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {/* Hints */}
-            {showHints && problem.hints && (
-                <Card className="p-4">
-                    <h4 className="font-semibold mb-2">Hint {currentHintIndex + 1}</h4>
-                    <p className="mb-4">{problem.hints[currentHintIndex].content}</p>
-                    {currentHintIndex < problem.hints.length - 1 && (
-                        <Button variant="outline" onClick={handleNextHint}>
-                            Next Hint
-                        </Button>
+                    {/* Multiple Choice */}
+                    {problem.question_type === "mcq" && problem.options && (
+                        <RadioGroup
+                            value={selectedAnswer}
+                            onValueChange={setSelectedAnswer}
+                            className="space-y-2"
+                        >
+                            {problem.options.map((option, index) => (
+                                <div key={index} className="flex items-center space-x-2">
+                                    <RadioGroupItem value={option} id={`option-${index}`} />
+                                    <Label htmlFor={`option-${index}`}>{option}</Label>
+                                </div>
+                            ))}
+                        </RadioGroup>
                     )}
-                </Card>
-            )}
 
-            {/* Solution */}
-            {showSolution && problem.solution_steps && (
-                <Card className="p-4">
-                    <h4 className="font-semibold mb-4">Solution</h4>
-                    <div className="space-y-4">
-                        {problem.solution_steps.map((step, index) => (
-                            <div key={index}>
-                                <h5 className="font-medium">Step {index + 1}</h5>
-                                <p>{step.explanation}</p>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
-        </div>
+                    {/* Short Input */}
+                    {problem.question_type === "short_input" && (
+                        <Input
+                            value={selectedAnswer}
+                            onChange={(e) => setSelectedAnswer(e.target.value)}
+                            placeholder="Enter your answer"
+                        />
+                    )}
+
+                    {/* Code Input */}
+                    {problem.question_type === "code" && (
+                        <div className="border rounded-md overflow-hidden">
+                            <CodeEditor
+                                value={selectedAnswer}
+                                onChange={setSelectedAnswer}
+                                language={problem.language || "javascript"}
+                                theme="vs-dark"
+                                height="200px"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-4">
+                    <Button onClick={handleSubmit}>Submit Answer</Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowHints(true)}
+                        disabled={!problem.hints?.length}
+                    >
+                        Show Hints
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setShowSolution(true)}
+                        disabled={!problem.solution_steps?.length}
+                    >
+                        Show Solution
+                    </Button>
+                </div>
+
+                {/* Feedback */}
+                {isCorrect !== null && (
+                    <Alert variant={isCorrect ? "default" : "destructive"}>
+                        <AlertDescription>
+                            {isCorrect ? "Correct!" : "Try again. Check the hints if you need help."}
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Hints */}
+                {showHints && problem.hints && (
+                    <Card className="p-4">
+                        <h4 className="font-semibold mb-2">Hint {currentHintIndex + 1}</h4>
+                        <p className="mb-4">{problem.hints[currentHintIndex].content}</p>
+                        {currentHintIndex < problem.hints.length - 1 && (
+                            <Button variant="outline" onClick={handleNextHint}>
+                                Next Hint
+                            </Button>
+                        )}
+                    </Card>
+                )}
+
+                {/* Solution */}
+                {showSolution && problem.solution_steps && (
+                    <Card className="p-4">
+                        <h4 className="font-semibold mb-4">Solution</h4>
+                        <div className="space-y-4">
+                            {problem.solution_steps.map((step, index) => (
+                                <div key={index}>
+                                    <h5 className="font-medium">Step {index + 1}</h5>
+                                    <p>{step.explanation}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                )}
+            </div>
+        </Card>
     );
 } 
