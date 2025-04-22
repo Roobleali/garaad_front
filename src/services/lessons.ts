@@ -1,5 +1,5 @@
+import axios from "axios";
 import { baseURL } from "@/config";
-import AuthService from "@/services/auth";
 
 export interface ContentBlock {
   id: number;
@@ -21,16 +21,12 @@ export interface ContentBlock {
 }
 
 export interface Lesson {
-  id: number;
+  id: string;
   title: string;
-  slug: string;
-  module: string;
-  lesson_number: number;
-  estimated_time: number;
-  is_published: boolean;
-  content_blocks: ContentBlock[];
-  created_at: string;
-  updated_at: string;
+  description: string;
+  content: ContentBlock[];
+  order: number;
+  courseId: string;
 }
 
 export interface Problem {
@@ -69,60 +65,55 @@ export interface PracticeSet {
   updated_at: string;
 }
 
-export const lessonService = {
-  async getLessons() {
-    try {
-      const response = await fetch(`${baseURL}/api/lms/lessons/`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch lessons");
-      }
-      return (await response.json()) as Lesson[];
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-      throw error;
-    }
-  },
+class LessonService {
+  private static instance: LessonService;
+  private baseUrl: string;
 
-  async getLesson(lessonId: number) {
-    try {
-      const response = await fetch(`${baseURL}/api/lms/lessons/${lessonId}/`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch lesson");
-      }
-      return (await response.json()) as Lesson;
-    } catch (error) {
-      console.error("Error fetching lesson:", error);
-      throw error;
-    }
-  },
+  private constructor() {
+    this.baseUrl = `${baseURL}lessons`;
+  }
 
-  async getPracticeSets(lessonId: number) {
-    try {
-      const response = await fetch(
-        `${baseURL}/api/lms/practice-sets/?lesson=${lessonId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch practice sets");
-      }
-      return (await response.json()) as PracticeSet[];
-    } catch (error) {
-      console.error("Error fetching practice sets:", error);
-      throw error;
+  public static getInstance(): LessonService {
+    if (!LessonService.instance) {
+      LessonService.instance = new LessonService();
     }
-  },
+    return LessonService.instance;
+  }
 
-  async getPracticeSet(practiceSetId: number) {
+  async getLesson(lessonId: string): Promise<Lesson> {
     try {
-      const response = await fetch(
-        `${baseURL}/api/lms/practice-sets/${practiceSetId}/`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch practice set");
+      const response = await axios.get(`${this.baseUrl}/${lessonId}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch lesson: ${error.message}`);
       }
-      return (await response.json()) as PracticeSet;
-    } catch (error) {
-      console.error("Error fetching practice set:", error);
-      throw error;
+      throw new Error("Failed to fetch lesson");
     }
-  },
-};
+  }
+
+  async getLessonsByCourse(courseId: string): Promise<Lesson[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/course/${courseId}`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch lessons: ${error.message}`);
+      }
+      throw new Error("Failed to fetch lessons");
+    }
+  }
+
+  async completeLesson(lessonId: string): Promise<void> {
+    try {
+      await axios.post(`${this.baseUrl}/${lessonId}/complete`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to complete lesson: ${error.message}`);
+      }
+      throw new Error("Failed to complete lesson");
+    }
+  }
+}
+
+export default LessonService;

@@ -6,15 +6,12 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { ProfileDropdown } from "./layout/ProfileDropdown";
 import { usePathname } from "next/navigation";
-import { FolderDot, HomeIcon, Menu } from "lucide-react";
-import { useState } from "react";
+import { FolderDot, } from "lucide-react";
 import clsx from "clsx";
-import { Button } from "./ui/button";
 
 export function Header() {
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
     { name: "Koorsooyinka", href: "/courses", icon: FolderDot },

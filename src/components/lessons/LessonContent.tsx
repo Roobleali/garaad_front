@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Lesson, ContentBlock } from "@/services/lessons";
+import { Lesson, LessonContentBlock, TextContent, ProblemContent } from "@/types/learning";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ interface QuizState {
 }
 
 const ContentBlockRenderer: React.FC<{
-    block: ContentBlock;
+    block: LessonContentBlock;
     onQuizSubmit?: (blockId: number, answer: string) => void;
     onContinue: () => void;
 }> = ({ block, onQuizSubmit, onContinue }) => {
@@ -38,16 +38,18 @@ const ContentBlockRenderer: React.FC<{
     };
 
     const handleQuizSubmit = () => {
-        if (!quizState.selectedAnswer || !block.content.correct) return;
+        if (!quizState.selectedAnswer || !block.content || typeof block.content !== 'object' || !('correct_answer' in block.content)) return;
 
-        const isCorrect = quizState.selectedAnswer === block.content.correct;
+        const isCorrect = quizState.selectedAnswer === block.content.correct_answer;
         setQuizState((prev) => ({
             ...prev,
             isSubmitted: true,
             isCorrect,
         }));
 
-        onQuizSubmit?.(block.id, quizState.selectedAnswer);
+        if (block.problem) {
+            onQuizSubmit?.(block.problem, quizState.selectedAnswer);
+        }
     };
 
     const toggleExplanation = () => {
@@ -59,10 +61,11 @@ const ContentBlockRenderer: React.FC<{
 
     switch (block.block_type) {
         case "text":
+            const textContent = block.content as TextContent;
             return (
                 <div className="space-y-6">
                     <div className="prose dark:prose-invert max-w-none">
-                        <p className="text-lg">{block.content.text}</p>
+                        <p className="text-lg">{textContent.text}</p>
                     </div>
                     <Button
                         onClick={onContinue}
@@ -74,19 +77,12 @@ const ContentBlockRenderer: React.FC<{
                 </div>
             );
         case "example":
+            const exampleContent = block.content as TextContent;
             return (
                 <div className="space-y-6">
                     <div className="space-y-4">
-                        <h3 className="text-xl font-semibold">{block.content.title}</h3>
-                        <p className="text-lg text-muted-foreground">{block.content.description}</p>
-                        <ul className="space-y-3 text-lg">
-                            {block.content.examples?.map((example, index) => (
-                                <li key={index} className="flex items-start">
-                                    <span className="mr-2">•</span>
-                                    <span>{example}</span>
-                                </li>
-                            ))}
-                        </ul>
+                        <h3 className="text-xl font-semibold">{exampleContent.desc}</h3>
+                        <p className="text-lg text-muted-foreground">{exampleContent.text}</p>
                     </div>
                     <Button
                         onClick={onContinue}
@@ -98,14 +94,15 @@ const ContentBlockRenderer: React.FC<{
                 </div>
             );
         case "interactive":
-            if (block.content.type === "quiz") {
+            const problemContent = block.content as ProblemContent;
+            if (problemContent.question_type === "mcq") {
                 return (
                     <div className="space-y-6">
                         <div className="space-y-4">
                             <h3 className="text-xl font-semibold">Practice Question</h3>
-                            <p className="text-lg">{block.content.question}</p>
+                            <p className="text-lg">{problemContent.question}</p>
                             <div className="grid gap-3">
-                                {block.content.options?.map((option, index) => (
+                                {problemContent.options?.map((option: string, index: number) => (
                                     <button
                                         key={index}
                                         className={cn(
@@ -117,10 +114,10 @@ const ContentBlockRenderer: React.FC<{
                                             "border-primary",
                                             quizState.isSubmitted && {
                                                 "border-green-500 bg-green-50 text-green-700":
-                                                    option === block.content.correct,
+                                                    option === problemContent.correct_answer,
                                                 "border-red-500 bg-red-50 text-red-700":
                                                     quizState.selectedAnswer === option &&
-                                                    option !== block.content.correct,
+                                                    option !== problemContent.correct_answer,
                                             }
                                         )}
                                         onClick={() => handleAnswerSelect(option)}
@@ -163,7 +160,7 @@ const ContentBlockRenderer: React.FC<{
                             )}
                         </div>
 
-                        {quizState.isSubmitted && quizState.showExplanation && (
+                        {quizState.isSubmitted && quizState.showExplanation && problemContent.explanation && (
                             <div className={cn(
                                 "p-4 rounded-lg",
                                 quizState.isCorrect ? "bg-green-50" : "bg-red-50"
@@ -172,7 +169,7 @@ const ContentBlockRenderer: React.FC<{
                                     {quizState.isCorrect ? "Correct!" : "Incorrect"}
                                 </p>
                                 <p className="text-lg">
-                                    {block.content.explanation}
+                                    {problemContent.explanation}
                                 </p>
                             </div>
                         )}
@@ -187,7 +184,7 @@ const ContentBlockRenderer: React.FC<{
 
 export const LessonContent: React.FC<LessonContentProps> = ({ lesson, onQuizSubmit }) => {
     const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
-    const sortedBlocks = lesson.content_blocks.sort((a, b) => a.order - b.order);
+    const sortedBlocks = lesson.content_blocks?.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) ?? [];
     const currentBlock = sortedBlocks[currentBlockIndex];
 
     const handleContinue = () => {
@@ -196,6 +193,26 @@ export const LessonContent: React.FC<LessonContentProps> = ({ lesson, onQuizSubm
         }
     };
 
+    if (!lesson.content_blocks?.length) {
+        return (
+            <div className="max-w-3xl mx-auto">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold">{lesson.title}</h1>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                        <span>Lesson {lesson.lesson_number}</span>
+                        <span>•</span>
+                        <span>{lesson.estimated_time}</span>
+                    </div>
+                </div>
+                <Card>
+                    <CardContent className="pt-6">
+                        <p className="text-muted-foreground">No content blocks available for this lesson.</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-3xl mx-auto">
             <div className="mb-8">
@@ -203,23 +220,25 @@ export const LessonContent: React.FC<LessonContentProps> = ({ lesson, onQuizSubm
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
                     <span>Lesson {lesson.lesson_number}</span>
                     <span>•</span>
-                    <span>{lesson.estimated_time} minutes</span>
+                    <span>{lesson.estimated_time}</span>
                 </div>
             </div>
 
             <Card>
                 <CardContent className="pt-6">
-                    <ContentBlockRenderer
-                        block={currentBlock}
-                        onQuizSubmit={onQuizSubmit}
-                        onContinue={handleContinue}
-                    />
+                    {currentBlock && (
+                        <ContentBlockRenderer
+                            block={currentBlock}
+                            onQuizSubmit={onQuizSubmit}
+                            onContinue={handleContinue}
+                        />
+                    )}
                 </CardContent>
             </Card>
 
             <div className="mt-4 flex justify-between items-center">
                 <div className="flex gap-1">
-                    {sortedBlocks.map((_, index) => (
+                    {sortedBlocks.map((_: LessonContentBlock, index: number) => (
                         <div
                             key={index}
                             className={cn(

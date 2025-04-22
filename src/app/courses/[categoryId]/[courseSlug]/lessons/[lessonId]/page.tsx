@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'next/navigation';
 import { RootState, AppDispatch } from '@/store';
-import { fetchLesson, submitAnswer } from '@/store/features/learningSlice';
+import { fetchLesson, submitAnswer, resetAnswerState } from '@/store/features/learningSlice';
 import AnswerFeedback from '@/components/AnswerFeedback';
 import LessonHeader from '@/components/LessonHeader';
 import type { LessonContentBlock, ProblemContent, TextContent } from '@/types/learning';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, AlertCircle, Scale, MinusCircle } from 'lucide-react';
+import { ChevronRight, Scale, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
@@ -128,7 +128,123 @@ const LessonPage = () => {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
     const [showExplanation, setShowExplanation] = useState(false);
-    const continueSound = new Audio('/sounds/continue.mp3');
+    const [currentBlock, setCurrentBlock] = useState<React.ReactNode>(null);
+    const [forceUpdate, setForceUpdate] = useState(0);
+
+    // Create refs for audio elements
+    const audioRefs = React.useRef<{ [key: string]: HTMLAudioElement | null }>({});
+
+    // Initialize audio elements
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            audioRefs.current = {
+                click: new Audio('/sounds/toggle-on.mp3'),
+                correct: new Audio('/sounds/correct.mp3'),
+                incorrect: new Audio('/sounds/incorrect.mp3'),
+                continue: new Audio('/sounds/lightweight-choice.mp3')
+            };
+
+            // Preload all sounds
+            Object.values(audioRefs.current).forEach(audio => {
+                if (audio) {
+                    audio.preload = 'auto';
+                    // Try to load the audio
+                    audio.load();
+                }
+            });
+        }
+
+        // Cleanup function
+        return () => {
+            Object.values(audioRefs.current).forEach(audio => {
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            });
+        };
+    }, []);
+
+    const playSound = async (soundName: 'click' | 'correct' | 'incorrect' | 'continue') => {
+        const audio = audioRefs.current[soundName];
+        if (audio) {
+            try {
+                audio.currentTime = 0;
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+            } catch (error) {
+                console.error(`Error playing ${soundName} sound:`, error);
+            }
+        }
+    };
+
+    // Debug state changes
+    useEffect(() => {
+        console.log('State updated:', {
+            selectedOption,
+            answerState,
+            currentBlockIndex,
+            currentBlock,
+            forceUpdate
+        });
+    }, [selectedOption, answerState, currentBlockIndex, currentBlock, forceUpdate]);
+
+    // Reset state when block changes
+    useEffect(() => {
+        setSelectedOption(null);
+        setShowExplanation(false);
+    }, [currentBlockIndex]);
+
+    const handleOptionSelect = (option: string) => {
+        console.log('Selecting option:', option);
+        // Reset answer state when selecting a new option
+        dispatch(resetAnswerState());
+        // Set the selected option
+        setSelectedOption(String(option));
+        // Force a re-render
+        setForceUpdate(prev => prev + 1);
+        // Play sound
+        playSound('click');
+    };
+
+    const handleCheckAnswer = async () => {
+        console.log('Checking answer, selectedOption:', selectedOption);
+        if (selectedOption === null || selectedOption === '') {
+            console.log('No option selected');
+            return;
+        }
+
+        try {
+            const result = await dispatch(submitAnswer({
+                lessonId: params.lessonId as string,
+                answer: selectedOption
+            })).unwrap();
+
+            console.log('Submit result:', result);
+
+            // Play sound based on result
+            if (result.correct) {
+                playSound('correct');
+            } else {
+                playSound('incorrect');
+            }
+        } catch (error) {
+            console.error('Error checking answer:', error);
+        }
+    };
+
+    const handleContinue = () => {
+        console.log('Continuing to next block');
+        const contentBlocks = currentLesson?.content_blocks || [];
+        if (contentBlocks.length > 0) {
+            playSound('continue');
+            setCurrentBlockIndex(prev => Math.min(prev + 1, contentBlocks.length - 1));
+            setSelectedOption(null);
+            setShowExplanation(false);
+        }
+    };
 
     useEffect(() => {
         if (params.lessonId) {
@@ -136,27 +252,24 @@ const LessonPage = () => {
         }
     }, [dispatch, params.lessonId]);
 
-    const handleContinue = () => {
-        const contentBlocks = currentLesson?.content_blocks || [];
-        if (contentBlocks.length > 0) {
-            continueSound.play();
-            setCurrentBlockIndex(prev => Math.min(prev + 1, contentBlocks.length - 1));
-            setSelectedOption(null);
-            setShowExplanation(false);
-        }
-    };
+    useEffect(() => {
+        const loadBlock = async () => {
+            console.log('Loading block:', currentBlockIndex);
+            if (currentLesson?.content_blocks && currentLesson.content_blocks.length > 0) {
+                const sortedBlocks = [...currentLesson.content_blocks].sort((a, b) =>
+                    (a.order || 0) - (b.order || 0)
+                );
+                const block = sortedBlocks[currentBlockIndex];
+                if (block) {
+                    console.log('Current block:', block);
+                    const renderedBlock = await renderBlock(block);
+                    setCurrentBlock(renderedBlock);
+                }
+            }
+        };
 
-    const handleOptionSelect = (option: string) => {
-        if (!answerState.lastAttempt) {
-            setSelectedOption(option);
-        }
-    };
-
-    const handleCheckAnswer = () => {
-        if (currentLesson && selectedOption) {
-            dispatch(submitAnswer({ lessonId: currentLesson.id.toString(), answer: selectedOption }));
-        }
-    };
+        loadBlock();
+    }, [currentLesson, currentBlockIndex]);
 
     const renderContinueButton = (isLastBlock: boolean) => (
         <Button
@@ -168,7 +281,48 @@ const LessonPage = () => {
         </Button>
     );
 
-    const renderBlock = (block: LessonContentBlock) => {
+    const renderOptions = (options: string[]) => {
+        console.log('Rendering options with selectedOption:', selectedOption);
+        return options.map((option, index) => {
+            const isSelected = selectedOption === String(option);
+            const isCorrect = answerState.lastAttempt === String(option) && answerState.isCorrect;
+            const isIncorrect = answerState.lastAttempt === String(option) && !answerState.isCorrect;
+
+            console.log('Option rendering state:', {
+                option,
+                isSelected,
+                selectedOption,
+                isCorrect,
+                isIncorrect
+            });
+
+            return (
+                <button
+                    key={`option-${index}-${option}`}
+                    type="button"
+                    onClick={() => handleOptionSelect(option)}
+                    disabled={!!answerState.lastAttempt}
+                    className={cn(
+                        "p-6 rounded-lg border-2 transition-all w-full text-center text-xl relative",
+                        "hover:border-[#58CC02] hover:bg-[#E5F7D4]/50",
+                        "focus:outline-none focus:ring-2 focus:ring-[#58CC02] focus:ring-offset-2",
+                        isSelected && !answerState.lastAttempt && "border-[#58CC02] bg-[#E5F7D4]",
+                        !isSelected && !answerState.lastAttempt && "border-gray-200",
+                        isCorrect && "border-[#58CC02] bg-[#D7FFB8] text-[#58CC02]",
+                        isIncorrect && "border-red-500 bg-red-50 text-red-700"
+                    )}
+                >
+                    <span className="block">{option}</span>
+                    {isSelected && !answerState.lastAttempt && (
+                        <div className="absolute inset-0 border-2 border-[#58CC02] rounded-lg pointer-events-none" />
+                    )}
+                </button>
+            );
+        });
+    };
+
+    const renderBlock = async (block: LessonContentBlock) => {
+        console.log('Rendering block:', block);
         const sortedBlocks = [...(currentLesson?.content_blocks || [])].sort((a, b) =>
             (a.order || 0) - (b.order || 0)
         );
@@ -176,94 +330,177 @@ const LessonPage = () => {
 
         switch (block.block_type) {
             case 'problem': {
-                const content = typeof block.content === 'string'
-                    ? JSON.parse(block.content) as ProblemContent
-                    : block.content as ProblemContent;
+                let content: ProblemContent;
+                try {
+                    const problemId = block.problem;
+                    if (!problemId) {
+                        console.error('No problem ID found in block:', block);
+                        return (
+                            <div className="p-4 border rounded-lg text-center">
+                                <p className="text-muted-foreground">Problem ID not found</p>
+                            </div>
+                        );
+                    }
+
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lms/problems/${problemId}/`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch problem: ${response.statusText}`);
+                    }
+                    const problemData = await response.json();
+
+                    console.log('Problem data from API:', problemData);
+
+                    content = {
+                        question: problemData.question_text,
+                        options: problemData.options.map((opt: { id: string; text: string }) => {
+                            console.log('Processing option:', opt);
+                            return opt.text;
+                        }),
+                        correct_answer: problemData.correct_answer[0]?.text || '',
+                        explanation: problemData.explanation || "No explanation available"
+                    };
+
+                    console.log('Transformed content:', content);
+
+                    if (!content || !content.options || !Array.isArray(content.options)) {
+                        console.error('Invalid problem content structure:', content);
+                        return (
+                            <div className="p-4 border rounded-lg text-center">
+                                <p className="text-muted-foreground">Problem content is not properly formatted</p>
+                            </div>
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error parsing problem content:', error);
+                    return (
+                        <div className="p-4 border rounded-lg text-center">
+                            <p className="text-muted-foreground">Error loading problem content</p>
+                        </div>
+                    );
+                }
 
                 return (
-                    <div className="space-y-8">
-                        <div className="space-y-6">
-                            <h2 className="text-2xl font-semibold">{content.question}</h2>
-                            {content.image && (
-                                <img
-                                    src={content.image}
-                                    alt="Problem illustration"
-                                    className="max-w-[400px] mx-auto rounded-lg"
-                                />
-                            )}
-                        </div>
+                    <div className="max-w-2xl mx-auto px-4">
+                        <div className="space-y-8">
+                            {/* Question and Scale Image */}
+                            <div className="max-w-[600px] mx-auto mb-8">
+                                {content.image && (
+                                    <div className="flex justify-center mb-6">
+                                        <img
+                                            src={content.image}
+                                            alt="Question visualization"
+                                            className="w-auto h-[200px] object-contain"
+                                        />
+                                    </div>
+                                )}
+                                <h3 className="text-2xl font-semibold text-center mb-8">{content.question}</h3>
+                            </div>
 
-                        <div className="grid gap-3">
-                            {content.options.map((option: string) => {
-                                const isSelected = option === selectedOption;
-                                const wasSelected = option === answerState.lastAttempt;
-                                const isCorrect = answerState.showAnswer && option === content.correct_answer;
-                                const isIncorrect = answerState.showAnswer && wasSelected && !isCorrect;
+                            {/* Options Grid */}
+                            <div className="grid grid-cols-2 gap-4 max-w-[600px] mx-auto">
+                                {renderOptions(content.options)}
+                            </div>
 
-                                return (
+                            {/* Check Button */}
+                            <div className="flex justify-center mt-8">
+                                {!answerState.lastAttempt && (
                                     <button
-                                        key={option}
-                                        onClick={() => handleOptionSelect(option)}
-                                        disabled={answerState.showAnswer}
+                                        type="button"
+                                        onClick={handleCheckAnswer}
+                                        disabled={!selectedOption}
                                         className={cn(
-                                            "p-4 text-left rounded-lg border-2 transition-all w-full",
-                                            "hover:border-primary/50",
-                                            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                                            isSelected && !answerState.showAnswer && "border-primary",
-                                            {
-                                                "border-green-500 bg-green-50 text-green-700": isCorrect,
-                                                "border-red-500 bg-red-50 text-red-700": isIncorrect
-                                            }
+                                            "w-full max-w-[240px] py-4 text-xl font-bold rounded-2xl transition-all",
+                                            "disabled:opacity-50 disabled:cursor-not-allowed",
+                                            selectedOption
+                                                ? "bg-[#58CC02] hover:bg-[#58CC02]/90 text-white"
+                                                : "bg-[#E5E5E5] text-[#AFAFAF]"
                                         )}
                                     >
-                                        <span className="text-lg">{option}</span>
+                                        Check
                                     </button>
-                                );
-                            })}
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            {!answerState.showAnswer && selectedOption && (
-                                <Button
-                                    onClick={handleCheckAnswer}
-                                    className="flex-1"
-                                >
-                                    Check Answer
-                                </Button>
-                            )}
-
-                            {answerState.showAnswer && (
-                                <>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setShowExplanation(!showExplanation)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <AlertCircle className="h-4 w-4" />
-                                        Why?
-                                    </Button>
-                                    <Button
-                                        onClick={handleContinue}
-                                        className="flex-1"
-                                    >
-                                        Continue
-                                        <ChevronRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-
-                        {answerState.showAnswer && showExplanation && content.explanation && (
-                            <div className={cn(
-                                "p-4 rounded-lg",
-                                answerState.isCorrect ? "bg-green-50" : "bg-red-50"
-                            )}>
-                                <p className="text-lg font-medium mb-2">
-                                    {answerState.isCorrect ? "Correct!" : "Incorrect"}
-                                </p>
-                                <p className="text-lg">{content.explanation}</p>
+                                )}
                             </div>
-                        )}
+
+                            {/* Debug info */}
+                            <pre className="text-sm text-gray-500 text-center mt-4">
+                                {JSON.stringify({
+                                    selectedOption: selectedOption || 'none',
+                                    lastAttempt: answerState.lastAttempt || 'none',
+                                    isCorrect: answerState.isCorrect,
+                                    showAnswer: answerState.showAnswer,
+                                    options: content.options,
+                                    forceUpdate
+                                }, null, 2)}
+                            </pre>
+
+                            {/* Feedback Cards */}
+                            {answerState.showAnswer && (
+                                <div className="mt-6">
+                                    {answerState.isCorrect ? (
+                                        <div className="bg-[#D7FFB8] border border-[#58CC02] rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6">
+                                                    <svg viewBox="0 0 24 24" className="text-[#58CC02]" fill="currentColor">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                                    </svg>
+                                                </div>
+                                                <span className="font-bold text-[#58CC02]">Correct!</span>
+                                                <span className="text-[#58CC02] font-bold">+15 XP</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowExplanation(!showExplanation)}
+                                                    className="border-[#58CC02] text-[#58CC02] hover:bg-[#D7FFB8]/50"
+                                                >
+                                                    Why?
+                                                </Button>
+                                                <Button
+                                                    onClick={handleContinue}
+                                                    className="bg-[#58CC02] hover:bg-[#58CC02]/90 text-white"
+                                                >
+                                                    Continue
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-[#FFF5F5] border border-red-200 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <p className="font-medium text-red-600">That&apos;s incorrect. Try again.</p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    className="bg-[#1C1B1F] text-white hover:bg-[#1C1B1F]/90"
+                                                    onClick={() => {
+                                                        setSelectedOption(null);
+                                                        dispatch(resetAnswerState());
+                                                    }}
+                                                >
+                                                    Try again
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setShowExplanation(!showExplanation)}
+                                                    className="border-red-200 text-red-600 hover:bg-red-50"
+                                                >
+                                                    See answer
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Explanation */}
+                            {showExplanation && (
+                                <div className={cn(
+                                    "p-4 rounded-lg mt-4",
+                                    answerState.isCorrect ? "bg-green-50 border border-green-100" : "bg-amber-50 border border-amber-100"
+                                )}>
+                                    <p className="text-lg">{content.explanation}</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 );
             }
@@ -419,31 +656,22 @@ const LessonPage = () => {
         );
     }
 
-    const sortedBlocks = [...(currentLesson.content_blocks || [])].sort((a, b) =>
-        (a.order || 0) - (b.order || 0)
-    );
-    const currentBlock = sortedBlocks[currentBlockIndex];
-    console.log(currentBlock)
     return (
         <div className="min-h-screen bg-white">
-
             <div className="max-w-2xl mx-auto px-4 mt-8 flex justify-between items-center">
                 <LessonHeader
                     currentQuestion={currentBlockIndex + 1}
-                    totalQuestions={sortedBlocks.length}
+                    totalQuestions={currentLesson.content_blocks?.length || 0}
                 />
-
             </div>
             <main className="pt-20 pb-32">
                 <div>
-                    {currentBlock && renderBlock(currentBlock)}
+                    {currentBlock}
                 </div>
-
-
             </main>
             <AnswerFeedback />
         </div>
     );
 };
 
-export default LessonPage; 
+export default LessonPage;

@@ -1,12 +1,13 @@
+import React from "react";
 import { Lock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface LevelMarkerProps {
   level: number;
   isLocked?: boolean;
 }
 
-export function LevelMarker({ level, isLocked = false }: LevelMarkerProps) {
+export const LevelMarker: React.FC<LevelMarkerProps> = ({ level, isLocked = false }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -24,15 +25,13 @@ export function LevelMarker({ level, isLocked = false }: LevelMarkerProps) {
         className={`
           relative w-20 h-20 rounded-full flex items-center justify-center mx-auto
           transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-          ${
-            isHovered && !isLocked
-              ? "rotate-x-[20deg] rotate-z-[-5deg] translate-z-8"
-              : ""
+          ${isHovered && !isLocked
+            ? "rotate-x-[20deg] rotate-z-[-5deg] translate-z-8"
+            : ""
           }
-          ${
-            isLocked
-              ? "bg-gradient-to-br from-gray-400 to-gray-600"
-              : "bg-gradient-to-br from-blue-400 to-blue-600"
+          ${isLocked
+            ? "bg-gradient-to-br from-gray-400 to-gray-600"
+            : "bg-gradient-to-br from-blue-400 to-blue-600"
           }
           shadow-2xl shadow-blue-900/40 hover:shadow-blue-900/60
           hover:scale-110
@@ -54,9 +53,8 @@ export function LevelMarker({ level, isLocked = false }: LevelMarkerProps) {
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-sm">
             <Lock
-              className={`h-8 w-8 text-white transform transition-transform duration-500 ${
-                isHovered ? "animate-bounce-slow" : ""
-              }`}
+              className={`h-8 w-8 text-white transform transition-transform duration-500 ${isHovered ? "animate-bounce-slow" : ""
+                }`}
             />
           </div>
         )}

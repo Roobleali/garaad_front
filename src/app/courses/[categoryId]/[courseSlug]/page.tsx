@@ -11,10 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
-// New imports
-// import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
-// import { LevelIndicator } from "@/components/learning/ui/LevelIndicator";
-import { Header } from "@/components/Header";
+ 
+import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
+ import { Header } from "@/components/Header";
 import ModuleZigzag from "@/components/learning/ui/ModuleZigzag";
 import { Module } from "@/types/learning";
 

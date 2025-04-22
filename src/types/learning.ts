@@ -73,6 +73,7 @@ export interface LessonContentBlock {
   block_type: BlockType;
   content: string | TextContent | ImageContent | ProblemContent;
   order?: number;
+  problem?: number;
 }
 
 export interface ProblemContent {

@@ -6,11 +6,9 @@ import { LessonContentBlock, ProblemContent } from '@/types/learning';
 import ExplanationModal from './ExplanationModal';
 
 const SuccessIcon = () => (
-    <div className="w-8 h-8">
-        <svg viewBox="0 0 48 48" className="text-[#58CC02]" fill="currentColor">
-            <path d="M14 24a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H16a2 2 0 01-2-2V24z" />
-            <path d="M21 23a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" fill="white" />
-            <path fillRule="evenodd" clipRule="evenodd" d="M24 9c-4.902 0-7.071 1.434-7.071 1.434l-.129.066C14.408 11.652 13 14.118 13 17v19a2 2 0 002 2h18a2 2 0 002-2V17c0-2.882-1.408-5.348-3.8-6.5l-.129-.066S28.902 9 24 9zM15 24a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H16a1 1 0 01-1-1V24z" />
+    <div className="w-6 h-6">
+        <svg viewBox="0 0 24 24" className="text-[#58CC02]" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
         </svg>
     </div>
 );
@@ -76,35 +74,47 @@ const AnswerFeedback = () => {
                             <div className="flex items-center gap-2">
                                 {answerState.isCorrect ? (
                                     <>
-                                        <span className="font-bold text-[#58CC02]">Waa sax!</span>
+                                        <span className="font-bold text-[#58CC02]">Correct!</span>
                                         <span className="text-[#58CC02] font-bold">+15 XP</span>
                                     </>
                                 ) : (
-                                    <span className="font-medium">Ma ahan. Isku day mar kale.</span>
+                                    <span className="font-medium text-red-600">That&apos;s incorrect. Try again.</span>
                                 )}
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {answerState.isCorrect && (
-                                <button
-                                    onClick={handleWhyClick}
-                                    className="px-6 py-2.5 rounded-xl text-sm font-bold bg-white/80 text-[#1C1B1F] hover:bg-white transition-colors border border-[#1C1B1F]/10"
-                                >
-                                    Maxay?
-                                </button>
+                            {answerState.isCorrect ? (
+                                <>
+                                    <button
+                                        onClick={handleWhyClick}
+                                        className="px-4 py-2 rounded-xl text-sm font-bold bg-white/80 text-[#1C1B1F] hover:bg-white transition-colors border border-[#1C1B1F]/10"
+                                    >
+                                        Why?
+                                    </button>
+                                    <button
+                                        onClick={() => dispatch(resetAnswerState())}
+                                        className="px-4 py-2 rounded-xl text-sm font-bold bg-[#58CC02] text-white hover:bg-[#58CC02]/90 transition-colors"
+                                    >
+                                        Continue
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => dispatch(resetAnswerState())}
+                                        className="px-4 py-2 rounded-xl text-sm font-bold bg-[#1C1B1F] text-white hover:bg-black/90 transition-colors"
+                                    >
+                                        Try again
+                                    </button>
+                                    <button
+                                        onClick={handleWhyClick}
+                                        className="px-4 py-2 rounded-xl text-sm font-bold bg-white text-[#1C1B1F] hover:bg-gray-50 transition-colors border border-[#1C1B1F]/10"
+                                    >
+                                        See answer
+                                    </button>
+                                </>
                             )}
-                            <button
-                                onClick={() => dispatch(resetAnswerState())}
-                                className={`
-                                    px-6 py-2.5 rounded-xl text-sm font-bold transition-colors
-                                    ${answerState.isCorrect
-                                        ? 'bg-[#58CC02] text-white hover:bg-[#58CC02]/90'
-                                        : 'bg-[#1C1B1F] text-white hover:bg-black/90'}
-                                `}
-                            >
-                                {answerState.isCorrect ? 'Sii wad' : 'Isku day mar kale'}
-                            </button>
                         </div>
                     </div>
                 </div>

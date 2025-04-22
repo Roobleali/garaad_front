@@ -21,7 +21,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
-import { login, resetError } from "@/store/features/authSlice";
+import { login, clearError } from "@/store/features/authSlice";
 import type { AppDispatch } from "@/store";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -31,6 +31,7 @@ import { X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import type { SignUpData } from "@/types/auth";
 
 // Define the form schema
 const formSchema = z.object({
@@ -45,7 +46,8 @@ export function AuthDialog() {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const authState = useSelector((state: RootState) => state.auth);
-  const { error, isLoading, isAuthenticated } = authState;
+  const { error, loading: isLoading, user } = authState;
+  const isAuthenticated = !!user;
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -60,7 +62,7 @@ export function AuthDialog() {
   useEffect(() => {
     if (!open) {
       form.reset();
-      dispatch(resetError());
+      dispatch(clearError());
     }
   }, [open, form, dispatch]);
 
@@ -76,7 +78,7 @@ export function AuthDialog() {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        dispatch(resetError());
+        dispatch(clearError());
       }, 5000);
 
       return () => clearTimeout(timer);
@@ -87,32 +89,35 @@ export function AuthDialog() {
   useEffect(() => {
     if (error) {
       toast({
-        title: "Cilad ayaa dhacday",
-        description: error,
         variant: "destructive",
+        title: "Khalad ayaa dhacay",
+        description: error,
       });
+      dispatch(clearError());
     }
-  }, [error, toast]);
+  }, [error, toast, dispatch]);
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isLogin) {
-        await dispatch(login(data)).unwrap();
+        const result = await dispatch(login({ email: values.email, password: values.password }));
+        if (result) {
+          router.push("/courses");
+        }
       } else {
-        const signupData = {
-          ...data,
-          name: data.email.split("@")[0],
-          goal: "learn",
-          learning_approach: "structured",
-          topic: "general",
-          math_level: "intermediate",
-          minutes_per_day: 30,
+        const signupData: SignUpData = {
+          email: values.email,
+          password: values.password,
+          first_name: values.email.split("@")[0],
+          last_name: ""
         };
-        await dispatch(signup(signupData)).unwrap();
+        const result = await dispatch(signup(signupData));
+        if (result) {
+          router.push("/courses");
+        }
       }
     } catch (error) {
       console.error("Auth error:", error);
-      // Error handling is already done by the auth slice
     }
   };
 
@@ -124,11 +129,11 @@ export function AuthDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:max-w-[425px]"
+        className="sm:max-w-[425px] transform transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-bottom-[48%] data-[state=open]:slide-in-from-bottom-[48%]"
         aria-describedby="auth-description"
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-4">
+          <DialogTitle className="text-2xl font-bold text-center mb-4 animate-in fade-in-50 duration-500">
             Soo gal
           </DialogTitle>
         </DialogHeader>
@@ -137,7 +142,7 @@ export function AuthDialog() {
           Doorashooyinka soo gelista: Google, Facebook, ama email
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in-50 duration-500 delay-200">
           <Button
             variant="outline"
             className="w-full flex items-center gap-2 mb-4 cursor-not-allowed relative"
@@ -202,7 +207,7 @@ export function AuthDialog() {
                     <button
                       type="button"
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                      onClick={() => dispatch(resetError())}
+                      onClick={() => dispatch(clearError())}
                     >
                       <X size={16} />
                     </button>
