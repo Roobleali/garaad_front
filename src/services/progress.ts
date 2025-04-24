@@ -2,6 +2,7 @@ import { baseURL } from "@/config";
 import AuthService from "@/services/auth";
 
 export interface UserProgress {
+  module_id: number;
   id: number;
   user: number;
   lesson: number;

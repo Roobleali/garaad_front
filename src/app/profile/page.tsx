@@ -45,6 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDispatch, useSelector } from "react-redux";
+import Cookies from "js-cookie";
 
 // Types for progress data
 type ProgressItem = {
@@ -59,48 +60,46 @@ type ProgressItem = {
   completed_at: string | null;
 };
 
-type ProgressResponse = {
-  results: ProgressItem[];
-};
+type ProgressResponse = ProgressItem[];
 
 // Mock progress data
-const mockProgressData: ProgressResponse = {
-  results: [
-    {
-      id: "1",
-      user: "user1",
-      lesson: "lesson1",
-      lesson_title: "Introduction to Somali Grammar",
-      module_title: "Somali Basics",
-      status: "completed",
-      score: 95,
-      last_visited_at: "2023-06-15T10:30:00Z",
-      completed_at: "2023-06-15T10:30:00Z",
-    },
-    {
-      id: "2",
-      user: "user1",
-      lesson: "lesson2",
-      lesson_title: "Common Phrases",
-      module_title: "Conversational Somali",
-      status: "in_progress",
-      score: 70,
-      last_visited_at: "2023-06-14T09:15:00Z",
-      completed_at: null,
-    },
-    {
-      id: "3",
-      user: "user1",
-      lesson: "lesson3",
-      lesson_title: "Advanced Verb Conjugation",
-      module_title: "Grammar Mastery",
-      status: "not_started",
-      score: 0,
-      last_visited_at: "2023-06-10T14:20:00Z",
-      completed_at: null,
-    },
-  ],
-};
+// const mockProgressData: ProgressResponse = [
+//   {
+//     {
+//       id: "1",
+//       user: "user1",
+//       lesson: "lesson1",
+//       lesson_title: "Introduction to Somali Grammar",
+//       module_title: "Somali Basics",
+//       status: "completed",
+//       score: 95,
+//       last_visited_at: "2023-06-15T10:30:00Z",
+//       completed_at: "2023-06-15T10:30:00Z",
+//     },
+//     {
+//       id: "2",
+//       user: "user1",
+//       lesson: "lesson2",
+//       lesson_title: "Common Phrases",
+//       module_title: "Conversational Somali",
+//       status: "in_progress",
+//       score: 70,
+//       last_visited_at: "2023-06-14T09:15:00Z",
+//       completed_at: null,
+//     },
+//     {
+//       id: "3",
+//       user: "user1",
+//       lesson: "lesson3",
+//       lesson_title: "Advanced Verb Conjugation",
+//       module_title: "Grammar Mastery",
+//       status: "not_started",
+//       score: 0,
+//       last_visited_at: "2023-06-10T14:20:00Z",
+//       completed_at: null,
+//     },
+//   ],
+// ];
 
 // Tribe data
 const abtirsiData = {
@@ -147,6 +146,10 @@ const itemVariants = {
 
 // Progress Component
 const UserProgress = ({ progress }: { progress: ProgressResponse }) => {
+  if (!progress?.length) {
+    return <p>No progress data available.</p>;
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -160,19 +163,19 @@ const UserProgress = ({ progress }: { progress: ProgressResponse }) => {
     switch (status) {
       case "completed":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-3">
             Completed
           </span>
         );
       case "in_progress":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-3">
             In Progress
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mt-3">
             Not Started
           </span>
         );
@@ -189,7 +192,7 @@ const UserProgress = ({ progress }: { progress: ProgressResponse }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {progress.results.map((item) => (
+          {progress.map((item) => (
             <div
               key={item.id}
               className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
@@ -228,7 +231,7 @@ const UserProgress = ({ progress }: { progress: ProgressResponse }) => {
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="text-sm text-gray-500">
-          Showing {progress.results.length} lessons
+          Showing {progress.length} lessons
         </div>
       </CardFooter>
     </Card>
@@ -254,7 +257,7 @@ export default function ProfilePage() {
     qabiil: keyof typeof abtirsiData | "";
     laan: string;
   }>({ qabiil: "", laan: "" });
-  const [progress, setProgress] = useState<ProgressResponse>(mockProgressData);
+  const [progress, setProgress] = useState<ProgressResponse>([]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -281,19 +284,27 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProgressData = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/lms/user-progress/`
+        const token = Cookies.get("accessToken");
+        if (!token) throw new Error("No access token");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/lms/user-progress/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch progress data: ${response.statusText}`
-          );
-        }
-        const data = await response.json();
+        if (!res.ok) throw new Error(res.statusText);
+
+        const data = await res.json();
+        console.log("Fetched progress data:", data);
         setProgress(data);
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-        setProgress(mockProgressData); // Fallback to mock data
+      } catch (err) {
+        console.error("Error fetching progress data:", err);
+        setProgress([]); // Fallback to empty data
       }
     };
 

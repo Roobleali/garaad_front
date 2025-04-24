@@ -4,28 +4,10 @@
 import { Course } from "@/types/course";
 import { Progress } from "@/components/ui/progress";
 
-interface CourseProgressProps {
-    course: Course;
-}
-
-export function CourseProgress({ course }: CourseProgressProps) {
-    return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h3 className="text-lg font-semibold">Course Progress</h3>
-                    <p className="text-sm text-gray-600">
-                        {course.module_count} modules in total
-                    </p>
-                </div>
-                <div className="text-2xl font-bold text-green-600">
-                    {course.progress}%
-                </div>
-            </div>
-            <Progress
-                value={course.progress || 0}
-                className="h-2"
-            />
-        </div>
-    );
+export function CourseProgress({ progress }: { progress: number }) {
+  return (
+    <div className="mb-5 mt-2">
+      <Progress value={progress || 10} className="h-[10px] w-[90%]" />
+    </div>
+  );
 }

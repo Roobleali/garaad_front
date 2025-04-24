@@ -14,7 +14,13 @@ import {
 } from "@/store/features/authSlice";
 import { useToast } from "@/hooks/use-toast";
 import type { AppDispatch } from "@/store";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +28,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      staggerChildren: 0.1,
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
 const abtirsiData = {
   Daarood: ["Majeerteen", "Dhulbahante", "Warsangeli", "Mareexaan", "Ogaden"],
@@ -32,7 +57,7 @@ const abtirsiData = {
   Jareerweyne: ["Bantu", "Gosha", "Makane", "Shidle"],
   Benadiri: ["Reer Xamar", "Reer Merka", "Reer Baraawe"],
   Gabooye: ["Tumaal", "Yibir", "Madhiban"],
-  Ashraaf: ["Shariif", "Reer Faqi"]
+  Ashraaf: ["Shariif", "Reer Faqi"],
 };
 
 // Step titles
@@ -398,16 +423,21 @@ const learningGoals = [
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>({});
+  const [selections, setSelections] = useState<Record<number, number | string>>(
+    {}
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [profile, setProfile] = useState<{ qabiil: string; laan: string }>({ qabiil: '', laan: '' });
+  const [profile, setProfile] = useState<{ qabiil: string; laan: string }>({
+    qabiil: "",
+    laan: "",
+  });
   const steps = [goals, learningApproach, topics, topicLevels, learningGoals];
   const [showSubmitAlert, setShowSubmitAlert] = useState(false);
   const router = useRouter();
-  const progress = ((currentStep) / (steps.length + 2)) * 100;
+  const progress = (currentStep / (steps.length + 2)) * 100;
 
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
@@ -419,14 +449,22 @@ export default function Page() {
     setSelections((prev) => ({ ...prev, [currentStep]: value }));
   };
 
-  const handleProfileChange = (newProfile: { qabiil: string; laan: string }) => {
+  const handleProfileChange = (newProfile: {
+    qabiil: string;
+    laan: string;
+  }) => {
     setProfile(newProfile);
   };
 
   const handleContinue = () => {
     // Only validate inputs when moving from inputs step to profile selection
     if (currentStep === 5) {
-      if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      if (
+        !firstName.trim() ||
+        !lastName.trim() ||
+        !email.trim() ||
+        !password.trim()
+      ) {
         toast({
           variant: "destructive",
           title: "Khalad ayaa dhacay",
@@ -499,12 +537,15 @@ export default function Page() {
           learning_approach: String(selections[1]).trim(),
           topic: String(selections[2]).trim(),
           math_level: String(selections[3]).trim(),
-          minutes_per_day: parseInt(String(selections[4]).split(" ")[0])
+          minutes_per_day: parseInt(String(selections[4]).split(" ")[0]),
         },
-        profile: profile.qabiil && profile.laan ? {
-          qabiil: profile.qabiil,
-          laan: profile.laan
-        } : undefined
+        profile:
+          profile.qabiil && profile.laan
+            ? {
+                qabiil: profile.qabiil,
+                laan: profile.laan,
+              }
+            : undefined,
       };
 
       console.log("Submitting signup data:", signUpData);
@@ -532,7 +573,7 @@ export default function Page() {
       // Extract the error message
       let errorMessage = "Cilad ayaa dhacday. Fadlan mar kale isku day.";
 
-      if (typeof error === 'string') {
+      if (typeof error === "string") {
         errorMessage = error;
       } else if (error instanceof Error) {
         errorMessage = error.message;
@@ -550,7 +591,10 @@ export default function Page() {
   const currentOptions = steps[currentStep];
 
   const getLaanOptions = () => {
-    if (!profile.qabiil || !abtirsiData[profile.qabiil as keyof typeof abtirsiData]) {
+    if (
+      !profile.qabiil ||
+      !abtirsiData[profile.qabiil as keyof typeof abtirsiData]
+    ) {
       return [];
     }
     return abtirsiData[profile.qabiil as keyof typeof abtirsiData];
@@ -578,7 +622,9 @@ export default function Page() {
                   <div className="py-8">
                     {/* Step Title */}
                     <h2 className="text-2xl font-bold mb-8">
-                      {currentStep <= steps.length ? stepTitles[currentStep] : "Fadlan geli Xogtaaga"}
+                      {currentStep <= steps.length
+                        ? stepTitles[currentStep]
+                        : "Fadlan geli Xogtaaga"}
                     </h2>
 
                     {showSubmitAlert && (
@@ -589,8 +635,8 @@ export default function Page() {
                               Mahadsanid! <span className="text-xl">🎉</span>
                             </AlertTitle>
                             <AlertDescription className="text-green-800">
-                              Waxaan u shaqeynaa mowduucyo cajiib ah oo xiiso badan
-                              Nagusoo Noqo muddo kooban kadib
+                              Waxaan u shaqeynaa mowduucyo cajiib ah oo xiiso
+                              badan Nagusoo Noqo muddo kooban kadib
                             </AlertDescription>
                           </div>
                         </div>
@@ -629,7 +675,8 @@ export default function Page() {
                                   selections[currentStep] === option.id
                                     ? "border-primary bg-primary/5"
                                     : "border-gray-200",
-                                  option.disabled && "opacity-50 cursor-not-allowed"
+                                  option.disabled &&
+                                    "opacity-50 cursor-not-allowed"
                                 )}
                               >
                                 <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
@@ -712,7 +759,8 @@ export default function Page() {
                                   selections[currentStep] === option.id
                                     ? "border-primary bg-primary/5"
                                     : "border-gray-200",
-                                  option.disabled && "opacity-50 cursor-not-allowed"
+                                  option.disabled &&
+                                    "opacity-50 cursor-not-allowed"
                                 )}
                               >
                                 <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
@@ -777,21 +825,32 @@ export default function Page() {
                     )}
 
                     {currentStep === 6 && (
-                      <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="relative">
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="space-y-6"
+                      >
+                        {/* Qabiil Select with Info Dialog */}
+                        <motion.div
+                          variants={itemVariants}
+                          className="relative"
+                        >
                           <Select
-                            onValueChange={(value) => handleProfileChange({ ...profile, qabiil: value })}
+                            onValueChange={(value) =>
+                              handleProfileChange({ ...profile, qabiil: value })
+                            }
                             value={profile.qabiil}
                           >
-                            <SelectTrigger className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white transition-all duration-200 ease-in-out">
+                            <SelectTrigger className="w-full p-5 border border-gray-200 rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-primary/30 outline-none transition-transform duration-200 hover:scale-[1.01]">
                               <SelectValue placeholder="Fadlan Geli beeshaada / ka gudub" />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                            <SelectContent className="max-h-72 overflow-y-auto">
                               {Object.keys(abtirsiData).map((qabiil) => (
                                 <SelectItem
                                   key={qabiil}
                                   value={qabiil}
-                                  className="transition-colors duration-150 hover:bg-primary/5"
+                                  className="transition-colors duration-150 hover:bg-primary/10"
                                 >
                                   {qabiil}
                                 </SelectItem>
@@ -801,7 +860,7 @@ export default function Page() {
 
                           <Dialog>
                             <DialogTrigger asChild>
-                              <button className="absolute right-14 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors">
+                              <button className="absolute right-4 top-1/2 -translate-y-1/2 text-primary hover:text-primary/80 transition-colors">
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                   <path
                                     fill="currentColor"
@@ -810,63 +869,98 @@ export default function Page() {
                                 </svg>
                               </button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-md animate-in fade-in-0 zoom-in-95 duration-300">
-                              <DialogHeader className="animate-in slide-in-from-top-4 duration-300">
-                                <DialogTitle className="text-center mb-4">Sababta Qabiilka loo Doortay</DialogTitle>
-                                <div className="text-sm text-muted-foreground text-center space-y-4 animate-in fade-in-50 duration-300">
-                                  <p className="text-base">
-                                    Waxaan rabnaa waxbarashu iney xiiso yeelato madama dadkeenu yihiin bulsho qabiil ku saleysan.
-                                    Waxaan go&apos;aansanay qaab reer caafimad qaba in lagu tartamo.
-                                  </p>
-                                  <p className="text-lg font-arabic text-primary mt-4 leading-relaxed">
-                                    يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُم مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَاكُمْ شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا ۚ إِنَّ أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ
-                                  </p>
-                                  <p className="text-sm text-gray-500 mt-2">
-                                    &ldquo;Dadow, waxaan idinka abuuray lab iyo dhaddig, waxaana idinka dhignay shucuub iyo qabaa&apos;il si aad isugu garataan&rdquo;
-                                  </p>
-                                </div>
-                              </DialogHeader>
+
+                            {/* Removed `asChild` here so DialogContent only gets one child */}
+                            <DialogContent className="max-w-lg px-10 py-8 bg-white rounded-2xl shadow-xl">
+                              <motion.div
+                                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                              >
+                                <DialogHeader>
+                                  <DialogTitle className="text-center mb-4 text-lg font-semibold">
+                                    Sababta Qabiilka loo Doortay
+                                  </DialogTitle>
+                                  <div className="text-sm text-muted-foreground text-center space-y-4">
+                                    <p>
+                                      Waxaan rabnaa waxbarashu iney xiiso
+                                      yeelato madama dadkeenu yihiin bulsho
+                                      qabiil ku saleysan. Waxaan go'aansanay
+                                      qaab reer caafimad qaba in lagu tartamo.
+                                    </p>
+                                    <p className="text-lg font-arabic leading-relaxed">
+                                      يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُم
+                                      مِّن ذَكَرٍ وَأُنثَىٰ وَجَعَلْنَاكُمْ
+                                      شُعُوبًا وَقَبَائِلَ لِتَعَارَفُوا ۚ إِنَّ
+                                      أَكْرَمَكُمْ عِندَ اللَّهِ أَتْقَاكُمْ
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      “Dadow, waxaan idinka abuuray lab iyo
+                                      dhaddig, waxaana idinka dhignay shucuub
+                                      iyo qabaa'il si aad isugu garataan”
+                                    </p>
+                                  </div>
+                                </DialogHeader>
+                              </motion.div>
                             </DialogContent>
                           </Dialog>
-                        </div>
+                        </motion.div>
 
-                        <Select
-                          onValueChange={(value) => handleProfileChange({ ...profile, laan: value })}
-                          value={profile.laan}
-                        >
-                          <SelectTrigger className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white transition-all duration-200 ease-in-out">
-                            <SelectValue placeholder={profile.qabiil ? `${abtirsiData[profile.qabiil as keyof typeof abtirsiData][0]}...` : "Dooro qabiilka marka hore"} />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[300px] overflow-y-auto">
-                            {profile.qabiil && getLaanOptions().map((laan) => (
-                              <SelectItem
-                                key={laan}
-                                value={laan}
-                                className="transition-colors duration-150 hover:bg-primary/5"
-                              >
-                                {laan}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                        {/* Laan Select */}
+                        <motion.div variants={itemVariants}>
+                          <Select
+                            onValueChange={(value) =>
+                              handleProfileChange({ ...profile, laan: value })
+                            }
+                            value={profile.laan}
+                            disabled={!profile.qabiil}
+                          >
+                            <SelectTrigger className="w-full p-4 border border-gray-200 rounded-md bg-white shadow-sm focus:ring-2 focus:ring-primary/30 outline-none transition-transform duration-200 hover:scale-[1.01]">
+                              <SelectValue
+                                placeholder={
+                                  profile.qabiil
+                                    ? `${
+                                        abtirsiData[
+                                          profile.qabiil as keyof typeof abtirsiData
+                                        ][0]
+                                      }...`
+                                    : "Dooro qabiilka marka hore"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-72 overflow-y-auto">
+                              {profile.qabiil &&
+                                getLaanOptions().map((laan) => (
+                                  <SelectItem
+                                    key={laan}
+                                    value={laan}
+                                    className="transition-colors duration-150 hover:bg-primary/10"
+                                  >
+                                    {laan}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </motion.div>
+                      </motion.div>
                     )}
 
                     <div className="mt-8">
                       <Button
                         className={cn(
-                          "w-full rounded-full py-4 font-semibold transition-colors",
+                          "w-full rounded-lg py-4 font-semibold transition-colors",
                           currentStep === 6
                             ? profile.qabiil && profile.laan
                               ? "bg-primary text-white hover:bg-primary/90"
                               : "bg-gray-200 text-gray-500 cursor-not-allowed"
                             : currentStep === 5
-                              ? email && password && firstName && lastName
-                                ? "bg-primary text-white hover:bg-primary/90"
-                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              : selections[currentStep]
-                                ? "bg-primary text-white hover:bg-primary/90"
-                                : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                            ? email && password && firstName && lastName
+                              ? "bg-primary text-white hover:bg-primary/90"
+                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : selections[currentStep]
+                            ? "bg-primary text-white hover:bg-primary/90"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed",
                           isLoading && "opacity-70 cursor-wait"
                         )}
                         onClick={(e) => {
@@ -878,7 +972,13 @@ export default function Page() {
                           } else {
                             if (currentStep < 5 && selections[currentStep]) {
                               handleContinue();
-                            } else if (currentStep === 5 && email && password && firstName && lastName) {
+                            } else if (
+                              currentStep === 5 &&
+                              email &&
+                              password &&
+                              firstName &&
+                              lastName
+                            ) {
                               handleContinue();
                             }
                           }

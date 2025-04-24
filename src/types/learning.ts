@@ -5,7 +5,7 @@ export interface Course {
   description: string;
   thumbnail?: string;
   is_new?: boolean;
-  progress?: number;
+  progress: number;
   modules?: Module[];
   totalLessons?: number;
   estimatedHours?: number;

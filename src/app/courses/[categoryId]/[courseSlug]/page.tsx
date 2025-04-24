@@ -11,11 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
- 
 import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
- import { Header } from "@/components/Header";
+import { Header } from "@/components/Header";
 import ModuleZigzag from "@/components/learning/ui/ModuleZigzag";
 import { Module } from "@/types/learning";
+import { CourseProgress } from "@/components/learning/CourseProgress";
 
 const defaultCourseImage = "/images/placeholder-course.svg";
 
@@ -27,6 +27,8 @@ export default function CourseDetailPage() {
     (state: RootState) => state.learning
   );
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
+
+  console.log("===============CURRENT COURSE============", currentCourse);
 
   const handleModuleClick = (moduleId: number) => {
     setActiveModuleId(activeModuleId === moduleId ? null : moduleId);
@@ -89,6 +91,7 @@ export default function CourseDetailPage() {
   //         slug: "intro-to-variables",
   //         module_id: 1,
   //         lesson_number: 1,
+  //         progress: 100,
   //         estimated_time: "10 min",
   //         is_published: true,
   //         created_at: "",
@@ -109,6 +112,7 @@ export default function CourseDetailPage() {
   //         slug: "practice-set-1",
   //         module_id: 2,
   //         lesson_number: 1,
+  //         progress: 100,
   //         estimated_time: "15 min",
   //         is_published: true,
   //         created_at: "",
@@ -129,6 +133,7 @@ export default function CourseDetailPage() {
   //         slug: "setting-up-equations",
   //         module_id: 3,
   //         lesson_number: 1,
+  //         progress: 100,
   //         estimated_time: "12 min",
   //         is_published: true,
   //         created_at: "",
@@ -149,6 +154,7 @@ export default function CourseDetailPage() {
   //         slug: "equation-practice",
   //         module_id: 4,
   //         lesson_number: 1,
+  //         progress: 50,
   //         estimated_time: "20 min",
   //         is_published: true,
   //         created_at: "",
@@ -260,6 +266,9 @@ export default function CourseDetailPage() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               {currentCourse.title}
             </h2>
+
+            {/* Progress */}
+            <CourseProgress progress={currentCourse.progress} />
 
             {/* Description */}
             <p className="text-sm text-gray-600 mb-6">

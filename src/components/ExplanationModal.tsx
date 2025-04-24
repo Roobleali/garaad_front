@@ -7,15 +7,13 @@ import Image from "next/image";
 interface ExplanationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  explanation: string;
-  image?: string;
+  content: { image: string; explanation: string };
 }
 
 const ExplanationModal: React.FC<ExplanationModalProps> = ({
   isOpen,
   onClose,
-  explanation,
-  image,
+  content,
 }) => {
   return (
     <div
@@ -42,7 +40,7 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({
       {/* Modal */}
       <div
         className={`
-                    relative bg-white rounded-2xl w-full sm:w-[600px] md:w-[700px] lg:w-[800px] overflow-hidden
+                    relative bg-white rounded-2xl w-full sm:w-[400px] md:w-[500px] lg:w-[600px] overflow-hidden
                     transform transition-all duration-500 ease-out
                     ${
                       isOpen
@@ -63,21 +61,21 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({
 
         <div className="p-6 space-y-6">
           <motion.div
-            // initial={{ opacity: 0, height: 0 }}
-            // animate={{ opacity: 1, height: "auto" }}
-            // exit={{ opacity: 0, height: 0 }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
             className="px-6 pb-6"
           >
-            <div className="p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-gray-100">
+            <div className="p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-gray-100 text-black">
               <div className="prose prose-sm max-w-none">
-                <ReactMarkdown>{explanation}</ReactMarkdown>
+                <ReactMarkdown>{content.explanation}</ReactMarkdown>
               </div>
-              {image && (
+              {content.image && (
                 <div className="mt-4 flex justify-center">
                   <Image
-                    src={image || "/placeholder.svg"}
+                    src={content.image}
                     alt="Explanation visual"
-                    className="rounded-lg max-h-48"
+                    className="rounded-lg max-h-32"
                   />
                 </div>
               )}

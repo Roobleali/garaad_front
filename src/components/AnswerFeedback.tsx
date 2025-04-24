@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Check, ChevronRight, X } from "lucide-react";
+import ExplanationModal from "./ExplanationModal";
 
 interface AnswerFeedbackProps {
   currentLesson: Lesson | null;
@@ -18,7 +19,7 @@ const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
   onResetAnswer,
 }) => {
   const dispatch = useDispatch();
-  // const [showExplanation, setShowExplanation] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   // No need to play sounds here as we're handling it in the handleCheckAnswer function
 
@@ -33,8 +34,8 @@ const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
       : (problemBlock.content as ProblemContent)
     : null;
 
-  const explanation = content?.explanation || "";
-  const explanationImage = content?.image || "";
+  // const explanation = content?.explanation || "";
+  // const explanationImage = content?.image || "";
 
   const handleWhyClick = () => {
     dispatch(revealAnswer());
@@ -48,12 +49,14 @@ const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
 
   return (
     <>
-      {/* <ExplanationModal
+      <ExplanationModal
         isOpen={showExplanation}
         onClose={() => setShowExplanation(false)}
-        explanation={explanation}
-        image={explanationImage}
-      /> */}
+        content={{
+          image: content?.image || "",
+          explanation: content?.explanation || "",
+        }}
+      />
 
       <motion.div
         initial={{ y: 100, opacity: 0 }}
@@ -108,7 +111,10 @@ const AnswerFeedback: React.FC<AnswerFeedbackProps> = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={handleWhyClick}
+                onClick={() => {
+                  handleWhyClick();
+                  setShowExplanation(true);
+                }}
                 className="rounded-full border-gray-300"
               >
                 Sharaxaad

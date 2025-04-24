@@ -248,7 +248,7 @@
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-@keyframes drawLine {
+/* @keyframes drawLine {
   from {
     stroke-dashoffset: 1000;
   }
@@ -261,4 +261,9 @@
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
   animation: drawLine 1.5s ease-in-out forwards;
+} */
+
+.no-animate * {
+  transition: none !important;
+  transform: none !important;
 }

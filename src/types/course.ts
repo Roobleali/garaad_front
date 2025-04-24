@@ -16,7 +16,7 @@ export interface Course {
   description: string;
   thumbnail: string | null;
   is_new: boolean;
-  progress: number;
+  progress?: number;
   module_ids: string[];
   modules?: Module[];
   author_id: string;

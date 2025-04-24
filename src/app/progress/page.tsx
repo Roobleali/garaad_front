@@ -1,83 +1,470 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { format } from 'date-fns';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { format } from "date-fns";
+import {
+  Search,
+  RefreshCw,
+  CheckCircle,
+  Clock,
+  BookOpen,
+  BarChart3,
+  Award,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { UserProgress } from "@/services/progress";
 
 interface ProgressItem {
-    id: string;
-    lesson_title: string;
-    module_title: string;
-    status: string;
-    score: number;
-    last_visited_at: string;
-    completed_at: string | null;
+  id: string;
+  lesson_title: string;
+  module_title: string;
+  status: "completed" | "in_progress" | string;
+  score: number | null;
+  last_visited_at: string;
+  completed_at: string | null;
+}
+
+interface ProgressStats {
+  completed: number;
+  inProgress: number;
+  totalItems: number;
+  averageScore: number;
 }
 
 export default function ProgressPage() {
-    const [progress, setProgress] = useState<ProgressItem[]>([]);
-    const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState<UserProgress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    "all" | "completed" | "in_progress"
+  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [refreshCount, setRefreshCount] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
-    useEffect(() => {
-        const fetchProgress = async () => {
-            try {
-                const response = await fetch('/api/lms/progress/');
-                const data = await response.json();
-                setProgress(data.results);
-            } catch (error) {
-                console.error('Error fetching progress:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/lms/user-progress/`;
 
-        fetchProgress();
-    }, []);
+  const fetchProgress = useCallback(async () => {
+    setError(null);
+    if (refreshCount > 0) setIsRefreshing(true);
 
-    if (loading) {
-        return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    try {
+      const token = Cookies.get("accessToken");
+      if (!token) throw new Error("Not authenticated");
+
+      const response = await axios.get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        validateStatus: (status) => status >= 200 && status < 300,
+      });
+
+      setProgress(response.data || []);
+
+      if (refreshCount > 0) {
+        toast({
+          title: "Progress updated",
+          description: "Your learning progress has been refreshed",
+          duration: 3000,
+        });
+      }
+    } catch (err: any) {
+      setError(err.message || "Error fetching progress");
+      toast({
+        title: "Error",
+        description: err.message || "Failed to load your progress",
+        variant: "destructive",
+        duration: 5000,
+      });
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
+  }, [apiUrl, refreshCount, toast]);
 
-    return (
-        <div className="container mx-auto py-8">
-            <h1 className="text-3xl font-bold mb-8">Your Learning Progress</h1>
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
 
-            <div className="grid gap-6">
-                {progress.map((item) => (
-                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                            <CardTitle className="text-xl">{item.lesson_title}</CardTitle>
-                            <p className="text-sm text-gray-500">{item.module_title}</p>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Progress</span>
-                                    <span className="text-sm text-gray-500">{item.score}%</span>
-                                </div>
-                                <Progress value={item.score} className="h-2" />
+  // Calculate progress statistics
+  const stats: ProgressStats = useMemo(() => {
+    const totalItems = progress.length;
+    const completed = progress.filter(
+      (item) => item.status === "completed"
+    ).length;
+    const inProgress = progress.filter(
+      (item) => item.status === "in_progress"
+    ).length;
 
-                                <div className="flex justify-between text-sm text-gray-500">
-                                    <span>Last visited: {format(new Date(item.last_visited_at), 'MMM d, yyyy')}</span>
-                                    {item.completed_at && (
-                                        <span>Completed: {format(new Date(item.completed_at), 'MMM d, yyyy')}</span>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center">
-                                    <span className={`px-2 py-1 rounded-full text-xs ${item.status === 'completed'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-blue-100 text-blue-800'
-                                        }`}>
-                                        {item.status}
-                                    </span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </div>
+    // Treat null scores as 0 for progress bars, but exclude from average if null
+    const totalScores = progress.reduce(
+      (sum, item) => sum + (item.score ?? 0),
+      0
     );
-} 
+    const scoredCount = progress.filter((item) => item.score != null).length;
+    const averageScore =
+      scoredCount > 0 ? Math.round(totalScores / scoredCount) : 0;
+
+    return { completed, inProgress, totalItems, averageScore };
+  }, [progress]);
+
+  // Filter and search items
+  const filteredItems = useMemo(() => {
+    return progress.filter((item) => {
+      const statusMatch =
+        activeTab === "all" ||
+        (activeTab === "completed" && item.status === "completed") ||
+        (activeTab === "in_progress" && item.status === "in_progress");
+      const searchMatch =
+        !searchQuery ||
+        item.lesson_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.module_title.toLowerCase().includes(searchQuery.toLowerCase());
+      return statusMatch && searchMatch;
+    });
+  }, [progress, activeTab, searchQuery]);
+
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Array(4)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
+        </div>
+
+        <Skeleton className="h-12 w-full" />
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array(6)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={i} className="h-64 w-full rounded-lg" />
+            ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-500">
+      {/* Header and Refresh */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Your Learning Progress</h1>
+          <p className="text-muted-foreground mt-1">
+            Track your course completion and performance
+          </p>
+        </div>
+        <Button
+          onClick={() => setRefreshCount((prev) => prev + 1)}
+          variant="outline"
+          disabled={isRefreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw
+            className={cn("h-4 w-4", isRefreshing && "animate-spin")}
+          />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
+        </Button>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Completion Rate
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.totalItems
+                    ? Math.round((stats.completed / stats.totalItems) * 100)
+                    : 0}
+                  %
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <Progress
+              value={
+                stats.totalItems
+                  ? (stats.completed / stats.totalItems) * 100
+                  : 0
+              }
+              className="h-2 mt-4"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Average Score
+                </p>
+                <p className="text-2xl font-bold">{stats.averageScore}%</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <BarChart3 className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+            <Progress
+              value={stats.averageScore}
+              className="h-2 mt-4 bg-blue-100"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Completed
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.completed}{" "}
+                  <span className="text-sm text-muted-foreground">
+                    / {stats.totalItems}
+                  </span>
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <Award className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  In Progress
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.inProgress}{" "}
+                  <span className="text-sm text-muted-foreground">
+                    / {stats.totalItems}
+                  </span>
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <Clock className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search & Filter */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search lessons..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as any)}
+          className="w-full md:w-auto"
+        >
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">All</span>
+              <Badge variant="outline" className="ml-1">
+                {stats.totalItems}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Completed</span>
+              <Badge variant="outline" className="ml-1">
+                {stats.completed}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="in_progress"
+              className="flex items-center gap-2"
+            >
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">In Progress</span>
+              <Badge variant="outline" className="ml-1">
+                {stats.inProgress}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4 flex items-center justify-between">
+            <p className="text-red-600">{error}</p>
+            <Button
+              onClick={() => setRefreshCount((prev) => prev + 1)}
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-200 hover:bg-red-100"
+            >
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lessons List */}
+      {filteredItems.length === 0 ? (
+        <div className="text-center py-12 bg-muted/30 rounded-lg">
+          <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-medium">No lessons found</h3>
+          <p className="text-muted-foreground mt-1">
+            {searchQuery
+              ? "Try a different search term"
+              : "You don't have any lessons in this category yet"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item, index) => (
+            <Card
+              key={item.id}
+              className={cn(
+                "hover:shadow-md transition-all duration-300 overflow-hidden group",
+                item.status === "completed"
+                  ? "border-green-200"
+                  : "border-blue-200"
+              )}
+              style={{
+                animationDelay: `${index * 50}ms`,
+                opacity: 0,
+                animation: "fadeIn 0.5s ease forwards",
+              }}
+            >
+              <div
+                className={cn(
+                  "h-1.5",
+                  item.status === "completed" ? "bg-green-500" : "bg-blue-500"
+                )}
+              />
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl line-clamp-2 group-hover:text-primary transition-colors">
+                    {item.lesson_title}
+                  </CardTitle>
+                  <Badge
+                    variant={
+                      item.status === "completed" ? "outline" : "secondary"
+                    }
+                    className={cn(
+                      "ml-2 capitalize",
+                      item.status === "completed"
+                        ? "border-green-200 text-green-700 bg-green-50"
+                        : "border-blue-200 text-blue-700 bg-blue-50"
+                    )}
+                  >
+                    {item.status.replace("_", " ")}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {item.module_title}
+                </p>
+              </CardHeader>
+              <CardContent className="pb-2">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Progress</span>
+                    <span className="text-sm text-muted-foreground">
+                      {item.score ?? 0}%
+                    </span>
+                  </div>
+                  <Progress
+                    value={item.score ?? 0}
+                    className={cn(
+                      "h-2",
+                      item.status === "completed"
+                        ? "bg-green-100"
+                        : "bg-blue-100",
+                      item.status === "completed"
+                        ? "indicator-green-600"
+                        : "indicator-blue-600"
+                    )}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="text-xs text-muted-foreground border-t pt-4 flex flex-col items-start gap-1">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>
+                    Last visited:{" "}
+                    {format(new Date(item.last_visited_at), "MMM d, yyyy")}
+                  </span>
+                </div>
+                {item.completed_at && (
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle className="h-3.5 w-3.5 text-green-600" />
+                    <span>
+                      Completed:{" "}
+                      {format(new Date(item.completed_at), "MMM d, yyyy")}
+                    </span>
+                  </div>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}

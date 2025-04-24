@@ -50,6 +50,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.6.3",
     "input-otp": "^1.4.2",
+    "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.487.0",
     "monaco-editor": "^0.45.0",
@@ -75,6 +76,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
