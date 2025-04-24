@@ -194,7 +194,6 @@ const ScaleBalanceInteractive: React.FC<{
           >
             {currentProblem.equation}
           </motion.div>
-
           {/* <AnimatePresence> */}
           {currentStepIndex >= 0 && (
             <motion.div
@@ -271,12 +270,16 @@ const ScaleBalanceInteractive: React.FC<{
 const ProblemBlock: React.FC<{
   onContinue: () => void;
   selectedOption: string | null;
-  answerState: any;
+  answerState: {
+    isCorrect: boolean | null;
+    showAnswer: boolean;
+    lastAttempt: string | null;
+  };
   onOptionSelect: (option: string) => void;
   onCheckAnswer: () => void;
   onResetAnswer: () => void;
   isLoading: boolean;
-  error: any | null;
+  error: string | null;
   content: ProblemContent | null;
   isCorrect: boolean;
 }> = ({
@@ -519,7 +522,7 @@ const ProblemBlock: React.FC<{
                   {content.image && (
                     <div className="mt-4 flex justify-center">
                       <Image
-                        src={content.image}
+                        src={content.image || "/placeholder.svg"}
                         alt="Explanation visual"
                         className="rounded-lg max-h-48"
                       />
@@ -578,7 +581,13 @@ const TextBlock: React.FC<{
 
 // ImageBlock component for image-type content
 const ImageBlock: React.FC<{
-  content: any;
+  content: {
+    url: string;
+    alt: string;
+    width: number;
+    height: number;
+    caption: string;
+  };
   onContinue: () => void;
   isLastBlock: boolean;
 }> = ({ content, onContinue, isLastBlock }) => {
@@ -617,7 +626,7 @@ const ImageBlock: React.FC<{
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <img
+                <Image
                   src={content.url || "/placeholder.svg"}
                   alt={content.alt || "Lesson content"}
                   width={content.width}
@@ -761,27 +770,25 @@ const LessonPage = () => {
     }
 
     const correctAnswer = content?.correct_answer?.map((txt) => txt.text);
-    try {
-      // Direct comparison without API call
-      const isCorrect = correctAnswer?.includes(selectedOption) || false;
 
-      isCorrect ? setIscorrect(true) : setIscorrect(false);
+    // Direct comparison without API call
 
-      setShowFeedback(true);
+    // Direct comparison without API call
+    const isCorrect = correctAnswer?.includes(selectedOption) || false;
 
-      // Update the Redux state with the result
-      // dispatch(
-      //   submitAnswer({
-      //     answer,
-      //     lessonId: lessonId ? String(lessonId) : "",
-      //   })
-      // );
+    setIscorrect(isCorrect);
+    setShowFeedback(true);
 
-      // Play appropriate sound based on the result
-      playSound(isCorrect ? "correct" : "incorrect");
-    } catch (error) {
-      console.error("Error checking answer:", error);
-    }
+    // Update the Redux state with the result
+    // dispatch(
+    //   submitAnswer({
+    //     answer,
+    //     lessonId: lessonId ? String(lessonId) : "",
+    //   })
+    // );
+
+    // Play appropriate sound based on the result
+    playSound(isCorrect ? "correct" : "incorrect");
   };
 
   // Handle continue to next block
@@ -923,7 +930,16 @@ const LessonPage = () => {
     };
 
     renderCurrentBlock();
-  }, [currentLesson, currentBlockIndex, selectedOption, answerState]);
+  }, [
+    currentLesson,
+    currentBlockIndex,
+    selectedOption,
+    answerState,
+    problemLoading,
+    error,
+    content,
+    isCorrect,
+  ]); // Add all dependencies here
 
   // Loading state
   if (isLoading) {

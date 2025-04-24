@@ -46,7 +46,7 @@ export function CodeEditor({
     return () => {
       editorRef.current?.dispose();
     };
-  }, [language, theme, onchange, value]);
+  }, [language, theme, onChange, value]);
 
   useEffect(() => {
     if (editorRef.current && value !== editorRef.current.getValue()) {
