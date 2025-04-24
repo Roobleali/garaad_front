@@ -148,6 +148,7 @@ class AuthService {
         {
           ...data,
           username: `${data.first_name.toLowerCase()}_${data.last_name.toLowerCase()}`,
+          name: `${data.first_name} ${data.last_name}`,
         },
         {
           headers: {
@@ -159,84 +160,69 @@ class AuthService {
       console.log("Signup response:", response.data);
 
       // Store token and user data
-      if (response.data.token) {
+      if (response.data.tokens?.access) {
         console.log("Attempting to store token from signup response");
-        // Convert single token to tokens format
-        const tokens = {
-          access: response.data.token,
-          refresh: response.data.token, // Using the same token for refresh for now
-        };
+        const { access, refresh } = response.data.tokens;
 
-        this.setTokens(tokens.access, tokens.refresh);
-        // Store user data
+        this.setTokens(access, refresh);
         this.setCurrentUser(response.data.user);
 
-        // Verify storage after signup
-        const storedAccessToken = localStorage.getItem("accessToken");
-        console.log("Verifying token storage after signup:", {
-          expectedToken: tokens.access,
-          storedToken: storedAccessToken,
-          matches: storedAccessToken === tokens.access,
-        });
-
-        // Return the response in the expected format
-        return {
-          ...response.data,
-          tokens,
-        };
+        return response.data;
       } else {
         console.error("No token received in signup response");
         throw new Error("No token received from server");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Signup error:", error);
 
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          data: error.response?.data,
-        });
+      // Handle Axios error
+      if (error.response) {
+        const errorData = error.response.data;
+        let errorMessage = "Khalad ayaa dhacay markii la sameeyay akoonka";
 
-        const responseData = error.response?.data;
-
-        // Check for username already exists error
-        if (responseData?.error === "Username already exists") {
-          return Promise.reject(
-            "Magaca aad isticmaashay ayaa horey loo isticmaalay. Fadlan isticmaal magac kale."
-          );
+        // Handle specific error cases
+        if (errorData.email) {
+          if (Array.isArray(errorData.email)) {
+            const emailError = errorData.email[0];
+            if (emailError === "Enter a valid email address.") {
+              errorMessage = "Fadlan geli email sax ah";
+            } else if (emailError === "User with this email already exists.") {
+              errorMessage = "Email-kan horey ayaa loo isticmaalaa";
+            }
+          }
+        } else if (errorData.password) {
+          if (Array.isArray(errorData.password)) {
+            const passwordError = errorData.password[0];
+            if (
+              passwordError === "Password must be at least 8 characters long"
+            ) {
+              errorMessage = "Password-ka waa inuu ahaadaa ugu yaraan 8 xaraf";
+            }
+          }
+        } else if (errorData.username) {
+          if (Array.isArray(errorData.username)) {
+            const usernameError = errorData.username[0];
+            if (usernameError === "Username already exists") {
+              errorMessage = "Magaca isticmaalaha horey ayaa loo isticmaalaa";
+            }
+          }
+        } else if (errorData.name) {
+          if (Array.isArray(errorData.name)) {
+            const nameError = errorData.name[0];
+            if (nameError === "This field is required.") {
+              errorMessage = "Fadlan geli magacaaga";
+            } else if (nameError === "Name is too long") {
+              errorMessage = "Magacaaga aad u dheer yahay";
+            }
+          }
+        } else if (errorData.onboarding_data) {
+          errorMessage = "Xogta diiwaangelinta aysan saxneyn";
         }
 
-        // Check for email already exists error
-        if (
-          responseData?.email &&
-          Array.isArray(responseData.email) &&
-          responseData.email.some((msg: string) =>
-            msg.includes("already exists")
-          )
-        ) {
-          return Promise.reject(
-            "Emailkan aad isticmaashay ayaa horey loo isticmaalay. Fadlan isticmaal email kale ama ku soo bilow."
-          );
-        }
-
-        // Handle other validation errors
-        if (responseData?.detail) {
-          return Promise.reject(responseData.detail);
-        }
-
-        // Handle other error formats
-        if (responseData?.message) {
-          return Promise.reject(responseData.message);
-        }
-
-        if (responseData?.error) {
-          return Promise.reject(responseData.error);
-        }
+        throw new Error(errorMessage);
       }
 
-      // Generic error
-      return Promise.reject("Cilad ayaa dhacday. Fadlan mar kale isku day.");
+      throw error;
     }
   }
 
@@ -376,6 +362,10 @@ class AuthService {
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
 
+        // Set in cookies with proper attributes
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=86400; SameSite=Strict; Secure`;
+        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=604800; SameSite=Strict; Secure`;
+
         // Verify storage immediately
         const storedAccessToken = localStorage.getItem("accessToken");
         const storedRefreshToken = localStorage.getItem("refreshToken");
@@ -400,10 +390,6 @@ class AuthService {
           "window is undefined - cannot store tokens in localStorage"
         );
       }
-
-      // Set in cookies
-      document.cookie = `accessToken=${accessToken}; path=/; SameSite=Strict`;
-      document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Strict`;
 
       // Set in instance
       this.token = accessToken;
@@ -431,11 +417,11 @@ class AuthService {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
 
-    // Clear cookies
+    // Clear cookies with proper attributes
     document.cookie =
-      "accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      "accessToken=; path=/; max-age=0; SameSite=Strict; Secure";
     document.cookie =
-      "refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      "refreshToken=; path=/; max-age=0; SameSite=Strict; Secure";
 
     // Clear instance variables
     this.token = null;
@@ -585,6 +571,32 @@ class AuthService {
     }
     this.token = null;
     this.refreshToken = null;
+  }
+
+  private handleError(error: unknown): never {
+    if (axios.isAxiosError(error)) {
+      type ErrorResponse = {
+        detail?: string;
+        errors?: Record<string, string[]>;
+      };
+
+      const response = error.response?.data as ErrorResponse;
+
+      if (response?.detail) {
+        throw new Error(response.detail);
+      }
+
+      if (response?.errors) {
+        const errorMessages = Object.entries(response.errors)
+          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+          .join("\n");
+        throw new Error(errorMessages);
+      }
+    }
+
+    throw error instanceof Error
+      ? error
+      : new Error("An unknown error occurred");
   }
 }
 

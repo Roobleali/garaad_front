@@ -234,13 +234,12 @@ export default function ModuleZigzag({
               cx={point.x}
               cy={point.y}
               r={12}
-              className={`${
-                point.completed
+              className={`${point.completed
                   ? "fill-blue-400"
                   : activeModuleId === modules[index]?.id
-                  ? "fill-blue-200"
-                  : "fill-gray-200"
-              } transition-all duration-300`}
+                    ? "fill-blue-200"
+                    : "fill-gray-200"
+                } transition-all duration-300`}
             />
 
             {/* Inner circle or check icon for completed modules */}
@@ -261,11 +260,10 @@ export default function ModuleZigzag({
                 cx={point.x}
                 cy={point.y}
                 r={6}
-                className={`${
-                  activeModuleId === modules[index]?.id
+                className={`${activeModuleId === modules[index]?.id
                     ? "fill-blue-400"
                     : "fill-white"
-                } transition-all duration-300`}
+                  } transition-all duration-300`}
               />
             )}
 
@@ -275,11 +273,10 @@ export default function ModuleZigzag({
               y={point.y}
               textAnchor="middle"
               dominantBaseline="central"
-              className={`text-xs font-bold ${
-                point.completed || activeModuleId === modules[index]?.id
+              className={`text-xs font-bold ${point.completed || activeModuleId === modules[index]?.id
                   ? "fill-white"
                   : "fill-gray-500"
-              }`}
+                }`}
             >
               {index + 1}
             </text>
@@ -310,8 +307,8 @@ export default function ModuleZigzag({
                       isModuleCompleted(module.title, progress)
                         ? "green"
                         : hasModuleProgress(module.title, progress)
-                        ? "blue"
-                        : "gray"
+                          ? "blue"
+                          : "gray"
                     }
                   />
                 </div>

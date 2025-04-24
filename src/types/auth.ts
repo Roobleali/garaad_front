@@ -68,6 +68,11 @@ export interface SignUpData {
   password: string;
   first_name: string;
   last_name: string;
+  name?: string;
+  profile?: {
+    qabiil: string;
+    laan: string;
+  };
 }
 
 export interface SignUpResponse {

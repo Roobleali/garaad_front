@@ -185,7 +185,7 @@ const UserProgress = ({ progress }: { progress: ProgressResponse }) => {
   return (
     <Card className="mt-6">
       <CardHeader>
-        <CardTitle>Your Learning Progress</CardTitle>
+        <CardTitle>Macluumaadka Akkoonkaaga</CardTitle>
         <CardDescription>
           Track your progress across all lessons and modules
         </CardDescription>
@@ -328,28 +328,6 @@ export default function ProfilePage() {
     //   description: "Your profile has been successfully updated.",
     // });
     setIsEditing(false);
-  };
-
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.new_password !== formData.confirm_password) {
-      toast({
-        title: "Password Mismatch",
-        description: "New password and confirmation do not match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    toast({
-      title: "Password Changed",
-      description: "Your password has been successfully updated.",
-    });
-    setFormData((prev) => ({
-      ...prev,
-      current_password: "",
-      new_password: "",
-      confirm_password: "",
-    }));
   };
 
   const handleTribeUpdate = (e: React.FormEvent) => {
@@ -511,9 +489,9 @@ export default function ProfilePage() {
               <TabsContent value="account">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Account Information</CardTitle>
+                    <CardTitle>Macluumaadka Akkoonkaaga</CardTitle>
                     <CardDescription>
-                      Update your personal information and account details
+                      Cusbooneysii macluumaadkaaga shakhsiyeed iyo akkoonkaaga
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -522,7 +500,7 @@ export default function ProfilePage() {
                         <div className="grid gap-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor="first_name">First Name</Label>
+                              <Label htmlFor="first_name">Magaca Koowaad</Label>
                               <Input
                                 id="first_name"
                                 name="first_name"
@@ -531,7 +509,7 @@ export default function ProfilePage() {
                               />
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="last_name">Last Name</Label>
+                              <Label htmlFor="last_name">Magaca Dambe</Label>
                               <Input
                                 id="last_name"
                                 name="last_name"
@@ -557,9 +535,9 @@ export default function ProfilePage() {
                             variant="outline"
                             onClick={() => setIsEditing(false)}
                           >
-                            Cancel
+                            Jooji
                           </Button>
-                          <Button type="submit">Save Changes</Button>
+                          <Button type="submit">Kaydi Isbedelada</Button>
                         </div>
                       </form>
                     ) : (
@@ -567,13 +545,13 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
                             <h3 className="text-sm font-medium text-gray-500">
-                              First Name
+                              Magaca Koowaad
                             </h3>
                             <p className="mt-1 text-lg">{user?.first_name}</p>
                           </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500">
-                              Last Name
+                              Magaca Dambe
                             </h3>
                             <p className="mt-1 text-lg">{user?.last_name}</p>
                           </div>
@@ -585,31 +563,25 @@ export default function ProfilePage() {
                           </div>
                           <div>
                             <h3 className="text-sm font-medium text-gray-500">
-                              Username
+                              Magaca Isticmaalaha
                             </h3>
                             <p className="mt-1 text-lg">@{user?.username}</p>
                           </div>
                         </div>
                         <div>
                           <h3 className="text-sm font-medium text-gray-500">
-                            Bio
+                            Taariikhda
                           </h3>
-                          {/* <p className="mt-1">{user?.bio || "No bio yet"}</p> */}
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-500">
-                            Member Since
-                          </h3>
-                          {/* <p className="mt-1">
+                          <p className="mt-1">
                             {new Date(
                               user?.date_joined || ""
                             ).toLocaleDateString()}
-                          </p> */}
+                          </p>
                         </div>
                         <div className="flex justify-end">
                           <Button onClick={() => setIsEditing(true)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit Profile
+                            Wax ka bedel Profile-ka
                           </Button>
                         </div>
                       </div>
@@ -625,9 +597,9 @@ export default function ProfilePage() {
               <TabsContent value="preferences">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Preferences</CardTitle>
+                    <CardTitle>Doorashaada</CardTitle>
                     <CardDescription>
-                      Customize your learning experience
+                      U qaabee barashadaada
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -638,11 +610,10 @@ export default function ProfilePage() {
                             <div className="mr-2 text-primary">
                               <Bell size={20} />
                             </div>
-                            <Label>Email Notifications</Label>
+                            <Label>Ogeysiisyada Email</Label>
                           </div>
-                          <p className="text-sm text-gray-500 ">
-                            Receive email notifications about your learning
-                            progress
+                          <p className="text-sm text-gray-500">
+                            Hel ogeysiisyo email ah oo ku saabsan horumarka barashadaada
                           </p>
                         </div>
                         <Switch defaultChecked />
@@ -660,15 +631,15 @@ export default function ProfilePage() {
                                 <Moon size={20} />
                               )}
                             </div>
-                            <Label>Dark Mode</Label>
+                            <Label>Moodka Mugdiga</Label>
                           </div>
-                          <p className="text-sm text-gray-500 ">
-                            Toggle between light and dark themes
+                          <p className="text-sm text-gray-500">
+                            Bedel u dhexeeya moodka iftiinka iyo mugdiga
                           </p>
                         </div>
                         <Switch
                           checked={isDarkMode}
-                          // onCheckedChange={toggleDarkMode}
+                          onCheckedChange={toggleDarkMode}
                         />
                       </div>
 
@@ -684,25 +655,25 @@ export default function ProfilePage() {
                         }}
                       >
                         <div className="space-y-0.5">
-                          <Label>Language</Label>
-                          <p className="text-sm text-gray-500 ">
-                            Change the interface language
+                          <Label>Luqadda</Label>
+                          <p className="text-sm text-gray-500">
+                            Bedel luqadda interface-ka
                           </p>
                         </div>
-                        <Select defaultValue="en">
+                        <Select defaultValue="so">
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select language" />
+                            <SelectValue placeholder="Dooro luqadda" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="en">English</SelectItem>
-                            <SelectItem value="so">Somali</SelectItem>
+                            <SelectItem value="en">Ingiriis</SelectItem>
+                            <SelectItem value="so">Soomaali</SelectItem>
                           </SelectContent>
                         </Select>
                       </motion.div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end">
-                    <Button>Save Preferences</Button>
+                    <Button>Kaydi Doorashaada</Button>
                   </CardFooter>
                 </Card>
               </TabsContent>
@@ -710,86 +681,33 @@ export default function ProfilePage() {
               <TabsContent value="security">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Security</CardTitle>
+                    <CardTitle>Amniga</CardTitle>
                     <CardDescription>
-                      Manage your password and account security
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handlePasswordChange}>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="current_password">
-                            Current Password
-                          </Label>
-                          <Input
-                            id="current_password"
-                            name="current_password"
-                            type="password"
-                            value={formData.current_password}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="new_password">New Password</Label>
-                          <Input
-                            id="new_password"
-                            name="new_password"
-                            type="password"
-                            value={formData.new_password}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirm_password">
-                            Confirm New Password
-                          </Label>
-                          <Input
-                            id="confirm_password"
-                            name="confirm_password"
-                            type="password"
-                            value={formData.confirm_password}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div className="flex justify-end">
-                          <Button type="submit">Change Password</Button>
-                        </div>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-
-                <Card className={`mt-6`}>
-                  <CardHeader>
-                    <CardTitle>Account Actions</CardTitle>
-                    <CardDescription>
-                      Manage your account and data
+                      Maamul amniga akkoonkaaga
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                          <Label>Delete Account</Label>
-                          <p className="text-sm text-gray-500 ">
-                            Permanently delete your account and all associated
-                            data
+                          <Label>Tirtir Akkoonka</Label>
+                          <p className="text-sm text-gray-500">
+                            Si joogto ah u tirtir akkoonkaaga iyo dhammaan xogta la xidhiidha
                           </p>
                         </div>
-                        <Button variant="destructive">Delete Account</Button>
+                        <Button variant="destructive">Tirtir Akkoonka</Button>
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                          <Label>Logout</Label>
-                          <p className="text-sm text-gray-500 ">
-                            Log out from your account on this device
+                          <Label>Ka bax</Label>
+                          <p className="text-sm text-gray-500">
+                            Ka bax akkoonkaaga qalabkan
                           </p>
                         </div>
                         <Button variant="outline" onClick={handleLogout}>
                           <LogOut className="mr-2 h-4 w-4" />
-                          Logout
+                          Ka bax
                         </Button>
                       </div>
                     </div>
@@ -908,13 +826,12 @@ export default function ProfilePage() {
                     >
                       <div className="flex items-start gap-4">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            item === 1
-                              ? "bg-green-100 text-green-600"
-                              : item === 2
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${item === 1
+                            ? "bg-green-100 text-green-600"
+                            : item === 2
                               ? "bg-blue-100 text-blue-600"
                               : "bg-purple-100 text-purple-600"
-                          }`}
+                            }`}
                         >
                           {item === 1 ? (
                             <Check size={16} />
@@ -929,22 +846,22 @@ export default function ProfilePage() {
                             {item === 1
                               ? "Completed Lesson"
                               : item === 2
-                              ? "Earned Badge"
-                              : "Reached Level 5"}
+                                ? "Earned Badge"
+                                : "Reached Level 5"}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {item === 1
                               ? "Introduction to Somali Grammar"
                               : item === 2
-                              ? "Vocabulary Master"
-                              : "Advanced Learner Status"}
+                                ? "Vocabulary Master"
+                                : "Advanced Learner Status"}
                           </p>
                           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                             {item === 1
                               ? "2 hours ago"
                               : item === 2
-                              ? "Yesterday"
-                              : "3 days ago"}
+                                ? "Yesterday"
+                                : "3 days ago"}
                           </p>
                         </div>
                         <Button variant="ghost" size="icon">

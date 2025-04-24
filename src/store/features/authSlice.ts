@@ -60,19 +60,11 @@ export const signup =
   (userData: SignUpData) => async (dispatch: AppDispatch) => {
     try {
       dispatch(setLoading(true));
-      // TODO: Implement actual signup logic here
+      const response = await AuthService.getInstance().signUp(userData);
       dispatch(
         setUser({
-          ...userData,
-          id: 1,
-          username: userData.email,
-          is_premium: false,
-          has_completed_onboarding: false,
-          subscription_status: "basic",
-          profile: {
-            qabiil: "",
-            laan: "",
-          },
+          ...response.user,
+          profile: userData.profile || { qabiil: "", laan: "" },
         })
       );
       dispatch(setError(null));

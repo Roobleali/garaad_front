@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// List of protected routes that require authentication
-const protectedRoutes = ["/courses", "/profile", "/practice"];
+// Define protected routes
+const protectedRoutes = ["/courses", "/profile"];
 
 export function middleware(request: NextRequest) {
   // Get the pathname of the request
@@ -13,23 +13,24 @@ export function middleware(request: NextRequest) {
     path.startsWith(route)
   );
 
-  // Get the token from cookies
-  const cookieToken = request.cookies.get("accessToken")?.value;
+  // If it's not a protected route, allow access
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
 
-  // If it's a protected route and there's no token, redirect to welcome page
-  if (isProtectedRoute && !cookieToken) {
+  // Get access token from cookies
+  const accessToken = request.cookies.get("accessToken")?.value;
+
+  // If no access token and trying to access protected route, redirect to welcome
+  if (!accessToken && isProtectedRoute) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // If it's the welcome page and there's a token, redirect to dashboard
-  if (path === "/" && cookieToken) {
-    return NextResponse.redirect(new URL("/courses", request.url));
-  }
-
+  // If there's an access token, allow access to protected routes
   return NextResponse.next();
 }
 
-// Configure the middleware to run on specific paths
+// Configure which routes to run middleware on
 export const config = {
   matcher: [
     /*
@@ -38,7 +39,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public folder
      */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
   ],
 };
