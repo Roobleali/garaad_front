@@ -10,7 +10,6 @@ interface ModuleBoxProps {
 }
 
 export default function ModuleBox({
-  module,
   isActive,
   onClick,
   iconType,

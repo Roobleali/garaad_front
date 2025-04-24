@@ -30,16 +30,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UserProgress } from "@/services/progress";
 
-interface ProgressItem {
-  id: string;
-  lesson_title: string;
-  module_title: string;
-  status: "completed" | "in_progress" | string;
-  score: number | null;
-  last_visited_at: string;
-  completed_at: string | null;
-}
-
 interface ProgressStats {
   completed: number;
   inProgress: number;
@@ -86,11 +76,15 @@ export default function ProgressPage() {
           duration: 3000,
         });
       }
-    } catch (err: any) {
-      setError(err.message || "Error fetching progress");
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message || "Error fetching progress");
+      } else {
+        setError("Error fetching progress");
+      }
       toast({
         title: "Error",
-        description: err.message || "Failed to load your progress",
+        description: "Failed to load your progress",
         variant: "destructive",
         duration: 5000,
       });
@@ -302,7 +296,9 @@ export default function ProgressPage() {
 
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as any)}
+          onValueChange={(v) =>
+            setActiveTab(v as "all" | "completed" | "in_progress")
+          }
           className="w-full md:w-auto"
         >
           <TabsList className="grid w-full grid-cols-3">

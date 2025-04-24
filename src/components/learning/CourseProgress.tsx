@@ -1,7 +1,6 @@
 // src/components/learning/CourseProgress.tsx
 "use client";
 
-import { Course } from "@/types/course";
 import { Progress } from "@/components/ui/progress";
 
 export function CourseProgress({ progress }: { progress: number }) {

@@ -886,8 +886,9 @@ export default function Page() {
                                     <p>
                                       Waxaan rabnaa waxbarashu iney xiiso
                                       yeelato madama dadkeenu yihiin bulsho
-                                      qabiil ku saleysan. Waxaan go'aansanay
-                                      qaab reer caafimad qaba in lagu tartamo.
+                                      qabiil ku saleysan. Waxaan
+                                      go&apos;aansanay qaab reer caafimad qaba
+                                      in lagu tartamo.
                                     </p>
                                     <p className="text-lg font-arabic leading-relaxed">
                                       يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُم
@@ -898,7 +899,7 @@ export default function Page() {
                                     <p className="text-sm text-gray-500">
                                       “Dadow, waxaan idinka abuuray lab iyo
                                       dhaddig, waxaana idinka dhignay shucuub
-                                      iyo qabaa'il si aad isugu garataan”
+                                      iyo qabaa&apos;il si aad isugu garataan”
                                     </p>
                                   </div>
                                 </DialogHeader>

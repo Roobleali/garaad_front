@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Module } from "@/types/learning";

@@ -22,9 +22,6 @@ export default function ModuleZigzag({
 }: ModuleZigzagProps) {
   const [zigzagPath, setZigzagPath] = useState<string>("");
   const [progress, setProgress] = useState<UserProgress[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
   const [completedPath, setCompletedPath] = useState<string>("");
   const [modulePoints, setModulePoints] = useState<
     { x: number; y: number; completed: boolean }[]
@@ -36,8 +33,6 @@ export default function ModuleZigzag({
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/lms/user-progress/`;
 
   const fetchProgress = useCallback(async () => {
-    setError(false);
-
     try {
       const token = Cookies.get("accessToken");
       if (!token) throw new Error("Not authenticated");
@@ -51,11 +46,12 @@ export default function ModuleZigzag({
       });
 
       setProgress(response.data || []);
-    } catch (err: any) {
-      setError(true);
-      console.error(err.message || "Error fetching progress");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error("Error fetching progress");
+      }
     }
   }, [apiUrl]);
 
@@ -192,7 +188,7 @@ export default function ModuleZigzag({
     window.addEventListener("resize", calculateZigzagPath);
 
     return () => window.removeEventListener("resize", calculateZigzagPath);
-  }, [modules]);
+  }, [modules, progress]);
 
   const getModulePosition = (index: number) => {
     if (index === 0 || index === modules.length - 1) {

@@ -1,7 +1,7 @@
 /* src/app/courses/[categoryId]/[courseSlug]/page.tsx */
 
 "use client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourse } from "@/store/features/learningSlice";
@@ -11,17 +11,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ChevronRight } from "lucide-react";
 
-import { ModuleBlock } from "@/components/learning/ui/ModuleBlock";
 import { Header } from "@/components/Header";
 import ModuleZigzag from "@/components/learning/ui/ModuleZigzag";
-import { Module } from "@/types/learning";
 import { CourseProgress } from "@/components/learning/CourseProgress";
 
 const defaultCourseImage = "/images/placeholder-course.svg";
 
 export default function CourseDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { currentCourse, isLoading, error } = useSelector(
     (state: RootState) => state.learning
