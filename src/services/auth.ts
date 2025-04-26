@@ -200,7 +200,7 @@ class AuthService {
     try {
       console.log("Signing up with data:", data);
       const response = await axios.post<SignUpResponse>(
-        `${this.baseURL}/api/auth/register/`,
+        `${this.baseURL}/api/auth/signup/`,
         data
       );
 
