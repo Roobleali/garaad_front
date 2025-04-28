@@ -39,7 +39,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
   console.log(currentUserEntry);
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-sm border-0 mt-10">
+    <Card className="w-full max-w-2xl mx-auto shadow-sm border-0 mt-10">
       <CardContent className="p-6">
         <div className="flex flex-col items-center space-y-4">
           {/* League Badge */}

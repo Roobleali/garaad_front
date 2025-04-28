@@ -32,7 +32,7 @@ import LessonHeader from "@/components/LessonHeader";
 import AnswerFeedback from "@/components/AnswerFeedback";
 import Image from "next/image";
 import { toast } from "sonner";
-import { LeaderboardEntry, UserRank } from "@/services/progress";
+import { LeaderboardEntry, UserRank, UserReward } from "@/services/progress";
 import AuthService from "@/services/auth";
 import { Course } from "@/types/lms";
 import RewardComponent from "@/components/RewardComponent";
@@ -689,6 +689,7 @@ const LessonPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCorrect, setIscorrect] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [rewards, setRewards] = useState<UserReward[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [userRank, setUserRank] = useState<Partial<UserRank>>({
     rank: 0,
@@ -904,6 +905,15 @@ const LessonPage = () => {
                     }
                   );
                 }
+
+                // 4. Get updated user rewards
+                const rewardsData =
+                  await AuthService.getInstance().makeAuthenticatedRequest<
+                    UserReward[]
+                  >("get", "/api/lms/rewards/");
+
+                setRewards(rewardsData);
+                // console.log("++++++++++++++++++++++++++++++", rewards);
 
                 // 5. Get updated leaderboard
                 const leaderboardData =
@@ -1243,7 +1253,17 @@ const LessonPage = () => {
           userRank={userRank}
         />
       ) : isLessonCompleted ? (
-        <RewardComponent onContinue={handleShowLeaderboard} points={"10"} />
+        <RewardComponent
+          onContinue={handleShowLeaderboard}
+          rewards={rewards.map((reward) => ({
+            id: reward.id,
+            user: reward.user,
+            reward_type: reward.reward_type,
+            reward_name: reward.reward_name,
+            value: reward.value,
+            awarded_at: reward.awarded_at,
+          }))}
+        />
       ) : (
         <div>
           <LessonHeader

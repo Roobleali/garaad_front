@@ -243,7 +243,9 @@ export const progressService = {
         throw new Error(error.message || "Failed to fetch user rewards");
       }
 
-      return (await response.json()) as UserReward[];
+      const data = await response.json();
+
+      return data as UserReward[];
     } catch (error) {
       console.error("Error fetching user rewards:", error);
       throw error;
