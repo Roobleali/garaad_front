@@ -18,7 +18,7 @@ export type SoundEvent =
   | "lightweight-choice";
 
 export function useSoundEffects() {
-  const [playClick] = useSound("/sounds/click.wav");
+  const [playClick] = useSound("/sounds/toggle-on");
   const [playContinue] = useSound("/sounds/continue.mp3");
   const [playSkip] = useSound("/sounds/skip.mp3");
   const [playCorrect] = useSound("/sounds/correct.mp3");

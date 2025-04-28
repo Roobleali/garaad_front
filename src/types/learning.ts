@@ -113,6 +113,7 @@ export interface Problem {
   options?: string[];
   correct_answer: string;
   explanation: string;
+  points: number;
   difficulty: "easy" | "medium" | "hard";
   created_at: string;
   hints?: Hint[];

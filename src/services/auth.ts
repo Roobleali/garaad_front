@@ -199,10 +199,13 @@ class AuthService {
   public async signUp(data: SignUpData): Promise<SignUpResponse> {
     try {
       console.log("Signing up with data:", data);
+
       const response = await axios.post<SignUpResponse>(
         `${this.baseURL}/api/auth/signup/`,
         data
       );
+
+      console.log("SINGUP DATA", response.data);
 
       // Store token and user data
       if (response.data.token) {
@@ -413,6 +416,8 @@ class AuthService {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log(response.data);
 
       return response.data;
     } catch (error) {

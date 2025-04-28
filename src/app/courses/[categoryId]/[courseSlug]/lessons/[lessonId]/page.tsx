@@ -15,8 +15,6 @@ import {
   X,
   ArrowRight,
   ReplaceIcon,
-  Trophy,
-  Users,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { motion } from "framer-motion";
@@ -34,17 +32,11 @@ import LessonHeader from "@/components/LessonHeader";
 import AnswerFeedback from "@/components/AnswerFeedback";
 import Image from "next/image";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from "@/components/ui/dialog";
 import { LeaderboardEntry, UserRank } from "@/services/progress";
 import AuthService from "@/services/auth";
-
-
+import { Course } from "@/types/lms";
+import RewardComponent from "@/components/RewardComponent";
+import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 
 // Sound manager for better audio handling
 const useSoundManager = () => {
@@ -82,22 +74,23 @@ const useSoundManager = () => {
     }
   }, []);
 
-  const playSound = useCallback(async (
-    soundName: "click" | "correct" | "incorrect" | "continue"
-  ) => {
-    const audio = soundsRef.current[soundName];
-    if (audio) {
-      try {
-        audio.currentTime = 0;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          await playPromise;
+  const playSound = useCallback(
+    async (soundName: "click" | "correct" | "incorrect" | "continue") => {
+      const audio = soundsRef.current[soundName];
+      if (audio) {
+        try {
+          audio.currentTime = 0;
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            await playPromise;
+          }
+        } catch (error) {
+          console.error(`Error playing ${soundName} sound:`, error);
         }
-      } catch (error) {
-        console.error(`Error playing ${soundName} sound:`, error);
       }
-    }
-  }, []);
+    },
+    []
+  );
 
   return { playSound };
 };
@@ -119,7 +112,10 @@ interface ScaleBalanceContent {
 const ScaleBalanceInteractive: React.FC<{
   content: ScaleBalanceContent;
   onComplete: () => void;
-  onExplanationChange?: (explanation: { explanation: string; image: string }) => void;
+  onExplanationChange?: (explanation: {
+    explanation: string;
+    image: string;
+  }) => void;
 }> = ({ content, onComplete, onExplanationChange }) => {
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(-1);
@@ -134,7 +130,7 @@ const ScaleBalanceInteractive: React.FC<{
     if (onExplanationChange) {
       onExplanationChange({
         explanation: content.explanation || "",
-        image: content.image || ""
+        image: content.image || "",
       });
     }
   }, [content.explanation, content.image, onExplanationChange]);
@@ -287,151 +283,151 @@ const ProblemBlock: React.FC<{
   isCorrect,
   isLastInLesson,
 }) => {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      );
-    }
-
-    if (error || !content) {
-      return (
-        <Card className="max-w-3xl mx-auto">
-          <CardContent className="p-6 text-center">
-            <p className="text-red-500">
-              {error || "Problem content could not be loaded"}
-            </p>
-            <Button onClick={onContinue} className="mt-4">
-              Continue to Next Section
-            </Button>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    // Determine if user has checked an answer
-    const hasAnswered = !!answerState.lastAttempt;
-
+  if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-4">
-        <motion.div className="space-y-8">
-          {/* Question Card */}
-          <Card className="border-none shadow-xl z-0">
-            <CardHeader className="relative bg-gradient-to-r from-primary/10 to-primary/5 pb-6">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Badge className="bg-primary hover:bg-primary text-white px-4 py-1.5 text-sm shadow-md">
-                  {isLastInLesson ? "Su'aasha Ugu Dambeysa" : "Su'aal"}
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error || !content) {
+    return (
+      <Card className="max-w-3xl mx-auto">
+        <CardContent className="p-6 text-center">
+          <p className="text-red-500">
+            {error || "Problem content could not be loaded"}
+          </p>
+          <Button onClick={onContinue} className="mt-4">
+            Continue to Next Section
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Determine if user has checked an answer
+  const hasAnswered = !!answerState.lastAttempt;
+
+  return (
+    <div className="max-w-3xl mx-auto px-4">
+      <motion.div className="space-y-8">
+        {/* Question Card */}
+        <Card className="border-none shadow-xl z-0">
+          <CardHeader className="relative bg-gradient-to-r from-primary/10 to-primary/5 pb-6">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <Badge className="bg-primary hover:bg-primary text-white px-4 py-1.5 text-sm shadow-md">
+                {isLastInLesson ? "Su'aasha Ugu Dambeysa" : "Su'aal"}
+              </Badge>
+            </div>
+            {isLastInLesson && (
+              <div className="absolute top-3 right-3">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-100 text-amber-800 border-amber-200"
+                >
+                  Dhamaad
                 </Badge>
               </div>
-              {isLastInLesson && (
-                <div className="absolute top-3 right-3">
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
-                    Dhamaad
-                  </Badge>
-                </div>
-              )}
-              <div className="pt-4">
-                <CardTitle className="text-2xl text-center mt-2">
-                  {content.question}
-                </CardTitle>
-              </div>
-            </CardHeader>
+            )}
+            <div className="pt-4">
+              <CardTitle className="text-2xl text-center mt-2">
+                {content.question}
+              </CardTitle>
+            </div>
+          </CardHeader>
 
-            <CardContent className="p-6">
-              {/* Options Grid */}
-              <div className="grid gap-4 md:grid-cols-2">
-                {content.options.map((option, idx) => {
-                  const isSelected = selectedOption === option;
-                  const isOptionCorrect = hasAnswered && isSelected && isCorrect;
-                  const isOptionIncorrect =
-                    hasAnswered && isSelected && !isCorrect;
+          <CardContent className="p-6">
+            {/* Options Grid */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {content.options.map((option, idx) => {
+                const isSelected = selectedOption === option;
+                const isOptionCorrect = hasAnswered && isSelected && isCorrect;
+                const isOptionIncorrect =
+                  hasAnswered && isSelected && !isCorrect;
 
-                  return (
-                    <motion.button
-                      key={idx}
-                      onClick={() => onOptionSelect(option)}
-                      disabled={hasAnswered}
-                      className={cn(
-                        "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden",
-                        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                return (
+                  <motion.button
+                    key={idx}
+                    onClick={() => onOptionSelect(option)}
+                    disabled={hasAnswered}
+                    className={cn(
+                      "p-5 rounded-xl border-2 transition-all duration-300 relative overflow-hidden",
+                      "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
 
-                        // Default state
-                        !isSelected &&
+                      // Default state
+                      !isSelected &&
                         !hasAnswered &&
                         "border-gray-200 hover:border-primary/50 hover:bg-primary/5",
 
-                        // Selected but not yet checked
-                        isSelected &&
+                      // Selected but not yet checked
+                      isSelected &&
                         !hasAnswered &&
                         "border-primary bg-primary/10 shadow-md",
 
-                        // Correct or incorrect
-                        isOptionCorrect &&
+                      // Correct or incorrect
+                      isOptionCorrect &&
                         "border-green-500 bg-green-50 shadow-md",
-                        isOptionIncorrect && "border-red-500 bg-red-50 shadow-md"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-medium text-gray-800">
-                          {option}
-                        </span>
-
-                        {isOptionCorrect && (
-                          <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center"
-                          >
-                            <Check className="h-4 w-4 text-white" />
-                          </motion.div>
-                        )}
-
-                        {isOptionIncorrect && (
-                          <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center"
-                          >
-                            <X className="h-4 w-4 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-
-                      {isSelected && !hasAnswered && (
-                        <motion.div
-                          className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none"
-                          layoutId="selectedOption"
-                        />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </CardContent>
-
-            <CardFooter className="pt-0 pb-4 px-6">
-              <div className="w-full space-y-4">
-                {answerState.isCorrect === null && !hasAnswered && (
-                  <Button
-                    onClick={onCheckAnswer}
-                    className="w-full bg-primary hover:bg-primary/90"
-                    size="lg"
-                    disabled={!selectedOption || isLoading}
+                      isOptionIncorrect && "border-red-500 bg-red-50 shadow-md"
+                    )}
                   >
-                    Check Answer
-                  </Button>
-                )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-medium text-gray-800">
+                        {option}
+                      </span>
 
-              </div>
-            </CardFooter>
-          </Card>
+                      {isOptionCorrect && (
+                        <motion.div
+                          initial="hidden"
+                          animate="visible"
+                          className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center"
+                        >
+                          <Check className="h-4 w-4 text-white" />
+                        </motion.div>
+                      )}
 
+                      {isOptionIncorrect && (
+                        <motion.div
+                          initial="hidden"
+                          animate="visible"
+                          className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center"
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </motion.div>
+                      )}
+                    </div>
 
-        </motion.div>
-      </div>
-    );
-  };
+                    {isSelected && !hasAnswered && (
+                      <motion.div
+                        className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none"
+                        layoutId="selectedOption"
+                      />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </CardContent>
+
+          <CardFooter className="pt-0 pb-4 px-6">
+            <div className="w-full space-y-4">
+              {answerState.isCorrect === null && !hasAnswered && (
+                <Button
+                  onClick={onCheckAnswer}
+                  className="w-full bg-primary hover:bg-primary/90"
+                  size="lg"
+                  disabled={!selectedOption || isLoading}
+                >
+                  Check Answer
+                </Button>
+              )}
+            </div>
+          </CardFooter>
+        </Card>
+      </motion.div>
+    </div>
+  );
+};
 
 // TextBlock component for text-type content
 const TextBlock: React.FC<{
@@ -559,74 +555,122 @@ const ImageBlock: React.FC<{
 };
 
 // LessonCompletionModal component to show leaderboard, badges, and completion information
-interface LessonCompletionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onContinue: () => void;
-  leaderboard: LeaderboardEntry[];
-  userRank: Partial<UserRank>;
-}
 
-const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
-  isOpen,
-  onClose,
-  onContinue,
-  leaderboard = [],
-  userRank = { rank: 0, points: 0 },
-}) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold">
-            <span className="flex items-center justify-center gap-2">
-              <Trophy className="h-6 w-6 text-yellow-500" />
-              Casharka wuu dhamaday!
-            </span>
-          </DialogTitle>
-          <DialogDescription className="text-center pt-2">
-            Hambalyo! Waxaad helay 15 XP.
-          </DialogDescription>
-        </DialogHeader>
+// const LessonCompletionModal: React.FC<LessonCompletionModalProps> = ({
+//   isOpen,
+//   onClose,
+//   onContinue,
+//   leaderboard = [],
+//   userRank = { rank: 0, points: 0 },
+// }) => {
+//   return (
+//     <Dialog open={isOpen} onOpenChange={onClose}>
+//       <DialogContent className="sm:max-w-md">
+//         <DialogHeader>
+//           <DialogTitle className="text-center text-2xl font-bold">
+//             <span className="flex items-center justify-center gap-2">
+//               <Trophy className="h-6 w-6 text-yellow-500" />
+//               Casharka wuu dhamaday!
+//             </span>
+//           </DialogTitle>
+//           <DialogDescription className="text-center pt-2">
+//             Hambalyo! Waxaad helay 15 XP.
+//           </DialogDescription>
+//         </DialogHeader>
 
+//         {/* Leaderboard section */}
+//         <div className="border rounded-lg p-4">
+//           <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+//             <Users className="h-5 w-5 text-primary" />
+//             Shaxda tartanka
+//           </h3>
+//           <div className="space-y-2 max-h-[200px] overflow-y-auto">
+//             {leaderboard.slice(0, 5).map((entry, index) => (
+//               <div
+//                 key={entry.id || index}
+//                 className={`flex items-center justify-between p-2 rounded-lg ${
+//                   userRank.rank === index + 1 ? "bg-primary/10 font-medium" : ""
+//                 }`}
+//               >
+//                 <div className="flex items-center gap-2 ">
+//                   <span className="font-bold">{index + 1}</span>
+//                   <span className="truncate w-28">
+//                     {entry.username || "User"}
+//                   </span>
+//                 </div>
+//                 <span>{entry.points || 0} XP</span>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
 
+//         <div className="mt-4">
+//           <Button className="w-full" onClick={onContinue}>
+//             Casharka xiga
+//             <ChevronRight className="ml-2 h-4 w-4" />
+//           </Button>
+//         </div>
+//       </DialogContent>
+//     </Dialog>
+//   );
+// };
 
-        {/* Leaderboard section */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            Shaxda tartanka
-          </h3>
-          <div className="space-y-2 max-h-[200px] overflow-y-auto">
-            {leaderboard.slice(0, 5).map((entry, index) => (
-              <div
-                key={entry.id || index}
-                className={`flex items-center justify-between p-2 rounded-lg ${userRank.rank === index + 1 ? "bg-primary/10 font-medium" : ""
-                  }`}
-              >
-                <div className="flex items-center gap-2 ">
-                  <span className="font-bold">{index + 1}</span>
-                  <span className="truncate w-28">{entry.username || "User"}</span>
-                </div>
-                <span>{entry.points || 0} XP</span>
-              </div>
-            ))}
-          </div>
-        </div>
+// interface LeaderboardProps {
+//   onContinue: () => void;
+//   leaderboard: LeaderboardEntry[];
+//   userRank: Partial<UserRank>;
+//   displayCount?: number;
+// }
 
-        <div className="mt-4">
-          <Button
-            className="w-full"
-            onClick={onContinue}
-          >
-            Casharka xiga
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+// const Leaderboard: React.FC<LeaderboardProps> = ({
+//   leaderboard,
+//   userRank,
+//   onContinue,
+//   displayCount = 5,
+// }) => {
+//   const topEntries = leaderboard.slice(0, displayCount);
+
+//   return (
+//     <div className="border rounded-lg p-4">
+//       <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+//         <Users className="h-5 w-5 text-primary" />
+//         Shaxda tartanka
+//       </h3>
+
+//       <div className="space-y-2 max-h-[200px] overflow-y-auto">
+//         {topEntries.map((entry, index) => {
+//           const rank = index + 1;
+//           const isCurrentUser = userRank === rank;
+
+//           return (
+//             <div
+//               key={entry.id ?? index}
+//               className={`flex items-center justify-between p-2 rounded-lg ${
+//                 isCurrentUser ? "bg-primary/10 font-medium" : ""
+//               }`}
+//             >
+//               <div className="flex items-center gap-2">
+//                 <span className="font-bold">{rank}</span>
+//                 <span className="truncate w-28">
+//                   {entry.username ?? "User"}
+//                 </span>
+//               </div>
+
+//               <span>{entry.points ?? 0} XP</span>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       <div className="mt-4">
+//         <Button className="w-full" onClick={onContinue}>
+//           Casharka xiga
+//           <ChevronRight className="ml-2 h-4 w-4" />
+//         </Button>
+//       </div>
+//     </div>
+//   );
+// };
 
 // Main LessonPage component
 const LessonPage = () => {
@@ -638,27 +682,35 @@ const LessonPage = () => {
   );
   const isLoading = useSelector((state: RootState) => state.learning.isLoading);
   const [content, setContent] = useState<ProblemContent | null>(null);
+  const [courseId, setCourseId] = useState("");
+  const [isLessonCompleted, setIsLessonCompleted] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [problemLoading, setProblemLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCorrect, setIscorrect] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [userRank, setUserRank] = useState<Partial<UserRank>>({ rank: 0, points: 0 });
-  const [explanationData, setExplanationData] = useState<{ explanation: string; image: string }>({
+  const [userRank, setUserRank] = useState<Partial<UserRank>>({
+    rank: 0,
+    points: 0,
+  });
+  const [explanationData, setExplanationData] = useState<{
+    explanation: string;
+    image: string;
+  }>({
     explanation: "",
-    image: ""
+    image: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => { });
+  const continueRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const fetchProblemContent = async () => {
       try {
         const sortedBlocks = currentLesson?.content_blocks
           ? [...currentLesson.content_blocks].sort(
-            (a, b) => (a.order || 0) - (b.order || 0)
-          )
+              (a, b) => (a.order || 0) - (b.order || 0)
+            )
           : [];
 
         const block = sortedBlocks.find(
@@ -695,7 +747,7 @@ const LessonPage = () => {
         // Update the explanation data state with the problem's explanation
         setExplanationData({
           explanation: problemData.explanation || "",
-          image: problemData.image || ""
+          image: problemData.image || "",
         });
 
         setContent(transformedContent);
@@ -723,6 +775,29 @@ const LessonPage = () => {
   }, [currentBlockIndex]);
 
   const coursePath = `/courses/${params.categoryId}/${params.courseSlug}`;
+
+  const fetchCourseIdFromSlug = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch course ID: ${response.statusText}`);
+      }
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return setCourseId(
+          data.filter((course: Course) => course.slug === params.courseSlug)[0]
+            .id
+        ); // Assuming the API returns an array of courses
+      }
+      throw new Error("Course not found");
+    } catch (error) {
+      console.error("Error fetching course ID:", error);
+      return null;
+    }
+  };
+
   // Fetch lesson data
   useEffect(() => {
     if (params.lessonId) {
@@ -730,13 +805,20 @@ const LessonPage = () => {
     }
   }, [dispatch, params.lessonId]);
 
+  useEffect(() => {
+    fetchCourseIdFromSlug();
+  }, [courseId, fetchCourseIdFromSlug]);
+
   // Handle option selection
-  const handleOptionSelect = useCallback((option: string) => {
-    setShowFeedback(false);
-    dispatch(resetAnswerState());
-    setSelectedOption(String(option));
-    playSound("click");
-  }, [dispatch, playSound]);
+  const handleOptionSelect = useCallback(
+    (option: string) => {
+      setShowFeedback(false);
+      dispatch(resetAnswerState());
+      setSelectedOption(String(option));
+      playSound("click");
+    },
+    [dispatch, playSound]
+  );
 
   // Handle continue to next block
   const handleContinue = useCallback(async () => {
@@ -758,122 +840,150 @@ const LessonPage = () => {
         if (currentLesson?.id) {
           try {
             // Try to store progress in local storage as a fallback
-            const completedLessons = JSON.parse(localStorage.getItem('completedLessons') || '[]');
+            const completedLessons = JSON.parse(
+              localStorage.getItem("completedLessons") || "[]"
+            );
             if (!completedLessons.includes(currentLesson.id)) {
               completedLessons.push(currentLesson.id);
-              localStorage.setItem('completedLessons', JSON.stringify(completedLessons));
+              localStorage.setItem(
+                "completedLessons",
+                JSON.stringify(completedLessons)
+              );
             }
 
             // Immediately show completion modal without waiting for API
-            setIsCompletionModalOpen(true);
+            // setIsCompletionModalOpen(true);
+            setIsLessonCompleted(true);
 
             // Try API updates in background
             (async () => {
               try {
                 // 1. Mark lesson as completed with score
-                const completionResult = await AuthService.getInstance().makeAuthenticatedRequest<{
-                  reward?: { value: number };
-                }>(
-                  'post',
-                  `/api/lms/lessons/${currentLesson.id}/complete/`,
-                  { score: isCorrect ? 100 : 0 }
-                );
+                const completionResult =
+                  await AuthService.getInstance().makeAuthenticatedRequest<{
+                    reward?: { value: number };
+                  }>("post", `/api/lms/lessons/${currentLesson.id}/complete/`, {
+                    score: isCorrect ? 100 : 0,
+                  });
 
                 // 2. Update progress status
-                await AuthService.getInstance().makeAuthenticatedRequest(
-                  'put',
-                  `/api/lms/user-progress/${currentLesson.id}/`,
-                  {
-                    status: "completed",
-                    score: isCorrect ? 100 : 0
-                  }
-                );
+                // await AuthService.getInstance().makeAuthenticatedRequest(
+                //   "put",
+                //   `/api/lms/user-progress/${currentLesson.id}/`,
+                //   {
+                //     status: "completed",
+                //     score: isCorrect ? 100 : 0,
+                //   }
+                // );
 
                 // 3. Get updated course progress
-                const courseProgress = await AuthService.getInstance().makeAuthenticatedRequest<{
-                  progress: number;
-                  user_progress: {
-                    progress_percent: number;
-                  };
-                }>(
-                  'get',
-                  `/api/lms/courses/${params.courseId}/`
-                );
+                const courseProgress =
+                  await AuthService.getInstance().makeAuthenticatedRequest<{
+                    progress: number;
+                    user_progress: {
+                      progress_percent: number;
+                    };
+                  }>("get", `/api/lms/courses/${courseId}/`);
 
                 // 4. Show reward notification if any
                 if (completionResult.reward) {
                   toast.success(
                     <div className="space-y-2">
                       <p className="font-medium">Hambalyo!</p>
-                      <p>Waxaad ku guulaysatay {completionResult.reward.value} XP</p>
-                      <p>Horumarkaaga: {courseProgress.user_progress.progress_percent}%</p>
+                      <p>
+                        Waxaad ku guulaysatay {completionResult.reward.value} XP
+                      </p>
+                      <p>
+                        Horumarkaaga:{" "}
+                        {courseProgress.user_progress.progress_percent}%
+                      </p>
                     </div>,
                     {
                       duration: 5000,
-                      id: "reward-toast"
+                      id: "reward-toast",
                     }
                   );
                 }
 
                 // 5. Get updated leaderboard
-                const leaderboardData = await AuthService.getInstance().makeAuthenticatedRequest<LeaderboardEntry[]>(
-                  'get',
-                  '/api/lms/leaderboard/?time_period=all_time&limit=10'
-                );
+                const leaderboardData =
+                  await AuthService.getInstance().makeAuthenticatedRequest<
+                    LeaderboardEntry[]
+                  >(
+                    "get",
+                    "/api/lms/leaderboard/?time_period=all_time&limit=10"
+                  );
 
                 // 6. Get user rank
-                const userRankData = await AuthService.getInstance().makeAuthenticatedRequest<Partial<UserRank>>(
-                  'get',
-                  '/api/lms/leaderboard/my_rank/'
-                );
+                const userRankData =
+                  await AuthService.getInstance().makeAuthenticatedRequest<
+                    Partial<UserRank>
+                  >("get", "/api/lms/leaderboard/my_rank/");
 
                 // Update state with new data
                 setLeaderboard(leaderboardData);
                 setUserRank(userRankData);
-
               } catch (error) {
                 console.error("Error updating progress:", error);
+
                 // Show error toast but don't prevent completion
                 toast.error(
                   <div className="space-y-2">
                     <p className="font-medium">Xalad ayaa dhacday</p>
-                    <p>Waxaa jira khalad markii la diiwaangelinayay horumarkaaga. Fadlan isku day mar kale.</p>
+                    <p>
+                      Waxaa jira khalad markii la diiwaangelinayay horumarkaaga.
+                      Fadlan isku day mar kale.
+                    </p>
                   </div>,
                   {
                     duration: 5000,
-                    id: "error-toast"
+                    id: "error-toast",
                   }
                 );
               }
-            })().catch(error => {
+            })().catch((error) => {
               console.error("Overall progress error:", error);
               // Show error toast but don't prevent completion
               toast.error(
                 <div className="space-y-2">
                   <p className="font-medium">Xalad ayaa dhacday</p>
-                  <p>Waxaa jira khalad markii la diiwaangelinayay horumarkaaga. Fadlan isku day mar kale.</p>
+                  <p>
+                    Waxaa jira khalad markii la diiwaangelinayay horumarkaaga.
+                    Fadlan isku day mar kale.
+                  </p>
                 </div>,
                 {
                   duration: 5000,
-                  id: "error-toast"
+                  id: "error-toast",
                 }
               );
             });
           } catch (storageError) {
             console.error("Error with local storage:", storageError);
             // Even if local storage fails, still show completion modal
-            setIsCompletionModalOpen(true);
+            setIsLessonCompleted(true);
           }
         } else {
           // No lesson ID, still show completion modal
-          setIsCompletionModalOpen(true);
+          // setIsCompletionModalOpen(true);
         }
       } else {
         // Not the last block, move to the next block
-        setCurrentBlockIndex((prev) => Math.min(prev + 1, contentBlocks.length - 1));
+        setCurrentBlockIndex((prev) =>
+          Math.min(prev + 1, contentBlocks.length - 1)
+        );
       }
     }
-  }, [currentLesson, currentBlockIndex, isCorrect, playSound, setLeaderboard, setUserRank, params.courseId]);
+  }, [
+    currentLesson,
+    currentBlockIndex,
+    isCorrect,
+    playSound,
+    courseId,
+    setLeaderboard,
+    setUserRank,
+    params.courseId,
+  ]);
 
   // Update the ref when handleContinue changes
   useEffect(() => {
@@ -908,7 +1018,7 @@ const LessonPage = () => {
       toast.success(
         <div className="space-y-2">
           <p className="font-medium">Jawaab Sax ah!</p>
-          <p>Waxaad ku guulaysatay 15 XP</p>
+          <p>Waxaad ku guulaysatay 10 XP</p>
           <Button
             className="w-full mt-2"
             onClick={() => {
@@ -924,7 +1034,7 @@ const LessonPage = () => {
         </div>,
         {
           duration: 5000,
-          id: "correct-answer-toast" // Add an ID to ensure we can dismiss it
+          id: "correct-answer-toast", // Add an ID to ensure we can dismiss it
         }
       );
     }
@@ -932,9 +1042,15 @@ const LessonPage = () => {
 
   // Function to handle continuing after the completion modal
   const handleContinueAfterCompletion = () => {
-    setIsCompletionModalOpen(false);
+    // setIsCompletionModalOpen(false);
+    setShowLeaderboard(false);
+    setIsLessonCompleted(false);
     // Navigate to the course page
     router.push(`${coursePath}`);
+  };
+
+  const handleShowLeaderboard = () => {
+    setShowLeaderboard(true);
   };
 
   // Reset answer state
@@ -1079,7 +1195,7 @@ const LessonPage = () => {
     isCorrect,
     handleCheckAnswer,
     handleContinue,
-    handleOptionSelect
+    handleOptionSelect,
   ]);
 
   // Loading state
@@ -1120,34 +1236,37 @@ const LessonPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <LessonHeader
-        currentQuestion={currentBlockIndex + 1}
-        totalQuestions={currentLesson.content_blocks?.length || 0}
-      // lessonTitle={currentLesson.title}
-      />
-
-      <main className="pt-20 pb-32 mt-10">
-        <div className="container mx-auto">{currentBlock}</div>
-      </main>
-
-      {/* Show AnswerFeedback for all answers */}
-      {showFeedback && (
-        <AnswerFeedback
-          isCorrect={isCorrect}
-          currentLesson={currentLesson}
-          onResetAnswer={handleResetAnswer}
-          onContinue={handleContinue}
-          explanationData={explanationData}
+      {isLessonCompleted && showLeaderboard ? (
+        <Leaderboard
+          onContinue={handleContinueAfterCompletion}
+          leaderboard={leaderboard}
+          userRank={userRank}
         />
-      )}
+      ) : isLessonCompleted ? (
+        <RewardComponent onContinue={handleShowLeaderboard} points={"10"} />
+      ) : (
+        <div>
+          <LessonHeader
+            currentQuestion={currentBlockIndex + 1}
+            totalQuestions={currentLesson.content_blocks?.length || 0}
+          />
 
-      <LessonCompletionModal
-        isOpen={isCompletionModalOpen}
-        onClose={() => setIsCompletionModalOpen(false)}
-        onContinue={handleContinueAfterCompletion}
-        leaderboard={leaderboard}
-        userRank={userRank}
-      />
+          <main className="pt-20 pb-32 mt-10">
+            <div className="container mx-auto">{currentBlock}</div>
+          </main>
+
+          {/* Show AnswerFeedback for all answers */}
+          {showFeedback && (
+            <AnswerFeedback
+              isCorrect={isCorrect}
+              currentLesson={currentLesson}
+              onResetAnswer={handleResetAnswer}
+              onContinue={handleContinue}
+              explanationData={explanationData}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

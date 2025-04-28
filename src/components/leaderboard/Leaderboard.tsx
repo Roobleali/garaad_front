@@ -1,128 +1,121 @@
 "use client";
-import React, { useState } from "react";
-import { LeaderboardEntry } from "@/services/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type React from "react";
+import type { LeaderboardEntry, UserRank } from "@/services/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface LeaderboardProps {
-  entries: LeaderboardEntry[];
-  userRank: {
-    rank: number;
-    points: number;
-  };
+  /** Full list of leaderboard entries */
+  leaderboard: LeaderboardEntry[];
+  /** Current user's rank (1-based) */
+  userRank: Partial<UserRank>;
+  /** Handler to go to next lesson */
+  onContinue?: () => void;
+  /** How many top entries to show */
+  displayCount?: number;
+  /** League name the user qualified for */
+  leagueName?: string;
+  /** Days left in current league period */
+  daysLeft?: number;
 }
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({
-  entries,
+  leaderboard,
   userRank,
+  onContinue,
+  displayCount = 5,
+  leagueName = "Hydrogen League",
+  daysLeft = 4,
 }) => {
-  const [timePeriod, setTimePeriod] = useState<
-    "all_time" | "weekly" | "monthly"
-  >("all_time");
+  // Only show top N entries
+  const topEntries = leaderboard.slice(0, displayCount);
 
-  const getMedalIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Trophy className="h-5 w-5" />;
-      case 2:
-      case 3:
-        return <Medal className="h-5 w-5" />;
-      default:
-        return <span className="text-sm font-medium">{rank}</span>;
-    }
-  };
+  // Find the current user's entry
+  const currentUserEntry = leaderboard.find(
+    (entry) => entry.username === userRank.user_info?.email
+  );
+
+  console.log(currentUserEntry);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Leaderboard</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs
-          value={timePeriod}
-          onValueChange={(value) =>
-            setTimePeriod(value as "all_time" | "weekly" | "monthly")
-          }
-        >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all_time">All Time</TabsTrigger>
-            <TabsTrigger value="weekly">Weekly</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          </TabsList>
-          <TabsContent value={timePeriod}>
-            <div className="space-y-4">
-              {/* User's Rank */}
-              <div className="flex items-center justify-between rounded-lg bg-muted p-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    {userRank.rank}
-                  </div>
-                  <div>
-                    <p className="font-medium">Your Rank</p>
-                    <p className="text-sm text-muted-foreground">
-                      {userRank.points} points
-                    </p>
-                  </div>
-                </div>
-                <Star className="h-5 w-5 text-yellow-500" />
-              </div>
-
-              {/* Leaderboard Entries */}
-              <div className="space-y-2">
-                {entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-center justify-between rounded-lg border p-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                          entry.user_info.stats.badges_count > 0
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
-                      >
-                        {getMedalIcon(entry.id)}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${entry.username}`}
-                          />
-                          <AvatarFallback>
-                            {entry.username.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{entry.username}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {entry.user_info.stats.total_points} points
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {entry.user_info.badges.length > 0 && (
-                        <div className="flex -space-x-2">
-                          {entry.user_info.badges.slice(0, 3).map((badge) => (
-                            <div
-                              key={badge.id}
-                              className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                            >
-                              <Star className="h-3 w-3" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+    <Card className="w-full max-w-lg mx-auto shadow-sm border-0 mt-10">
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center space-y-4">
+          {/* League Badge */}
+          <div className="w-20 h-20 bg-orange-500 rounded-lg p-2 relative">
+            <div className="absolute inset-1 bg-orange-700 rounded-md flex items-center justify-center">
+              <div className="w-10 h-6 bg-white rounded-sm" />
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {/* Welcome Header */}
+          <h2 className="text-2xl font-bold mt-2">Kusoo Dhawaw Shaxdaan!!</h2>
+
+          {/* League Info */}
+          <p className="text-center text-gray-700">
+            Waxaad u gudubty <span className="font-semibold">{leagueName}</span>
+            ! Dadaal
+            <br />
+            Kasbo XP badan saad kaalmaha koowaad u gasho
+          </p>
+
+          {/* Days Left */}
+          <p className="text-gray-500 font-medium">
+            {daysLeft} Maalmood ayaa haray
+          </p>
+
+          {/* Leaderboard Entries */}
+          <div className="w-full space-y-3 mt-4">
+            {topEntries.map((entry, index) => {
+              const rank = index + 1;
+              const isCurrentUser =
+                entry.username === userRank.user_info?.email;
+
+              return (
+                <div
+                  key={entry.id}
+                  className={`flex items-center justify-between p-3 rounded-lg ${
+                    isCurrentUser ? "bg-green-50" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Rank Number */}
+                    <span className="text-gray-500 w-6">{rank}</span>
+
+                    {/* Avatar */}
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${entry.username}`}
+                      />
+                      <AvatarFallback className="bg-purple-500 text-white">
+                        {entry.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Name */}
+                    <span className="font-medium flex-1">{entry.username}</span>
+                  </div>
+
+                  {/* XP Points */}
+                  <span className="text-gray-500">
+                    {entry.user_info.stats.total_points} XP
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="w-full space-y-3 mt-4">
+            <Button
+              className="w-full rounded-full bg-gray-900 hover:bg-gray-800"
+              onClick={onContinue}
+            >
+              Sii wado Casharkaada
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

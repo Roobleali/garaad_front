@@ -2,7 +2,7 @@
 
 "use client";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourse } from "@/store/features/learningSlice";
 import { AppDispatch, RootState } from "@/store";
@@ -14,6 +14,8 @@ import { AlertCircle, ChevronRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import ModuleZigzag from "@/components/learning/ui/ModuleZigzag";
 import { CourseProgress } from "@/components/learning/CourseProgress";
+import { Module } from "@/types/learning";
+import { progressService, UserProgress } from "@/services/progress";
 
 const defaultCourseImage = "/images/placeholder-course.svg";
 
@@ -23,9 +25,9 @@ export default function CourseDetailPage() {
   const { currentCourse, isLoading, error } = useSelector(
     (state: RootState) => state.learning
   );
-  const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
 
-  console.log("===============CURRENT COURSE============", currentCourse);
+  const [progress, setProgress] = useState<UserProgress[]>([]);
+  const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
 
   const handleModuleClick = (moduleId: number) => {
     setActiveModuleId(activeModuleId === moduleId ? null : moduleId);
@@ -42,11 +44,48 @@ export default function CourseDetailPage() {
     }
   }, [dispatch, params.categoryId, params.courseSlug]);
 
+  const fetchProgress = useCallback(async () => {
+    try {
+      const progressData = await progressService.getUserProgress();
+      setProgress(progressData || []);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error("Error fetching progress");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
+
+  // const isModuleCompleted = useCallback(
+  //   (moduleId: number) => {
+  //     const moduleProgress = progress.filter(
+  //       (p) => p.module_id === moduleId && p.status === "completed"
+  //     );
+  //     return moduleProgress.length > 0;
+  //   },
+  //   [progress]
+  // );
+
   // const handleModuleClick = (moduleId: string | number) => {
   //   router.push(
   //     `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
   //   );
   // };
+
+  const progessItems = progress?.length;
+  const LessonsCompleted = progress?.filter(
+    (lessons) => lessons.status === "completed"
+  ).length;
+
+  const completedPercentage =
+    progessItems && LessonsCompleted
+      ? (progessItems / LessonsCompleted) * 100
+      : 0;
 
   if (error) {
     return (
@@ -74,7 +113,7 @@ export default function CourseDetailPage() {
     );
   }
 
-  console.log(currentCourse)
+  console.log(currentCourse);
 
   return (
     <div className="min-h-screen bg-white">
@@ -102,7 +141,7 @@ export default function CourseDetailPage() {
             </h2>
 
             {/* Progress */}
-            <CourseProgress progress={currentCourse.progress} />
+            <CourseProgress progress={completedPercentage} />
 
             {/* Description */}
             <p className="text-sm text-gray-600 mb-6">
@@ -134,28 +173,28 @@ export default function CourseDetailPage() {
                 {/* Connecting line */}
                 <div className="absolute w-1 h-full bg-gradient-to-b from-blue-200 to-transparent left-1/2 -translate-x-1/2 z-0" />
 
-                {(currentCourse?.modules ?? []).map((module, index) => (
-                  <div key={module.id} className="relative z-10 ">
-                    {/* Level Indicator */}
+                {(currentCourse?.modules ?? []).map(
+                  (module: Module, index: number) => (
+                    <div key={module.id} className="relative z-10 ">
+                      {/* Level Indicator */}
 
-                    {/* Module Block */}
-                    <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
-
-
-                      <ModuleZigzag
-                        modules={[module]}
-                        activeModuleId={activeModuleId}
-                        onModuleClick={handleModuleClick}
-                      />
-                      {/* Progress connector */}
-                      {index < (currentCourse.modules?.length ?? 0) - 1 && (
-                        <div className="absolute left-1/2 bottom-0 translate-y-24 -translate-x-1/2 text-blue-500">
-                          <ChevronRight className="w-8 h-8 animate-bounce" />
-                        </div>
-                      )}
+                      {/* Module Block */}
+                      <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
+                        <ModuleZigzag
+                          modules={[module]}
+                          activeModuleId={activeModuleId}
+                          onModuleClick={handleModuleClick}
+                        />
+                        {/* Progress connector */}
+                        {index < (currentCourse.modules?.length ?? 0) - 1 && (
+                          <div className="absolute left-1/2 bottom-0 translate-y-24 -translate-x-1/2 text-blue-500">
+                            <ChevronRight className="w-8 h-8 animate-bounce" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </div>
           </div>

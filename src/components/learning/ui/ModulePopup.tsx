@@ -1,13 +1,19 @@
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PlayCircle, RefreshCwIcon } from "lucide-react";
 import { Module } from "@/types/learning";
 import { Button } from "@/components/ui/button";
 
 interface ModulePopupProps {
   module: Module;
+  isInProgress: boolean;
+  isCompleted: boolean;
 }
 
-export default function ModulePopup({ module }: ModulePopupProps) {
+export default function ModulePopup({
+  module,
+  isInProgress,
+  isCompleted,
+}: ModulePopupProps) {
   const params = useParams();
   const router = useRouter();
 
@@ -30,7 +36,18 @@ export default function ModulePopup({ module }: ModulePopupProps) {
         variant="default"
         className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
       >
-        Billow Casharka <ArrowRight className="ml-2 w-4 h-4" />
+        {isInProgress
+          ? "Sii Wado Casharka"
+          : isCompleted
+          ? "Muraajacee Casharka"
+          : "Billow Casharka"}{" "}
+        {isInProgress ? (
+          <PlayCircle className="ml-2 w-4 h-4" />
+        ) : isCompleted ? (
+          <RefreshCwIcon className="ml-2 w-4 h-4" />
+        ) : (
+          <ArrowRight className="ml-2 w-4 h-4" />
+        )}
       </Button>
     </div>
   );

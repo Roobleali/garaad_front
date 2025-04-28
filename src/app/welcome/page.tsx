@@ -15,12 +15,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import type { AppDispatch } from "@/store";
 
-
-
-
-
-
-
 // Step titles
 const stepTitles = [
   "Waa maxey hadafkaaga ugu weyn?", // What's your top goal?
@@ -384,13 +378,16 @@ const learningGoals = [
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>({});
+  const [selections, setSelections] = useState<Record<number, number | string>>(
+    {}
+  );
   const [userData, setUserData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    age: ""
+    age: "",
   });
   const steps = [goals, learningApproach, topics, topicLevels, learningGoals];
   const router = useRouter();
@@ -417,7 +414,13 @@ export default function Page() {
     e.preventDefault();
     try {
       // Validate all data
-      if (!userData.name.trim() || !userData.email.trim() || !userData.password.trim() || !userData.age.trim()) {
+      if (
+        !userData.firstName.trim() ||
+        !userData.lastName.trim() ||
+        !userData.email.trim() ||
+        !userData.password.trim() ||
+        !userData.age.trim()
+      ) {
         toast({
           variant: "destructive",
           title: "Khalad ayaa dhacay",
@@ -440,8 +443,9 @@ export default function Page() {
       const signUpData = {
         email: userData.email.trim(),
         password: userData.password.trim(),
-        first_name: userData.name.trim(),
-        last_name: userData.name.trim(),
+        first_name: userData.firstName.trim(),
+        last_name: userData.lastName.trim(),
+        username: userData.email.trim(),
         age: parseInt(userData.age),
         onboarding_data: {
           goal: String(selections[0]).trim(),
@@ -468,13 +472,17 @@ export default function Page() {
       }
     } catch (error: any) {
       console.error("Submission failed:", error);
-      const errorMessage = error?.response?.data?.error || error?.message || "Wax khalad ah ayaa dhacay";
+      const errorMessage =
+        error?.response?.data?.error ||
+        error?.message ||
+        "Wax khalad ah ayaa dhacay";
       toast({
         variant: "destructive",
         title: "Khalad ayaa dhacay",
-        description: errorMessage === "Email already exists"
-          ? "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale"
-          : errorMessage,
+        description:
+          errorMessage === "Email already exists"
+            ? "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale"
+            : errorMessage,
       });
     }
   };
@@ -484,8 +492,6 @@ export default function Page() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#F5F5F5] to-white p-4">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 relative">
-
-
         <div className="text-center mb-8">
           {/* Progress bar */}
           <Progress.Root
@@ -540,8 +546,7 @@ export default function Page() {
                           selections[currentStep] === option.id
                             ? "border-primary bg-primary/5"
                             : "border-gray-200",
-                          option.disabled &&
-                          "opacity-50 cursor-not-allowed"
+                          option.disabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
                         <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
@@ -624,8 +629,7 @@ export default function Page() {
                           selections[currentStep] === option.id
                             ? "border-primary bg-primary/5"
                             : "border-gray-200",
-                          option.disabled &&
-                          "opacity-50 cursor-not-allowed"
+                          option.disabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
                         <div className="w-10 h-10 rounded-lg bg-white shadow-sm p-2">
@@ -656,48 +660,79 @@ export default function Page() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Magacaaga</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Magacaaga Hore
+                    </label>
                     <input
                       type="text"
                       placeholder="Geli magacaaga"
-                      value={userData.name}
-                      onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+                      value={userData.firstName}
+                      onChange={(e) =>
+                        setUserData({ ...userData, firstName: e.target.value })
+                      }
                       className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                       disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Da`da</label>
+                    <label className="text-sm font-medium text-gray-700">
+                      Magacaaga Danbe
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Geli magacaaga"
+                      value={userData.lastName}
+                      onChange={(e) =>
+                        setUserData({ ...userData, lastName: e.target.value })
+                      }
+                      className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">
+                      Da`da
+                    </label>
                     <input
                       type="number"
                       min="5"
                       max="100"
                       placeholder="Geli da'daada"
                       value={userData.age}
-                      onChange={(e) => setUserData({ ...userData, age: e.target.value })}
+                      onChange={(e) =>
+                        setUserData({ ...userData, age: e.target.value })
+                      }
                       className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                       disabled={isLoading}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Emailkaaga</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Emailkaaga
+                  </label>
                   <input
                     type="email"
                     placeholder="Geli emailkaaga"
                     value={userData.email}
-                    onChange={(e) => setUserData({ ...userData, email: e.target.value })}
+                    onChange={(e) =>
+                      setUserData({ ...userData, email: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                     disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Passwordkaaga</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Passwordkaaga
+                  </label>
                   <input
                     type="password"
                     placeholder="Geli passwordkaaga"
                     value={userData.password}
-                    onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+                    onChange={(e) =>
+                      setUserData({ ...userData, password: e.target.value })
+                    }
                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                     disabled={isLoading}
                   />
@@ -712,12 +747,16 @@ export default function Page() {
                   currentStep === 6
                     ? "bg-primary text-white hover:bg-primary/90"
                     : currentStep === 5
-                      ? userData.email && userData.password && userData.name && userData.age
-                        ? "bg-primary text-white hover:bg-primary/90"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : selections[currentStep]
-                        ? "bg-primary text-white hover:bg-primary/90"
-                        : "bg-gray-200 text-gray-500 cursor-not-allowed",
+                    ? userData.email &&
+                      userData.password &&
+                      userData.firstName &&
+                      userData.lastName &&
+                      userData.age
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : selections[currentStep]
+                    ? "bg-primary text-white hover:bg-primary/90"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {

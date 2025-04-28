@@ -1,26 +1,12 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { User } from "@/types/auth";
+import AuthService from "@/services/auth";
+import { progressService, UserProgress } from "@/services/progress";
 
-// Add proper types
-type ProgressItem = {
-  id: string;
-  user: string;
-  lesson: string;
-  lesson_title: string;
-  module_title: string;
-  status: string;
-  score: number;
-  last_visited_at: string;
-  completed_at: string | null;
-  course_title: string;
-  progress_percentage: number;
-};
-
-// Update User type to include all required fields
-interface ExtendedUser extends Omit<User, 'first_name' | 'last_name' | 'username'> {
+// Extend User type to include required fields
+interface ExtendedUser extends User {
   first_name: string;
   last_name: string;
   username: string;
@@ -28,7 +14,7 @@ interface ExtendedUser extends Omit<User, 'first_name' | 'last_name' | 'username
 
 export default function ProfilePage() {
   const [user, setUser] = useState<ExtendedUser | null>(null);
-  const [progress, setProgress] = useState<ProgressItem[]>([]);
+  const [progress, setProgress] = useState<UserProgress[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("progress");
@@ -47,70 +33,57 @@ export default function ProfilePage() {
     try {
       const response = await fetch("/api/user/update", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
       });
 
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
-        setShowEditModal(false);
-      } else {
-        throw new Error("Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      if (!response.ok) throw new Error("Failed to update profile");
+
+      const updated = await response.json();
+      setUser(updated);
+      setShowEditModal(false);
+    } catch (err) {
+      console.error(err);
       setError("Failed to update profile");
     }
   };
 
+  // Load user from AuthService (cookies)
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("/api/user");
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-          setEditForm({
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            username: userData.username,
-            email: userData.email,
-          });
-        } else {
-          throw new Error("Failed to fetch user data");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        setError("Failed to load profile data");
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const storedUser = AuthService.getInstance().getCurrentUser();
+      if (storedUser) {
+        setUser(storedUser as ExtendedUser);
+        setEditForm({
+          first_name: storedUser.first_name,
+          last_name: storedUser.last_name,
+          username: storedUser.username,
+          email: storedUser.email,
+        });
+      } else {
+        setError("User not found");
       }
-    };
-
-    fetchUserData();
+    } catch (err) {
+      console.error("Error loading user:", err);
+      setError("Failed to load profile data");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
+  // Fetch progress once user is loaded
   useEffect(() => {
     const fetchProgress = async () => {
       if (!user) return;
-
       try {
-        const response = await fetch("/api/user/progress");
-        if (response.ok) {
-          const data = await response.json();
-          setProgress(data.progress);
-        } else {
-          throw new Error("Failed to fetch progress data");
-        }
-      } catch (error) {
-        console.error("Error fetching progress:", error);
+        const data = await progressService.getUserProgress();
+        setProgress(data);
+      } catch (err) {
+        console.error(err);
         setError("Failed to load progress data");
       }
     };
-
     fetchProgress();
   }, [user]);
 
@@ -121,6 +94,16 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const progessItems = progress?.length;
+  const LessonsCompleted = progress?.filter(
+    (lessons) => lessons.status === "completed"
+  ).length;
+
+  const completedPercentage =
+    progessItems && LessonsCompleted
+      ? (progessItems / LessonsCompleted) * 100
+      : 0;
 
   if (error) {
     return (
@@ -145,7 +128,8 @@ export default function ProfilePage() {
           <div className="flex items-center space-x-4">
             <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-3xl text-gray-500">
-                {user.first_name?.[0]}{user.last_name?.[0]}
+                {user.first_name[0]}
+                {user.last_name[0]}
               </span>
             </div>
             <div>
@@ -161,19 +145,21 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex border-b mb-6">
             <button
-              className={`px-4 py-2 ${activeTab === "progress"
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-600"
-                }`}
+              className={`px-4 py-2 ${
+                activeTab === "progress"
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-600"
+              }`}
               onClick={() => setActiveTab("progress")}
             >
               Progress
             </button>
             <button
-              className={`px-4 py-2 ${activeTab === "settings"
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-600"
-                }`}
+              className={`px-4 py-2 ${
+                activeTab === "settings"
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-600"
+              }`}
               onClick={() => setActiveTab("settings")}
             >
               Settings
@@ -183,24 +169,30 @@ export default function ProfilePage() {
           {activeTab === "progress" && (
             <div>
               <h2 className="text-xl font-bold mb-4">Your Progress</h2>
-              {progress.length === 0 ? (
+              {progress?.length === 0 ? (
                 <p className="text-gray-600">No progress data available</p>
               ) : (
                 <div className="space-y-4">
-                  {progress.map((item) => (
+                  {progress?.map((item) => (
                     <div
                       key={item.id}
                       className="border rounded-lg p-4 hover:bg-gray-50"
                     >
-                      <h3 className="font-semibold">{item.course_title}</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{item.lesson_title}</h3>
+
+                        <h4 className="font-semibold">
+                          Lessons: {progessItems}
+                        </h4>
+                      </div>
                       <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                         <div
                           className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${item.progress_percentage}%` }}
+                          style={{ width: `${completedPercentage}%` }}
                         ></div>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">
-                        {item.progress_percentage}% complete
+                        {completedPercentage}% complete
                       </p>
                     </div>
                   ))}
