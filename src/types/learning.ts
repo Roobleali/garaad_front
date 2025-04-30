@@ -77,10 +77,30 @@ export interface LessonContentBlock {
   problem?: number;
 }
 
+type Position = "left" | "center" | "right";
+type Orientation = "vertical" | "horizontal" | "none";
+
+interface DiagramObject {
+  type: string;
+  color: string;
+  number: number;
+  position: Position;
+  orientation: Orientation;
+  weight_value?: number;
+}
+
+interface DiagramConfig {
+  diagram_id: number;
+  diagram_type: string;
+  scale_weight: number;
+  objects: DiagramObject[];
+}
+
 export interface ProblemContent {
+  id?: number;
   question: string;
   question_text?: string;
-  question_type?: "mcq" | "short_input" | "code";
+  question_type?: "mcq" | "short_input" | "code" | "diagram";
   options: string[];
   correct_answer: Array<{
     id: string;
@@ -95,6 +115,7 @@ export interface ProblemContent {
   solution_steps?: Array<{
     explanation: string;
   }>;
+  diagram_config?: DiagramConfig[];
 }
 
 export interface Exercise {

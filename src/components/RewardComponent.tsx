@@ -61,9 +61,20 @@ function RewardComponent({ onContinue, rewards = [] }: RewardComponentProps) {
   const [currentRewardIndex, setCurrentRewardIndex] = useState(0);
   const hasMoreRewards = rewards.length > 1;
 
-  // Reset index when rewards array changes
+  const prevRewardsRef = React.useRef<UserReward[] | null>(null);
+
   useEffect(() => {
-    setCurrentRewardIndex(0);
+    const prev = prevRewardsRef.current;
+    const same =
+      prev &&
+      prev.length === rewards.length &&
+      prev.every((r, i) => r.id === rewards[i].id);
+
+    if (!same) {
+      setCurrentRewardIndex(0);
+    }
+
+    prevRewardsRef.current = rewards;
   }, [rewards]);
 
   // If no rewards, render nothing

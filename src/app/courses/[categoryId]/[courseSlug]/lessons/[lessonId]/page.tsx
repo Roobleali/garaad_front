@@ -41,6 +41,7 @@ import AuthService from "@/services/auth";
 import type { Course } from "@/types/lms";
 import RewardComponent from "@/components/RewardComponent";
 import { Leaderboard } from "@/components/leaderboard/Leaderboard";
+import DiagramScale from "@/components/DiagramScale";
 
 // Sound manager for better audio handling
 const useSoundManager = () => {
@@ -310,6 +311,8 @@ const ProblemBlock: React.FC<{
     );
   }
 
+  console.log("++++++++++++++++++++PROBLEM CONTENT++++++++++++++++", content);
+
   // Determine if user has checked an answer
   const hasAnswered = !!answerState.lastAttempt;
 
@@ -340,6 +343,23 @@ const ProblemBlock: React.FC<{
               </CardTitle>
             </div>
           </CardHeader>
+
+          {content.question_type === "diagram" && (
+            <CardContent className="p-6 flex items-center justify-center h-auto">
+              {content?.diagram_config &&
+                (Array.isArray(content.diagram_config) ? (
+                  content.diagram_config.length === 1 ? (
+                    <DiagramScale config={content.diagram_config[0]} />
+                  ) : (
+                    content.diagram_config.map((config, index) => (
+                      <DiagramScale key={index} config={config} />
+                    ))
+                  )
+                ) : (
+                  <DiagramScale config={content.diagram_config} />
+                ))}
+            </CardContent>
+          )}
 
           <CardContent className="p-6">
             {/* Options Grid */}
@@ -624,12 +644,15 @@ const LessonPage = () => {
         const problemData = await response.json();
 
         const transformedContent: ProblemContent = {
+          id: problemData.id,
           question: problemData.question_text,
           options: problemData.options.map(
             (opt: { id: string; text: string }) => opt.text
           ),
           correct_answer: problemData.correct_answer,
           explanation: problemData.explanation || "No explanation available",
+          diagram_config: problemData.diagram_config,
+          question_type: problemData.question_type,
         };
 
         // Update the explanation data state with the problem's explanation
