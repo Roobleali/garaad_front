@@ -131,32 +131,29 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
                     value={formData.firstName}
                     onChange={handleInputChange}
                   />
+
                   <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Magaca labaad"
+                    type="number"
+                    name="age"
+                    placeholder="Da'da"
                     className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                    value={formData.lastName}
+                    value={formData.age}
                     onChange={handleInputChange}
                   />
                 </div>
 
-                <input
-                  type="number"
-                  name="age"
-                  placeholder="Da'da"
-                  className="w-full p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
-                  value={formData.age}
-                  onChange={handleInputChange}
-                />
               </div>
             )}
 
             <button
-              className="w-full bg-black text-white rounded-xl p-4 hover:bg-black/90 transition-colors"
-              onClick={() => onSubmit(formData)}
+              className="w-full bg-black text-white rounded-xl p-4 hover:bg-black/90 transition-colors relative cursor-not-allowed opacity-60"
+              onClick={(e) => e.preventDefault()}
+              disabled
             >
               Is diiwaan geli
+              <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
+                Dhowaan
+              </span>
             </button>
           </div>
 
