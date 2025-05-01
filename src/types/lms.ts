@@ -12,12 +12,17 @@ export interface Course {
   title: string;
   slug: string;
   description: string;
-  thumbnail: string;
+  thumbnail: string | null;
   level: "beginner" | "intermediate" | "advanced";
-  progress: number;
-  isNew: boolean;
+  progress?: number;
+  is_new: boolean;
   category_id: string;
-  modules: Module[];
+  modules?: Module[];
+  author_id: string;
+  is_published: boolean;
+  module_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Module {

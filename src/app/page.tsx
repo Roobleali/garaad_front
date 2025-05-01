@@ -1,4 +1,5 @@
 "use client"
+import React from "react";
 import { Header } from "@/components/Header";
 import { ConceptsSection } from "@/components/sections/ConceptsSection";
 import { CourseGrid } from "@/components/CourseGrid";
@@ -8,7 +9,6 @@ import { MotivationSection } from "@/components/sections/MotivationSection";
 import { GuidedPathsSection } from "@/components/sections/GuidedPathsSection";
 import { FooterSection } from "@/components/sections/FooterSection";
 import DownloadApp from "@/components/sections/DownloadApp";
-import { useRouter } from "next/navigation";
 import dynamic from 'next/dynamic';
 
 // Dynamically import heavy components
@@ -18,8 +18,6 @@ const DynamicLearnAnimation = dynamic(() => import('@/components/LearnAnimation'
 });
 
 export default function Home() {
-  const router = useRouter()
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -34,17 +32,17 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
           </div>
 
-          <div className="container mx-auto px-4 pt-12 lg:pt-16 relative">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 relative">
             <div className="flex flex-col items-center max-w-4xl mx-auto">
-              <div className="space-y-8 animate-fade-in text-center">
-                <div className="space-y-10">
-                  <h1 className="text-5xl lg:text-6xl font-bold tracking-tight animate-slide-in mb-8">
-                    <span className="block mb-4">
+              <div className="space-y-6 sm:space-y-12 animate-fade-in text-center">
+                <div className="space-y-6 sm:space-y-12 max-w-xs sm:max-w-2xl mx-auto">
+                  <h1 className="text-2xl sm:text-4xl lg:text-6xl xl:text-7xl font-bold tracking-tight animate-slide-in leading-tight">
+                    <span className="block mb-2 sm:mb-6">
                       Ku baro{" "}
-                      <span className="relative">
+                      <span className="relative inline-block">
                         sameyn
                         <svg
-                          className="absolute -bottom-1 left-0 w-full"
+                          className="absolute -bottom-1 left-0 w-full h-2 sm:h-3"
                           viewBox="0 0 100 10"
                           preserveAspectRatio="none"
                         >
@@ -59,21 +57,26 @@ export default function Home() {
                       </span>
                       !
                     </span>
-                    <span className="block mt-5 text-primary">
+                    <span className="block mt-2 sm:mt-4 text-primary text-lg sm:text-2xl lg:text-4xl font-bold">
                       Xal u hel dhibaatooyinka si waxtar leh
                     </span>
                   </h1>
-                  <div className="flex justify-center gap-4 animate-fade-in">
+                  <div className="flex justify-center gap-4 animate-fade-in mt-6 sm:mt-12">
                     <Button
                       size="lg"
-                      className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                      onClick={() => router.push('/welcome')}
+                      className="bg-primary/100 hover:bg-primary/50 text-white px-6 sm:px-8 py-3 sm:py-6 text-base sm:text-lg font-semibold rounded-full shadow-lg cursor-not-allowed relative max-w-xs w-full"
+                      disabled
                     >
-                      Bilow Maanta
+                      Dhowaan
+                      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
+                        Billaw Maanta
+                      </span>
                     </Button>
                   </div>
-                  <div className="container max-w-4xl mx-auto px-4">
-                    <DynamicLearnAnimation />
+                  <div className="container max-w-xs sm:max-w-4xl mx-auto px-0 sm:px-6 lg:px-8 mt-6 sm:mt-12 lg:mt-16">
+                    <div className="relative w-full aspect-[16/9] sm:aspect-[16/8] lg:aspect-[16/7]">
+                      <DynamicLearnAnimation />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -81,13 +84,16 @@ export default function Home() {
           </div>
         </div>
 
-        <CourseGrid />
-        <MotivationSection />
-        <GuidedPathsSection />
-        <ConceptsSection />
-        <LearningLevelsSection />
-        <DownloadApp />
-        <FooterSection />
+        {/* Sections with improved spacing */}
+        <div className="space-y-16 sm:space-y-24 lg:space-y-32">
+          <CourseGrid />
+          <MotivationSection />
+          <GuidedPathsSection />
+          <ConceptsSection />
+          <LearningLevelsSection />
+          <DownloadApp />
+          <FooterSection />
+        </div>
       </main>
     </div>
   );

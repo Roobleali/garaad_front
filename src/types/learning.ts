@@ -11,6 +11,7 @@ export interface Course {
   estimatedHours?: number;
   skillLevel?: string;
   lesson_count?: number;
+  is_published: boolean;
 }
 
 export interface Category {
