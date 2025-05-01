@@ -340,7 +340,6 @@ const ProblemBlock: React.FC<{
   error,
   content,
   isCorrect,
-  isLastInLesson,
 }) => {
     if (isLoading) {
       return (
@@ -378,23 +377,10 @@ const ProblemBlock: React.FC<{
           {/* Question Card */}
           <Card className="border-none shadow-xl z-0">
             <CardHeader className="relative bg-gradient-to-r from-primary/10 to-primary/5 pb-6">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Badge className="bg-primary hover:bg-primary text-white px-4 py-1.5 text-sm shadow-md">
-                  {isLastInLesson ? "Su'aasha Ugu Dambeysa" : "Su'aal"}
-                </Badge>
-              </div>
-              {isLastInLesson && (
-                <div className="absolute top-3 right-3">
-                  <Badge
-                    variant="outline"
-                    className="bg-amber-100 text-amber-800 border-amber-200"
-                  >
-                    Dhamaad
-                  </Badge>
-                </div>
-              )}
-              <div className="pt-4">
-                <CardTitle className="text-lg text-max items-center justify-center flex text-center mt-2">
+
+
+              <div className="pt-2">
+                <CardTitle className="text-md text-max items-center justify-center flex text-center mt-2">
                   {content.question}
                 </CardTitle>
               </div>
@@ -433,7 +419,7 @@ const ProblemBlock: React.FC<{
             <CardContent className="p-4">
               {/* Options Layout */}
               {content.question_type === "diagram" ? (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4  grid-cols-2">
                   {content?.options?.map((option, idx) => {
                     const isSelected = selectedOption === option;
                     const isOptionCorrect =
@@ -610,9 +596,9 @@ const TextBlock: React.FC<{
     // If input is an array, render as an unordered list
     if (Array.isArray(input)) {
       return (
-        <ul className="list-disc pl-6 mb-4">
+        <ul className="list-disc   mb-4">
           {input.map((item, index) => (
-            <li className="flex items-center px-10 m-2" key={index}>
+            <li className="flex items-center md:px-10 m-2" key={index}>
               {`• ${item}`}
             </li>
           ))}
@@ -631,14 +617,14 @@ const TextBlock: React.FC<{
       animate="visible"
     >
       <Card className="w-full max-w-full shadow-lg rounded-2xl border border-gray-100 bg-white">
-        <CardContent className="flex flex-col items-center justify-center p-6 md:p-10 space-y-6 md:space-y-10">
+        <CardContent className="flex flex-col items-center text-left justify-center p-3 md:p-2 space-y-6 md:space-y-10">
           {content.title && (
-            <div className="prose prose-lg dark:prose-invert max-w-none text-xl md:text-xl font-bold text-center">
+            <div className="prose prose-lg dark:prose-invert max-w-none text-lg md:text-lg font-bold text-center">
               <ReactMarkdown>{content.title}</ReactMarkdown>
             </div>
           )}
           {content.text && (
-            <div className="prose prose-base mt-2 text-muted-foreground text-left text-lg md:text-xl">
+            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md  ">
               <div>{renderMDList(content.text)}</div>
             </div>
           )}
@@ -940,7 +926,10 @@ const LessonPage = () => {
 
   // Handle continue to next block
   const handleContinue = useCallback(async () => {
+    console.log('handleContinue called');
     const contentBlocks = currentLesson?.content_blocks || [];
+    console.log('Content blocks:', contentBlocks);
+    console.log('Current block index:', currentBlockIndex);
 
     if (contentBlocks.length > 0) {
       playSound("continue");
@@ -950,6 +939,7 @@ const LessonPage = () => {
 
       // Check if this is the last block in the lesson
       const isLastBlock = currentBlockIndex === contentBlocks.length - 1;
+      console.log('Is last block:', isLastBlock);
 
       // Clear any feedback or toasts
       setShowFeedback(false);
@@ -957,11 +947,12 @@ const LessonPage = () => {
       toast.dismiss("reward-toast");
 
       if (isLastBlock) {
+        console.log('Setting lesson completed to true');
         // This is the last block - handle lesson completion
-        if (currentLesson?.id) {
-          // Immediately show completion modal
-          setIsLessonCompleted(true);
+        setIsLessonCompleted(true); // Set this first to trigger the completion UI
 
+        if (currentLesson?.id) {
+          console.log('Lesson ID exists:', currentLesson.id);
           // Try to store progress in local storage as a fallback
           try {
             const completedLessons = JSON.parse(
@@ -977,9 +968,11 @@ const LessonPage = () => {
           } catch (storageError) {
             console.error("Error with local storage:", storageError);
           }
+
           // Try API updates in background
           (async () => {
             try {
+              console.log('Starting API updates');
               // 1. Mark lesson as completed with score
               const completionResult =
                 await AuthService.getInstance().makeAuthenticatedRequest<{
@@ -987,6 +980,7 @@ const LessonPage = () => {
                 }>("post", `/api/lms/lessons/${currentLesson.id}/complete/`, {
                   score: isCorrect ? 100 : 0,
                 });
+              console.log('Lesson completion result:', completionResult);
 
               // 2. Get updated course progress
               const courseProgress =
@@ -996,6 +990,7 @@ const LessonPage = () => {
                     progress_percent: number;
                   };
                 }>("get", `/api/lms/courses/${courseId}/`);
+              console.log('Course progress:', courseProgress);
 
               // 3. Show reward notification if any
               if (completionResult.reward) {
@@ -1024,6 +1019,7 @@ const LessonPage = () => {
                 await AuthService.getInstance().makeAuthenticatedRequest<
                   UserReward[]
                 >("get", `/api/lms/rewards?lesson_id=${currentLesson.id}`);
+              console.log('Rewards data:', rewardsData);
 
               setRewards(rewardsData);
 
@@ -1032,12 +1028,14 @@ const LessonPage = () => {
                 await AuthService.getInstance().makeAuthenticatedRequest<
                   LeaderboardEntry[]
                 >("get", "/api/lms/leaderboard/?time_period=all_time&limit=10");
+              console.log('Leaderboard data:', leaderboardData);
 
               // 6. Get user rank
               const userRankData =
                 await AuthService.getInstance().makeAuthenticatedRequest<
                   Partial<UserRank>
                 >("get", "/api/lms/leaderboard/my_rank/");
+              console.log('User rank data:', userRankData);
 
               // Update state with new data
               setLeaderboard(leaderboardData);
@@ -1046,7 +1044,6 @@ const LessonPage = () => {
               console.error("Error fetching rewards:", error);
               toast.error("Could not load rewards. Please try again.");
             } finally {
-              // 3. Always turn off loading when done
               setIsLoadingRewards(false);
             }
           })().catch((error) => {
@@ -1067,11 +1064,10 @@ const LessonPage = () => {
             );
           });
         } else {
-          // No lesson ID, still show completion modal
-          setIsLessonCompleted(true);
-          setIsLoadingRewards(false);
+          console.log('No lesson ID found');
         }
       } else {
+        console.log('Moving to next block');
         // Not the last block, move to the next block
         setCurrentBlockIndex((prev) =>
           Math.min(prev + 1, contentBlocks.length - 1)
@@ -1376,6 +1372,7 @@ const LessonPage = () => {
   }
 
   // Render the page
+  console.log('Render state:', { isLessonCompleted, showLeaderboard, leaderboardLoading });
   return (
     <div className="min-h-screen bg-white">
       {navigating ? (

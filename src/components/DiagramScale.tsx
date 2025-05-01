@@ -62,7 +62,6 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
           .position(V2(0, -45))
           .textfill("white")
           .fontsize(13);
-
         const pivot = dg
           .rectangle(70, 10)
           .apply(dg.mod.round_corner(4))

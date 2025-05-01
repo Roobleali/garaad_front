@@ -65,7 +65,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(({
   // Memoize the feedback content
   const feedbackContent = useMemo(() => ({
     title: isCorrect ? "Jawaab Sax ah!" : "Jawaab Khalad ah",
-    message: isCorrect ? "waxaad ku guulaysatay 15 XP" : "akhri sharaxaada oo ku celi markale",
+    message: isCorrect ? "Hore usoco Garaad" : "akhri sharaxaada oo ku celi markale",
     continueText: isCorrect ? (isLastQuestion ? "Casharka xiga" : "Sii wado") : "Isku day markale",
     buttonAction: isCorrect ? handleContinueClick : onResetAnswer
   }), [isCorrect, isLastQuestion, handleContinueClick, onResetAnswer]);
@@ -131,13 +131,21 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(({
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="flex   sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleWhyClick}
+                className=" w-1/2 sm:w-auto rounded-full border-2 border-gray-300 py-4 text-base sm:text-sm hover:border-gray-400 transition-all duration-200"
+              >
+                Sharaxaad
+              </Button>
               <Button
                 size="lg"
                 variant={isCorrect ? "default" : "secondary"}
                 onClick={feedbackContent.buttonAction}
                 className={cn(
-                  "w-full sm:w-auto rounded-full gap-1 py-4 text-base sm:text-sm",
+                  "w-1/2 sm:w-auto rounded-full gap-1 py-4 text-base sm:text-sm",
                   "border-2 transition-all duration-200",
                   isCorrect
                     ? "border-[#58CC02] hover:border-[#58CC02]/80"
@@ -147,14 +155,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(({
                 {feedbackContent.continueText}
                 <ChevronRight className="h-5 w-5" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handleWhyClick}
-                className="w-full sm:w-auto rounded-full border-2 border-gray-300 py-4 text-base sm:text-sm hover:border-gray-400 transition-all duration-200"
-              >
-                Sharaxaad
-              </Button>
+
             </div>
           </div>
         </div>

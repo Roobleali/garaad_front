@@ -230,7 +230,7 @@ export default function CoursesPage() {
                               </Card>
                             </Link>
                           ) : (
-                            <Card className="group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] opacity-60 cursor-not-allowed">
+                            <Card className="group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] opacity-60  ">
                               <div className="relative">
                                 <CourseImage
                                   src={course.thumbnail || undefined}
