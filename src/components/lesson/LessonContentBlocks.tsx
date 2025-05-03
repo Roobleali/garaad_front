@@ -13,6 +13,7 @@ export function TestLessonContent() {
       id: 1,
       block_type: "text",
       content: {
+        type: "text", // Added the required 'type' property
         desc: "## Test Description\nThis is a test description with some **bold** text and *italic* text.\n\n- List item 1\n- List item 2\n- List item 3",
         text: "# Test Title\nThis is the main content with some **bold** text and *italic* text.\n\n1. Numbered item 1\n2. Numbered item 2\n3. Numbered item 3",
         format: "markdown",

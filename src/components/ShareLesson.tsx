@@ -3,51 +3,46 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  ChevronRight,
-  Check,
-  Share2,
-  MessageCircle,
-  Mail,
-  Smartphone,
-  X,
-} from "lucide-react";
+import { ChevronRight, Check, Share2, X } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AuthService from "@/services/auth";
 import { Button } from "./ui/button";
+import { useParams } from "next/navigation";
 
 interface ShareLessonProps {
   lessonTitle: string;
-  courseName: string;
   onContinue: () => void;
-  lessonId: string;
-  courseId: string;
 }
 
 const ShareLesson: React.FC<ShareLessonProps> = ({
   lessonTitle,
-  courseName,
   onContinue,
-  lessonId,
-  courseId,
 }) => {
+  const params = useParams<{
+    category: string;
+    courseSlug: string;
+    lessonId: string;
+  }>();
+  const { category, courseSlug, lessonId } = params;
+  // Utility function to capitalize the first letter of each word
+  const capitalizeWords = (words: string[]) =>
+    words.map((word) => word.charAt(0).toUpperCase() + word.slice(1));
+
+  const courseName = capitalizeWords(courseSlug.split("-")).join(" ");
+
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   const storedUser = AuthService.getInstance().getCurrentUser();
 
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/courses/${courseId}/lessons/${lessonId}`
-      : "";
-
-  const shareText = `${storedUser.first_name} wuxuu dhamaystiray casharkan "${lessonTitle}" ee kooraska "${courseName}"  Waxaad casharkan ka daawan kartaa: www.garaad.org/courses/${courseId}/lessons/${lessonId}`;
+  const shareUrl = `https://www.garaad.org/courses/${category}/${courseSlug}/lessons/${lessonId}`;
+  const shareText = `${storedUser.first_name} wuxuu dhamaystiray casharkan "${lessonTitle}" ee kooraska "${courseName}". Waxaad casharkan ka daawan kartaa: ${shareUrl}`;
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      await navigator.clipboard.writeText(`${shareText}`);
       setCopied(true);
       toast.success("Linkiga waa la koobiyeeyay!");
       setTimeout(() => setCopied(false), 2000);
@@ -59,23 +54,20 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
 
   const handleShare = async (platform: string) => {
     try {
-      let shareUrl = "";
+      let url = "";
+      const encoded = encodeURIComponent(shareText);
 
       switch (platform) {
         case "whatsapp":
-          shareUrl = `https://wa.me/?text=${encodeURIComponent(
-            `${shareText} ${shareUrl}`
-          )}`;
+          url = `https://wa.me/?text=${encoded}`;
           break;
         case "sms":
-          shareUrl = `sms:?body=${encodeURIComponent(
-            `${shareText} ${shareUrl}`
-          )}`;
+          url = `sms:?body=${encoded}`;
           break;
         case "email":
-          shareUrl = `mailto:?subject=${encodeURIComponent(
+          url = `mailto:?subject=${encodeURIComponent(
             `${courseName} - ${lessonTitle}`
-          )}&body=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+          )}&body=${encoded}`;
           break;
         default:
           if (navigator.share) {
@@ -92,7 +84,7 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
           }
       }
 
-      window.open(shareUrl, "_blank");
+      window.open(url, "_blank");
       toast.success("Waad la wadaagtay!");
     } catch (err) {
       toast.error("Ma awoodin in la wadaago");
@@ -117,9 +109,9 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
           </button>
 
           <CardContent className="p-0">
+            {/* Header */}
             <div className="bg-purple-200 p-8 text-black relative overflow-hidden">
               <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-purple-600/20" />
-
               <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                 <div className="space-y-6 flex-1">
                   <div className="flex items-center gap-3">
@@ -132,12 +124,10 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
                       • {storedUser.first_name} {storedUser.last_name}
                     </span>
                   </div>
-
                   <div className="space-y-4">
                     <h1 className="text-3xl md:text-4xl font-bold leading-tight max-w-[80%]">
                       Casharkaan waa kuu dhamaaday! 🎉
                     </h1>
-
                     <div className="flex items-center gap-6">
                       <div className="space-y-2">
                         <h2 className="text-xl font-semibold">{courseName}</h2>
@@ -146,7 +136,6 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
                     </div>
                   </div>
                 </div>
-
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <Image
                     src="/favicon.ico"
@@ -191,101 +180,36 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
                   )}
                 </div>
 
-                <div>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleCopyLink}
-                    className="p-4 bg-white rounded-xl border border-gray-200 w-full flex items-center justify-center gap-2"
-                  >
-                    <AnimatePresence mode="wait">
-                      {copied ? (
-                        <motion.div
-                          key="check"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                        >
-                          <Check className="h-6 w-6 text-green-500" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="copy"
-                          initial={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                        >
-                          <Share2 className="h-6 w-6 text-purple-500" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <span className="text-sm font-medium">
-                      {copied ? "Koobiyey" : "Koobi Link"}
-                    </span>
-                  </motion.button>
-                </div>
-
-                {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleShare("whatsapp")}
-                    className="p-4 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-2 hover:border-purple-500"
-                  >
-                    <MessageCircle className="h-6 w-6 text-green-500" />
-                    <span className="text-sm font-medium">WhatsApp</span>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleShare("sms")}
-                    className="p-4 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-2 hover:border-purple-500"
-                  >
-                    <Smartphone className="h-6 w-6 text-blue-500" />
-                    <span className="text-sm font-medium">SMS</span>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleShare("email")}
-                    className="p-4 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-2 hover:border-purple-500"
-                  >
-                    <Mail className="h-6 w-6 text-red-500" />
-                    <span className="text-sm font-medium">Email</span>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleCopyLink}
-                    className="p-4 bg-white rounded-xl border border-gray-200 flex flex-col items-center gap-2 hover:border-purple-500"
-                  >
-                    <AnimatePresence mode="wait">
-                      {copied ? (
-                        <motion.div
-                          key="check"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                        >
-                          <Check className="h-6 w-6 text-green-500" />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="copy"
-                          initial={{ scale: 1 }}
-                          exit={{ scale: 0 }}
-                        >
-                          <Share2 className="h-6 w-6 text-purple-500" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <span className="text-sm font-medium">
-                      {copied ? "Koobiyey" : "Koobi Link"}
-                    </span>
-                  </motion.button>
-                </div> */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCopyLink}
+                  className="p-4 bg-white rounded-xl border border-gray-200 w-full flex items-center justify-center gap-2"
+                >
+                  <AnimatePresence mode="wait">
+                    {copied ? (
+                      <motion.div
+                        key="check"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                      >
+                        <Check className="h-6 w-6 text-green-500" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="copy"
+                        initial={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                      >
+                        <Share2 className="h-6 w-6 text-purple-500" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <span className="text-sm font-medium">
+                    {copied ? "Koobiyey" : "Koobi Link"}
+                  </span>
+                </motion.button>
               </div>
             </div>
           </CardContent>

@@ -49,6 +49,10 @@ import {
   useRewards,
   useUserRank,
 } from "@/hooks/useCompletedLessonFetch";
+// import "katex/dist/katex.min.css";
+// import { BlockMath, InlineMath } from "react-katex";
+import "katex/dist/katex.min.css";
+import Latex from "react-latex-next";
 
 type Position = "left" | "center" | "right";
 type Orientation = "vertical" | "horizontal" | "none";
@@ -82,6 +86,7 @@ interface ProblemData {
   alt?: string;
   content: {
     format?: string;
+    type?: string;
   };
 }
 
@@ -103,6 +108,7 @@ interface ProblemContent {
   alt?: string;
   content: {
     format?: string;
+    type?: string;
   };
 }
 
@@ -376,10 +382,8 @@ const ProblemBlock: React.FC<{
   // Determine if user has checked an answer
   const hasAnswered = answerState.isCorrect !== null;
 
-  // Render image only for multiple_choice and mcq types
-  // const showImage = ["multiple_choice", "mcq"].includes(
-  //   content.question_type || ""
-  // );
+  console.log("CONTENT", content);
+
   return (
     <div className="max-w-2xl mx-auto  ">
       <motion.div className="space-y-8">
@@ -472,7 +476,19 @@ const ProblemBlock: React.FC<{
                               : "text-gray-800"
                           )}
                         >
-                          {option}
+                          {content.content.type === "latex" ? (
+                            // <InlineMath
+                            //   math={
+                            //     option
+                            //       .replace(/^\\\(/, "") // remove leading \( if present
+                            //       .replace(/\\\)$/, "") // remove trailing \) if present
+                            //       .replace(/\\\\/g, "\\") // removes wrapping \( \)
+                            //   }
+                            // />
+                            <Latex>{option}</Latex>
+                          ) : (
+                            <span>{option} </span>
+                          )}
                         </span>
                         {isOptionCorrect && (
                           <motion.div
@@ -541,13 +557,25 @@ const ProblemBlock: React.FC<{
                       <div className="flex items-center justify-between">
                         <span
                           className={cn(
-                            "text-sm md:text-base font-medium",
+                            "text-sm   font-normal",
                             isOptionIncorrect
                               ? "text-gray-400"
                               : "text-gray-800"
                           )}
                         >
-                          {option}
+                          {content.content.type === "latex" ? (
+                            // <InlineMath
+                            //   math={
+                            //     option
+                            //       .replace(/^\\\(/, "") // remove leading \( if present
+                            //       .replace(/\\\)$/, "") // remove trailing \) if present
+                            //       .replace(/\\\\/g, "\\") // removes wrapping \( \)
+                            //   }
+                            // />
+                            <Latex>{option}</Latex>
+                          ) : (
+                            <span>{option} </span>
+                          )}
                         </span>
                         {isOptionCorrect && (
                           <motion.div
@@ -601,23 +629,22 @@ const TextBlock: React.FC<{
     window.scrollTo({ top: 0, behavior: "smooth" });
     onContinue();
   };
+
   function renderMDList(input: string[] | string) {
     if (!input) return null;
 
-    // If input is an array, render as an unordered list
     if (Array.isArray(input)) {
       return (
-        <ul className="list-disc   mb-4">
+        <ul className="list-disc mb-4">
           {input.map((item, index) => (
             <li className="flex items-center md:px-10 m-2" key={index}>
-              {`• ${item}`}
+              {item}
             </li>
           ))}
         </ul>
       );
     }
 
-    // If input is a string, wrap in a paragraph
     return <p>{input}</p>;
   }
 
@@ -634,16 +661,18 @@ const TextBlock: React.FC<{
               <ReactMarkdown>{content.title}</ReactMarkdown>
             </div>
           )}
+
           {content.text && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md  ">
-              <div>{renderMDList(content.text)}</div>
+            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
+              {renderMDList(content.text)}
             </div>
           )}
+
           {content.url && (
             <div className="flex justify-center w-full">
               <div className="relative w-full max-w-[500px] aspect-[16/7] md:aspect-[16/7] my-6">
                 <Image
-                  src={content.url || "/placeholder.svg"}
+                  src={content.url}
                   alt={content.alt || "lesson image"}
                   fill
                   className="rounded-2xl shadow-xl border border-gray-200 object-cover bg-white"
@@ -653,9 +682,36 @@ const TextBlock: React.FC<{
               </div>
             </div>
           )}
+
           {content.text1 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md  ">
-              <div>{renderMDList(content.text1)}</div>
+            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
+              {renderMDList(content.text1)}
+            </div>
+          )}
+
+          {content.type === "table" && (content.features ?? []).length > 0 && (
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white border border-gray-200 shadow rounded-lg border-separate overflow-hidden">
+                <tbody>
+                  {content.features?.map((feature, idx) => (
+                    <tr
+                      key={idx}
+                      className={
+                        `border-b last:border-0 ` +
+                        (idx % 2 === 0 ? "bg-white" : "bg-gray-50") +
+                        " hover:bg-blue-50 transition-colors"
+                      }
+                    >
+                      <td className="px-6 py-4 text-sm font-bold text-gray-800">
+                        {feature.title}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {feature.text}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 
@@ -1141,7 +1197,7 @@ const LessonPage = () => {
       toast.success(
         <div className="space-y-2">
           <p className="font-medium">Jawaab Sax ah!</p>
-          <p>Waxaad ku guulaysatay 10 XP</p>
+          <p>Waxaad ku guulaysatay 10 dhibcood</p>
           <Button
             className="w-full mt-2"
             onClick={() => {
@@ -1177,11 +1233,12 @@ const LessonPage = () => {
   };
 
   const handleShowLeaderboard = () => {
+    setShowShareComponent(false); // Hide ShareLesson
     setLeaderboardLoading(true);
     setTimeout(() => {
-      setShowLeaderboard(true);
+      setShowLeaderboard(true); // Show Leaderboard after delay
       setLeaderboardLoading(false);
-    }, 300);
+    }, 200);
   };
 
   // Add the new function to handle showing the share component
@@ -1424,16 +1481,15 @@ const LessonPage = () => {
         <div className="min-h-screen bg-white flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-muted-foreground">Loading course page...</p>
+            <p className="text-muted-foreground">
+              Soo dajinaya bogga casharada...
+            </p>
           </div>
         </div>
       ) : isLessonCompleted && showShareComponent ? (
         <ShareLesson
-          lessonTitle={currentLesson?.title || "Cashar"}
-          courseName={currentLesson?.title || "Koorso"}
-          onContinue={handleShowLeaderboard}
-          lessonId={currentLesson?.id || ""}
-          courseId={courseId || ""}
+          lessonTitle={currentLesson?.title}
+          onContinue={handleShowLeaderboard} // Now properly triggers Leaderboard
         />
       ) : isLessonCompleted && showLeaderboard ? (
         <Leaderboard
@@ -1445,7 +1501,9 @@ const LessonPage = () => {
         <div className="min-h-screen bg-white flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-muted-foreground">Loading leaderboard...</p>
+            <p className="text-muted-foreground">
+              Soo dajinaya shaxda tartanka...
+            </p>
           </div>
         </div>
       ) : isLessonCompleted ? (
@@ -1454,16 +1512,15 @@ const LessonPage = () => {
             <div className="min-h-screen bg-white flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-muted-foreground">Loading rewards...</p>
+                <p className="text-muted-foreground">
+                  soo dajinaya abaalmarinada...
+                </p>
               </div>
             </div>
           ) : rewards.length === 0 && !isLoadingRewards ? (
             <ShareLesson
               lessonTitle={currentLesson?.title || "Cashar"}
-              courseName={currentLesson?.title || "Koorso"}
               onContinue={handleShowLeaderboard}
-              lessonId={currentLesson?.id || ""}
-              courseId={courseId || ""}
             />
           ) : (
             <RewardComponent

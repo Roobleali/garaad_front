@@ -34,7 +34,7 @@ const TYPE_CONFIG = {
     gradientTo: "to-green-500",
     glowColor: "bg-green-400",
     accentColor: "text-green-400",
-    valueLabel: "Total XP",
+    valueLabel: "Dhibcood",
     valueIcon: <Award className="h-5 w-5" />,
   },
   badge: {

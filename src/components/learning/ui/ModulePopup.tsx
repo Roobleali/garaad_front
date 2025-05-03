@@ -18,6 +18,16 @@ export default function ModulePopup({
   const router = useRouter();
 
   const handleModuleClick = (moduleId: string | number) => {
+    // Reset the local storage for the current lesson
+    const storageKey = `lesson_progress_${moduleId}`;
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        blockIndex: 0, // Reset to the first block
+        timestamp: new Date().toISOString(),
+      })
+    );
+    // Navigate to the selected module
     router.push(
       `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
     );
@@ -39,8 +49,8 @@ export default function ModulePopup({
         {isInProgress
           ? "Sii Wado Casharka"
           : isCompleted
-            ? "Muraajacee Casharka"
-            : "Billow Casharka"}{" "}
+          ? "Muraajacee Casharka"
+          : "Billow Casharka"}{" "}
         {isInProgress ? (
           <PlayCircle className="ml-2 w-4 h-4" />
         ) : isCompleted ? (

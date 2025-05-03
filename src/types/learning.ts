@@ -23,6 +23,7 @@ export interface Category {
 }
 
 export interface Module {
+  length: number;
   id: number;
   title: string;
   description: string;
@@ -58,7 +59,13 @@ export type BlockType =
   | "exercise"
   | "interactive";
 
+export interface Feature {
+  title: string;
+  text: string;
+}
+
 export interface TextContent {
+  type: string;
   desc: string;
   text: string;
   text1?: string;
@@ -67,6 +74,7 @@ export interface TextContent {
   title?: string;
   url?: string;
   alt?: string;
+  features?: Feature[];
 }
 
 export interface ImageContent {

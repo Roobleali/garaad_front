@@ -50,7 +50,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             Waxaad u gudubty <span className="font-semibold">{leagueName}</span>
             ! Dadaal
             <br />
-            Kasbo XP badan saad kaalmaha koowaad u gasho
+            Kasbo Dhibco badan saad kaalmaha koowaad u gasho
           </p>
 
           {/* Days Left */}
@@ -92,9 +92,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
                     </span>
                   </div>
 
-                  {/* XP Points */}
+                  {/* Points */}
                   <span className="text-gray-500">
-                    {entry.user_info.stats.total_points} XP
+                    {entry.user_info.stats.total_points} Dhibcood
                   </span>
                 </div>
               );
