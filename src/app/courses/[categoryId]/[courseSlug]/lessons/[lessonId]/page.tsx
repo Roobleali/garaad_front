@@ -7,7 +7,6 @@ import type { RootState, AppDispatch } from "@/store";
 import { fetchLesson, resetAnswerState } from "@/store/features/learningSlice";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronLeft,
   ChevronRight,
   Scale,
   MinusCircle,
@@ -98,11 +97,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-    | "code"
-    | "mcq"
-    | "short_input"
-    | "diagram"
-    | "multiple_choice";
+  | "code"
+  | "mcq"
+  | "short_input"
+  | "diagram"
+  | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -356,7 +355,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => {});
+  const continueRef = useRef<() => void>(() => { });
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -369,7 +368,7 @@ const LessonPage = () => {
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [currentBlock, setCurrentBlock] = useState<React.ReactNode>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [viewedBlocks, setViewedBlocks] = useState<number[]>([0]);
+  const [disabledOptions, setDisabledOptions] = useState<string[]>([]);
 
   const {
     data: rewards,
@@ -407,8 +406,7 @@ const LessonPage = () => {
     isLoading: isLoadingCourseProgress,
   } = useCourseProgress(courseId);
 
-  // Derived state for curre
-  // nt problem
+  // Derived state for current problem
   const currentProblem =
     problems.length > 0 && currentProblemIndex < problems.length
       ? problems[currentProblemIndex]
@@ -419,6 +417,7 @@ const LessonPage = () => {
   // Reset state when block changes
   useEffect(() => {
     setSelectedOption(null);
+    setDisabledOptions([]);
   }, [currentBlockIndex]);
 
   const fetchCourseIdFromSlug = async () => {
@@ -539,7 +538,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-            "Failed to load problems"
+          "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -588,17 +587,6 @@ const LessonPage = () => {
     }
   }, [currentLesson?.id, currentBlockIndex]);
 
-  useEffect(() => {
-    if (currentBlockIndex >= 0) {
-      setViewedBlocks((prev) => {
-        if (!prev.includes(currentBlockIndex)) {
-          return [...prev, currentBlockIndex].sort((a, b) => a - b);
-        }
-        return prev;
-      });
-    }
-  }, [currentBlockIndex]);
-
   // Update explanation data when current problem changes
   useEffect(() => {
     if (currentProblem) {
@@ -613,12 +601,14 @@ const LessonPage = () => {
   // Handle option selection
   const handleOptionSelect = useCallback(
     (option: string) => {
+      // Prevent further selection after the first choice
+      if (selectedOption !== null) return;
       setShowFeedback(false);
       dispatch(resetAnswerState());
       setSelectedOption(String(option));
       playSound("click");
     },
-    [dispatch, playSound]
+    [dispatch, playSound, selectedOption]
   );
 
   const fetcher = async (
@@ -739,6 +729,11 @@ const LessonPage = () => {
     // Play appropriate sound
     playSound(isCorrect ? "correct" : "incorrect");
 
+    if (!isCorrect) {
+      setDisabledOptions((prev) => [...prev, selectedOption]);
+      setSelectedOption(null); // allow user to pick another
+    }
+
     // If answer is correct, show success message
     if (isCorrect) {
       // Check if this is the last block in the lesson
@@ -845,6 +840,7 @@ const LessonPage = () => {
                 content={currentProblem}
                 isCorrect={isCorrect}
                 isLastInLesson={isLastBlock}
+                disabledOptions={disabledOptions}
               />
             );
             break;
@@ -872,6 +868,7 @@ const LessonPage = () => {
                 content={currentProblem}
                 isCorrect={isCorrect}
                 isLastInLesson={isLastBlock}
+                disabledOptions={disabledOptions}
               />
             );
             break;
@@ -1111,52 +1108,8 @@ const LessonPage = () => {
                 (b) => !(b.block_type === "problem" && b.problem === null)
               ).length || 0
             }
+            coursePath={coursePath}
           />
-
-          {viewedBlocks.length > 1 && (
-            <div className="container mx-auto px-4 mt-20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center mx-auto gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      if (currentBlockIndex > 0) {
-                        setCurrentBlockIndex(currentBlockIndex - 1);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                        setShowFeedback(false);
-                        playSound("click");
-                      }
-                    }}
-                    disabled={currentBlockIndex === 0}
-                    className="h-9 w-9"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <span className="sr-only">Previous block</span>
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      const maxIndex = Math.max(...viewedBlocks);
-                      if (currentBlockIndex < maxIndex) {
-                        setCurrentBlockIndex(currentBlockIndex + 1);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                        setShowFeedback(false);
-                        playSound("click");
-                      }
-                    }}
-                    disabled={currentBlockIndex >= Math.max(...viewedBlocks)}
-                    className="h-9 w-9"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                    <span className="sr-only">Next block</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <main className="pt-20 pb-32 mt-4">
             <div className="container mx-auto">{currentBlock}</div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function FooterSection() {
   const navigation = {
     product: [
@@ -37,14 +39,13 @@ export function FooterSection() {
               <h3 className="text-sm font-semibold">Alaabta</h3>
               <ul className="mt-6 space-y-4">
                 {navigation.product.map((item) => (
-                  <li key={item.name}>
-                    <a
-                      href={item.href}
-                      className="text-sm text-gray-300 hover:text-white"
-                    >
-                      {item.name}
-                    </a>
-                  </li>
+                  <Link
+                    href={item.href}
+                    key={item.name}
+                    className="text-sm text-gray-300 hover:text-white"
+                  >
+                    {item.name}
+                  </Link>
                 ))}
               </ul>
             </div>

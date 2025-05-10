@@ -356,17 +356,26 @@ export default function Page() {
       }
     } catch (error: any) {
       console.error("Submission failed:", error);
-      const errorMessage =
-        error?.response?.data?.error ||
-        error?.message ||
-        "Wax khalad ah ayaa dhacay";
+      let errorMessage = "Wax khalad ah ayaa dhacay";
+      // Axios/fetch error with response
+      if (error?.response) {
+        const backendError = error.response.data?.error;
+        const status = error.response.status;
+        if (
+          status === 400 &&
+          (backendError === "Email already exists" || backendError === "Username already exists")
+        ) {
+          errorMessage = "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale";
+        } else if (backendError) {
+          errorMessage = backendError;
+        } else if (error.response.data?.detail) {
+          errorMessage = error.response.data.detail;
+        }
+      }
       toast({
         variant: "destructive",
         title: "Khalad ayaa dhacay",
-        description:
-          errorMessage === "Email already exists"
-            ? "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale"
-            : errorMessage,
+        description: errorMessage,
       });
     }
   };
@@ -374,13 +383,13 @@ export default function Page() {
   const currentOptions = steps[currentStep];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-white px-4 py-8">
-      <Card className="w-full max-w-2xl shadow-lg border-0 overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-white px-2 py-6">
+      <Card className="w-full max-w-2xl shadow-lg border-0 overflow-hidden px-0">
         <CardContent className="p-0">
           {/* Progress bar */}
           <Progress value={progress} className="h-1 rounded-none" />
 
-          <div className="p-6 md:p-8">
+          <div className="p-4 md:p-6">
             {/* Step Title */}
             <h2 className="text-2xl font-bold mb-6 text-slate-800">
               {currentStep <= steps.length
@@ -641,16 +650,16 @@ export default function Page() {
                   currentStep === 6
                     ? " text-white"
                     : currentStep === 5
-                    ? userData.email &&
-                      userData.password &&
-                      userData.name &&
-                      // userData.lastName &&
-                      userData.age
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                    : selections[currentStep]
-                    ? " text-white"
-                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                      ? userData.email &&
+                        userData.password &&
+                        userData.name &&
+                        // userData.lastName &&
+                        userData.age
+                        ? " text-white"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      : selections[currentStep]
+                        ? " text-white"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {

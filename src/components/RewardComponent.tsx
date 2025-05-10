@@ -142,14 +142,14 @@ function RewardComponent({ onContinue, rewards = [] }: RewardComponentProps) {
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <h2 className="text-2xl font-bold mb-2">
-              {currentReward.reward_name}
+              Dhameystirka Casharkan
             </h2>
             <p className="text-gray-500 mb-8">
               {currentReward.reward_type === "badge"
                 ? "Wxaad heshay calaamad cusub!"
                 : currentReward.reward_type === "streak"
-                ? "Waxaad ilaashatay streak-gaaga!"
-                : "Waxaad heshay points-ka! dhamaystirka casharkan"}
+                  ? "Waxaad ilaashatay streak-gaaga!"
+                  : "Waxaad heshay points-ka! dhamaystirka casharkan"}
             </p>
           </motion.div>
 
@@ -205,11 +205,10 @@ function RewardComponent({ onContinue, rewards = [] }: RewardComponentProps) {
               {rewards.map((_, index) => (
                 <div
                   key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentRewardIndex
+                  className={`w-2 h-2 rounded-full ${index === currentRewardIndex
                       ? `bg-${config.accentColor.split("-")[1]}`
                       : "bg-gray-300"
-                  }`}
+                    }`}
                 />
               ))}
             </motion.div>

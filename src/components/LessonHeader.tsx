@@ -5,11 +5,13 @@ import { Button } from "./ui/button";
 interface LessonHeaderProps {
   currentQuestion: number;
   totalQuestions: number;
+  coursePath: string;
 }
 
 const LessonHeader: React.FC<LessonHeaderProps> = ({
   currentQuestion,
   totalQuestions,
+  coursePath,
 }) => {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,7 +44,7 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
       <div className="flex items-center justify-between px-4 py-2 mt-2">
         {/* Back button */}
         <Button
-          onClick={() => router.back()}
+          onClick={() => router.push(coursePath)}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Go back"
           variant={"outline"}

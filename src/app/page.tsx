@@ -12,6 +12,7 @@ import DownloadApp from "@/components/sections/DownloadApp";
 import dynamic from "next/dynamic";
 import AuthService from "@/services/auth";
 import { useRouter } from "next/navigation";
+import { Atom, BarChart, Calculator, Code } from "lucide-react";
 
 // Dynamically import heavy components
 const DynamicLearnAnimation = dynamic(
@@ -74,16 +75,22 @@ export default function Home() {
                     <span className="block mt-2 sm:mt-4 text-primary text-lg sm:text-2xl lg:text-4xl font-bold">
                       Xal u hel dhibaatooyinka si waxtar leh
                     </span>
-                  </h1>
+                  </h1>      <div className="flex gap-4 mb-8 items-center justify-center">
+                    <span className="text-primary"><Calculator className="w-8 h-8" /></span>
+                    <span className="text-primary"><Atom className="w-8 h-8" /></span>
+                    <span className="text-primary"><Code className="w-8 h-8" /></span>
+                    <span className="text-primary"><BarChart className="w-8 h-8" /></span>
+                  </div>
                   <div className="flex justify-center gap-4 animate-fade-in mt-6 sm:mt-12">
                     <Button
                       size="lg"
-                      className="bg-primary/100 hover:bg-primary/50 text-white px-6 sm:px-8 py-3 sm:py-6 text-base sm:text-lg font-semibold rounded-full shadow-lg cursor-not-allowed relative max-w-xs w-full"
+                      className="bg-primary/100  cursor-not-allowed hover:bg-primary/50 text-white px-6 sm:px-8 py-3 sm:py-6 text-base sm:text-lg font-semibold rounded-full shadow-lg cursor-not-allowed relative max-w-xs w-full"
                       disabled
-                    >
-                      Dhowaan
+                    >                        Billaw Maanta
+
                       <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                        Billaw Maanta
+                        Dhowaan
+
                       </span>
                     </Button>
                   </div>

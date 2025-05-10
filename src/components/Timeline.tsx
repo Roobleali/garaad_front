@@ -33,7 +33,7 @@ export function Timeline() {
             </svg>
 
             <div
-                className="absolute top-12 left-[calc(25%-100px)] text-base md:text-lg text-gray-600 w-48 text-center font-medium"
+                className="absolute top-12 left-[calc(25%-100px)] text-base md:text-lg text-gray-600 md:w-48 text-center font-medium"
 
             >
                 Aqoon la`aan
