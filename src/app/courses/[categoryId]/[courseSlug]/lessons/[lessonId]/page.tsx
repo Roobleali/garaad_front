@@ -52,7 +52,7 @@ import TextBlock from "@/components/lesson/TextBlock";
 import ImageBlock from "@/components/lesson/ImageBlock";
 import VideoBlock from "@/components/lesson/VideoBlock";
 import SignatureCalculator from "@/components/lesson/SignatureCalculator";
-import CalculatorProblemBlock from '@/components/lesson/CalculatorProblemBlock';
+import CalculatorProblemBlock from "@/components/lesson/CalculatorProblemBlock";
 
 type Position = "left" | "center" | "right";
 type Orientation = "vertical" | "horizontal" | "none";
@@ -99,11 +99,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-  | "code"
-  | "mcq"
-  | "short_input"
-  | "diagram"
-  | "multiple_choice";
+    | "code"
+    | "mcq"
+    | "short_input"
+    | "diagram"
+    | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -357,7 +357,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => { });
+  const continueRef = useRef<() => void>(() => {});
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -506,7 +506,9 @@ const LessonPage = () => {
           id: pd.id,
           question: pd.question_text,
           which: pd.which,
-          options: Array.isArray(pd.options) ? pd.options.map((opt) => opt.text) : [],
+          options: Array.isArray(pd.options)
+            ? pd.options.map((opt) => opt.text)
+            : [],
           correct_answer: pd.correct_answer.map((ans, index) => ({
             id: `answer-${index}`,
             text: ans.text,
@@ -540,7 +542,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-          "Failed to load problems"
+            "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -811,10 +813,19 @@ const LessonPage = () => {
         currentLesson.content_blocks.length > 0
       ) {
         // Debug: log all block types in the lesson
-        const allBlockTypes = currentLesson.content_blocks.map((b, i) => ({ i, type: b.block_type }));
-        console.log('[DEBUG] All block types in lesson:', allBlockTypes);
-        if (!currentLesson.content_blocks.some(b => b.block_type === 'calculator_interface')) {
-          console.warn('[DEBUG] No calculator_interface block found in lesson!');
+        const allBlockTypes = currentLesson.content_blocks.map((b, i) => ({
+          i,
+          type: b.block_type,
+        }));
+        console.log("[DEBUG] All block types in lesson:", allBlockTypes);
+        if (
+          !currentLesson.content_blocks.some(
+            (b) => b.block_type === "calculator_interface"
+          )
+        ) {
+          console.warn(
+            "[DEBUG] No calculator_interface block found in lesson!"
+          );
         }
         const sortedBlocks = [...currentLesson.content_blocks]
           .filter((b) => !(b.block_type === "problem" && !b.problem))
@@ -824,7 +835,7 @@ const LessonPage = () => {
         if (!block) return;
 
         const isLastBlock = currentBlockIndex === sortedBlocks.length - 1;
-        console.log(block)
+        console.log(block);
 
         switch (block.block_type) {
           case "problem":
@@ -835,10 +846,11 @@ const LessonPage = () => {
             if (problemIndex !== -1) {
               const problem = problems[problemIndex];
               // Special case: render calculator interface for problems with content.type === 'calculator'
-              if (problem.content && problem.content.type === 'calculator') {
+              if (problem.content && problem.content.type === "calculator") {
                 setCurrentBlock(
                   <CalculatorProblemBlock
                     {...problem}
+                    onContinue={handleContinue}
                   />
                 );
                 break;
@@ -946,18 +958,27 @@ const LessonPage = () => {
                 : block.content;
             // Extract calculator props from options.view if present
             let calcProps = {};
-            if (block.options && block.options.view && interactiveContent.type === "calculator") {
+            if (
+              block.options &&
+              block.options.view &&
+              interactiveContent.type === "calculator"
+            ) {
               const view = block.options.view;
               // Find n and g from view.sections
-              let n = 29, g = 17, sk = 35, m = 7;
+              let n = 29,
+                g = 17,
+                sk = 35,
+                m = 7;
               if (Array.isArray(view.sections)) {
                 for (const section of view.sections) {
                   if (section.elements) {
                     for (const el of section.elements) {
                       if (el.label === "n" && el.value) n = Number(el.value);
                       if (el.label === "g" && el.value) g = Number(el.value);
-                      if (el.label === "furaha qarsoon (sk)" && el.value) sk = Number(el.value);
-                      if (el.label === "farriin (m)" && el.value) m = Number(el.value);
+                      if (el.label === "furaha qarsoon (sk)" && el.value)
+                        sk = Number(el.value);
+                      if (el.label === "farriin (m)" && el.value)
+                        m = Number(el.value);
                     }
                   }
                 }
@@ -973,11 +994,7 @@ const LessonPage = () => {
                 />
               );
             } else if (interactiveContent.type === "calculator") {
-              setCurrentBlock(
-                <SignatureCalculator
-                  {...calcProps}
-                />
-              );
+              setCurrentBlock(<SignatureCalculator {...calcProps} />);
             } else {
               setCurrentBlock(
                 <div className="max-w-2xl mx-auto px-4">
@@ -1004,26 +1021,27 @@ const LessonPage = () => {
             let calcProps2 = {};
             if (block.options && block.options.view) {
               const view = block.options.view;
-              let n = 29, g = 17, sk = 35, m = 7;
+              let n = 29,
+                g = 17,
+                sk = 35,
+                m = 7;
               if (Array.isArray(view.sections)) {
                 for (const section of view.sections) {
                   if (section.elements) {
                     for (const el of section.elements) {
                       if (el.label === "n" && el.value) n = Number(el.value);
                       if (el.label === "g" && el.value) g = Number(el.value);
-                      if (el.label === "furaha qarsoon (sk)" && el.value) sk = Number(el.value);
-                      if (el.label === "farriin (m)" && el.value) m = Number(el.value);
+                      if (el.label === "furaha qarsoon (sk)" && el.value)
+                        sk = Number(el.value);
+                      if (el.label === "farriin (m)" && el.value)
+                        m = Number(el.value);
                     }
                   }
                 }
               }
               calcProps2 = { n, g, defaultSk: sk, defaultM: m };
             }
-            setCurrentBlock(
-              <SignatureCalculator
-                {...calcProps2}
-              />
-            );
+            setCurrentBlock(<SignatureCalculator {...calcProps2} />);
             break;
 
           case "calculator_interface":
@@ -1032,9 +1050,7 @@ const LessonPage = () => {
             console.log("[DEBUG] calculator_interface options:", block.options);
             // Pass the full options.view config to SignatureCalculator
             setCurrentBlock(
-              <SignatureCalculator
-                config={block.options?.view}
-              />
+              <SignatureCalculator config={block.options?.view} />
             );
             break;
 
