@@ -99,11 +99,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-    | "code"
-    | "mcq"
-    | "short_input"
-    | "diagram"
-    | "multiple_choice";
+  | "code"
+  | "mcq"
+  | "short_input"
+  | "diagram"
+  | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -357,7 +357,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => {});
+  const continueRef = useRef<() => void>(() => { });
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -385,7 +385,6 @@ const LessonPage = () => {
   const {
     data: leaderboard,
     mutate: mutateLeaderboard,
-    isLoading: isLoadingLeaderboard,
   } = useLeaderboard() as {
     data: LeaderboardEntry[];
     mutate: () => void;
@@ -395,7 +394,6 @@ const LessonPage = () => {
   const {
     data: userRank,
     mutate: mutateUserRank,
-    isLoading: isLoadingUserRank,
   } = useUserRank() as {
     data: Partial<UserRank>;
     mutate: () => void;
@@ -403,9 +401,7 @@ const LessonPage = () => {
   };
 
   const {
-    data: courseProgress,
     mutate: mutateCourseProgress,
-    isLoading: isLoadingCourseProgress,
   } = useCourseProgress(courseId);
 
   // Derived state for current problem
@@ -542,7 +538,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-            "Failed to load problems"
+          "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
