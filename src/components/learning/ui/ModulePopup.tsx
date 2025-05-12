@@ -37,9 +37,13 @@ export default function ModulePopup({
 
   return (
     <div
-      className={`absolute top-0 -ml-5 text-center items-center justify-center md:ml-0 left-1/2 transform ${
-        side === "right" ? "-translate-x-[20%]" : "translate-x-[20%]"
-      } translate-y-[calc(100%+55px)] w-80 bg-white rounded-lg shadow-lg p-4 z-20 animate-fadeIn border-2 border-border`}
+      className={`absolute top-0 -ml-5 text-center items-center justify-center md:ml-0 left-1/2 transform md:translate-x-0 
+      ${
+        side === "right"
+          ? "-translate-x-[20%] md:-translate-x-[10%]"
+          : "translate-x-[20%] md:translate-x-[10%]"
+      }
+      translate-y-[calc(100%+55px)] w-80 bg-white rounded-lg shadow-lg p-4 z-20 animate-fadeIn border-2 border-border`}
     >
       <div className="absolute top-0 left-1/2 transform translate-y-full -translate-x-1/2">
         <div className="w-4 h-4 bg-white rotate-45 transform -translate-y-6 -translate-x-0 -z-30"></div>

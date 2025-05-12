@@ -99,11 +99,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-  | "code"
-  | "mcq"
-  | "short_input"
-  | "diagram"
-  | "multiple_choice";
+    | "code"
+    | "mcq"
+    | "short_input"
+    | "diagram"
+    | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -357,7 +357,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => { });
+  const continueRef = useRef<() => void>(() => {});
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -385,6 +385,7 @@ const LessonPage = () => {
   const {
     data: leaderboard,
     mutate: mutateLeaderboard,
+    isLoading: isLoadingLeaderboard,
   } = useLeaderboard() as {
     data: LeaderboardEntry[];
     mutate: () => void;
@@ -394,6 +395,7 @@ const LessonPage = () => {
   const {
     data: userRank,
     mutate: mutateUserRank,
+    isLoading: isLoadingUserRank,
   } = useUserRank() as {
     data: Partial<UserRank>;
     mutate: () => void;
@@ -401,7 +403,9 @@ const LessonPage = () => {
   };
 
   const {
+    data: courseProgress,
     mutate: mutateCourseProgress,
+    isLoading: isLoadingCourseProgress,
   } = useCourseProgress(courseId);
 
   // Derived state for current problem
@@ -504,7 +508,7 @@ const LessonPage = () => {
           which: pd.which,
           options: Array.isArray(pd.options)
             ? pd.options.map((opt) => opt.text)
-            : [],
+            : pd?.options,
           correct_answer: pd.correct_answer.map((ans, index) => ({
             id: `answer-${index}`,
             text: ans.text,
@@ -538,7 +542,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-          "Failed to load problems"
+            "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -842,12 +846,21 @@ const LessonPage = () => {
             if (problemIndex !== -1) {
               const problem = problems[problemIndex];
               // Special case: render calculator interface for problems with content.type === 'calculator'
+              console.log("+++++++++++++++++PROBLEM++++++++++++++", problem);
               if (problem.content && problem.content.type === "calculator") {
                 setCurrentBlock(
                   <CalculatorProblemBlock
-                    {...problem}
+                    question={problem.question}
+                    which={problem?.which}
+                    view={(problem?.options as any)?.view}
                     onContinue={handleContinue}
                   />
+
+                  // <CalculatorProblemBlock
+                  //   question="Elgamal Signing Demo"
+                  //   view={viewConfig}
+                  //   onContinue={() => console.log('Continue pressed')}
+                  // />
                 );
                 break;
               }
@@ -947,108 +960,108 @@ const LessonPage = () => {
             );
             break;
 
-          case "interactive":
-            const interactiveContent =
-              typeof block.content === "string"
-                ? JSON.parse(block.content)
-                : block.content;
-            // Extract calculator props from options.view if present
-            let calcProps = {};
-            if (
-              block.options &&
-              block.options.view &&
-              interactiveContent.type === "calculator"
-            ) {
-              const view = block.options.view;
-              // Find n and g from view.sections
-              let n = 29,
-                g = 17,
-                sk = 35,
-                m = 7;
-              if (Array.isArray(view.sections)) {
-                for (const section of view.sections) {
-                  if (section.elements) {
-                    for (const el of section.elements) {
-                      if (el.label === "n" && el.value) n = Number(el.value);
-                      if (el.label === "g" && el.value) g = Number(el.value);
-                      if (el.label === "furaha qarsoon (sk)" && el.value)
-                        sk = Number(el.value);
-                      if (el.label === "farriin (m)" && el.value)
-                        m = Number(el.value);
-                    }
-                  }
-                }
-              }
-              calcProps = { n, g, defaultSk: sk, defaultM: m };
-            }
-            if (interactiveContent.type === "scale_balance") {
-              setCurrentBlock(
-                <ScaleBalanceInteractive
-                  content={interactiveContent}
-                  onComplete={handleContinue}
-                  onExplanationChange={setExplanationData}
-                />
-              );
-            } else if (interactiveContent.type === "calculator") {
-              setCurrentBlock(<SignatureCalculator {...calcProps} />);
-            } else {
-              setCurrentBlock(
-                <div className="max-w-2xl mx-auto px-4">
-                  <Card>
-                    <CardContent className="p-6">
-                      <p className="text-muted-foreground">
-                        This type of interactive content is not supported yet.
-                      </p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button onClick={handleContinue}>
-                        Sii wado
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </div>
-              );
-            }
-            break;
+          // case "interactive":
+          //   const interactiveContent =
+          //     typeof block.content === "string"
+          //       ? JSON.parse(block.content)
+          //       : block.content;
+          //   // Extract calculator props from options.view if present
+          //   let calcProps = {};
+          //   if (
+          //     block.options &&
+          //     block.options.view &&
+          //     interactiveContent.type === "calculator"
+          //   ) {
+          //     const view = block.options.view;
+          //     // Find n and g from view.sections
+          //     let n = 29,
+          //       g = 17,
+          //       sk = 35,
+          //       m = 7;
+          //     if (Array.isArray(view.sections)) {
+          //       for (const section of view.sections) {
+          //         if (section.elements) {
+          //           for (const el of section.elements) {
+          //             if (el.label === "n" && el.value) n = Number(el.value);
+          //             if (el.label === "g" && el.value) g = Number(el.value);
+          //             if (el.label === "furaha qarsoon (sk)" && el.value)
+          //               sk = Number(el.value);
+          //             if (el.label === "farriin (m)" && el.value)
+          //               m = Number(el.value);
+          //           }
+          //         }
+          //       }
+          //     }
+          //     calcProps = { n, g, defaultSk: sk, defaultM: m };
+          //   }
+          //   if (interactiveContent.type === "scale_balance") {
+          //     setCurrentBlock(
+          //       <ScaleBalanceInteractive
+          //         content={interactiveContent}
+          //         onComplete={handleContinue}
+          //         onExplanationChange={setExplanationData}
+          //       />
+          //     );
+          //   } else if (interactiveContent.type === "calculator") {
+          //     setCurrentBlock(<SignatureCalculator {...calcProps} />);
+          //   } else {
+          //     setCurrentBlock(
+          //       <div className="max-w-2xl mx-auto px-4">
+          //         <Card>
+          //           <CardContent className="p-6">
+          //             <p className="text-muted-foreground">
+          //               This type of interactive content is not supported yet.
+          //             </p>
+          //           </CardContent>
+          //           <CardFooter>
+          //             <Button onClick={handleContinue}>
+          //               Sii wado
+          //               <ChevronRight className="ml-2 h-4 w-4" />
+          //             </Button>
+          //           </CardFooter>
+          //         </Card>
+          //       </div>
+          //     );
+          //   }
+          //   break;
 
-          case "calculator":
-            // Extract calculator props from options.view if present
-            let calcProps2 = {};
-            if (block.options && block.options.view) {
-              const view = block.options.view;
-              let n = 29,
-                g = 17,
-                sk = 35,
-                m = 7;
-              if (Array.isArray(view.sections)) {
-                for (const section of view.sections) {
-                  if (section.elements) {
-                    for (const el of section.elements) {
-                      if (el.label === "n" && el.value) n = Number(el.value);
-                      if (el.label === "g" && el.value) g = Number(el.value);
-                      if (el.label === "furaha qarsoon (sk)" && el.value)
-                        sk = Number(el.value);
-                      if (el.label === "farriin (m)" && el.value)
-                        m = Number(el.value);
-                    }
-                  }
-                }
-              }
-              calcProps2 = { n, g, defaultSk: sk, defaultM: m };
-            }
-            setCurrentBlock(<SignatureCalculator {...calcProps2} />);
-            break;
+          // case "calculator":
+          //   // Extract calculator props from options.view if present
+          //   let calcProps2 = {};
+          //   if (block.options && block.options.view) {
+          //     const view = block.options.view;
+          //     let n = 29,
+          //       g = 17,
+          //       sk = 35,
+          //       m = 7;
+          //     if (Array.isArray(view.sections)) {
+          //       for (const section of view.sections) {
+          //         if (section.elements) {
+          //           for (const el of section.elements) {
+          //             if (el.label === "n" && el.value) n = Number(el.value);
+          //             if (el.label === "g" && el.value) g = Number(el.value);
+          //             if (el.label === "furaha qarsoon (sk)" && el.value)
+          //               sk = Number(el.value);
+          //             if (el.label === "farriin (m)" && el.value)
+          //               m = Number(el.value);
+          //           }
+          //         }
+          //       }
+          //     }
+          //     calcProps2 = { n, g, defaultSk: sk, defaultM: m };
+          //   }
+          //   setCurrentBlock(<SignatureCalculator {...calcProps2} />);
+          //   break;
 
-          case "calculator_interface":
-            // Debug: log block and options
-            console.log("[DEBUG] calculator_interface block:", block);
-            console.log("[DEBUG] calculator_interface options:", block.options);
-            // Pass the full options.view config to SignatureCalculator
-            setCurrentBlock(
-              <SignatureCalculator config={block.options?.view} />
-            );
-            break;
+          // case "calculator_interface":
+          //   // Debug: log block and options
+          //   console.log("[DEBUG] calculator_interface block:", block);
+          //   console.log("[DEBUG] calculator_interface options:", block.options);
+          //   // Pass the full options.view config to SignatureCalculator
+          //   setCurrentBlock(
+          //     <SignatureCalculator config={block.options?.view} />
+          //   );
+          //   break;
 
           default:
             setCurrentBlock(

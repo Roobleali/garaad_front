@@ -184,7 +184,7 @@ export default function ModuleZigzag({
     if (index === 0 || index === uniqueModules.length - 1) {
       return "justify-center";
     }
-    return index % 2 === 1 ? "justify-start ml-56" : "justify-end mr-56";
+    return index % 2 === 1 ? "justify-start ml-50" : "justify-end mr-50";
   };
 
   return (
@@ -321,7 +321,7 @@ export default function ModuleZigzag({
               <Popover.Portal>
                 <Popover.Content
                   side={index % 2 === 0 ? "right" : "left"}
-                  sideOffset={-10}
+                  sideOffset={20}
                   className="z-[1000] bg-transparent p-0 shadow-none"
                 >
                   <ModulePopup
