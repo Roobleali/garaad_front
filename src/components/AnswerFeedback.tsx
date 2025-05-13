@@ -125,8 +125,8 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 : "bg-red-50 border-red-200"
             )}
           >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col items-center justify-between gap-3 sm:gap-4">
+              <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
                 <div
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2",
@@ -141,7 +141,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                     <X className="h-5 w-5 text-white" />
                   )}
                 </div>
-                <div className="space-y-1">
+                <div className="flex flex-col items-center ">
                   <p className="font-semibold text-sm sm:text-base">
                     {feedbackContent.title}
                   </p>
@@ -151,12 +151,12 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 </div>
               </div>
 
-              <div className="flex   sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex flex-row gap-2 w-full sm:w-auto">
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={handleWhyClick}
-                  className=" w-1/2 sm:w-auto rounded-full border-2 border-gray-300 py-4 text-base sm:text-sm hover:border-gray-400 transition-all duration-200"
+                  className="w-2/5 sm:w-auto rounded-full border-2 border-gray-300 py-2 sm:py-4 text-base sm:text-sm hover:border-gray-400 transition-all duration-200"
                 >
                   Sharaxaad
                 </Button>
@@ -166,7 +166,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                   variant={isCorrect ? "default" : "secondary"}
                   onClick={feedbackContent.buttonAction}
                   className={cn(
-                    "w-1/2 sm:w-auto rounded-full gap-1 py-4 text-base sm:text-sm",
+                    "w-2/5 sm:w-auto rounded-full gap-1 py-2 sm:py-4 text-base sm:text-sm",
                     "border-2 transition-all duration-200",
                     isCorrect
                       ? "border-[#58CC02] hover:border-[#58CC02]/80"
@@ -178,7 +178,6 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 </Button>
                 <div className="flex flex-col items-center">
                   <BugReportButton setIsReportingBug={setIsReportingBug} />
-
                 </div>
               </div>
             </div>
