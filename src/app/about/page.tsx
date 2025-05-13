@@ -117,7 +117,7 @@ export default function AboutPage() {
                 title: "Cilmi-baaris",
                 icon: "🔍",
                 description:
-                  "Waxaan si joogto ah u su'aalnaa, u sahaminnaa, oo aan hal-abuur ku sameynaa si aan u helno hababka ugu wanaagsan.",
+                  "Waxaan si joogto ah u su&apos;aalnaa, u sahaminnaa, oo aan hal-abuur ku sameynaa si aan u helno hababka ugu wanaagsan.",
               },
               {
                 title: "Xawaare",
@@ -126,7 +126,7 @@ export default function AboutPage() {
                   "Waxaan si degdeg ah u dhisnaa, u tijaabinnaa, oo aan u hagaajinnaa, annagoo si joogto ah u horumarineyna.",
               },
               {
-                title: "Mas'uuliyad",
+                title: "Mas&apos;uuliyad",
                 icon: "🤝",
                 description:
                   "Waxaan si qoto dheer ugu xiranahay guusha Garaad iyo mustaqbalka ardaydeena.",
@@ -303,7 +303,7 @@ export default function AboutPage() {
               Nala soo xiriir
             </h2>
             <p className="max-w-2xl mx-auto text-gray-600 mb-8">
-              Waxaan ku faraxsanahay inaan kaa jawaabno su'aalahaaga ama aan kaa
+              Waxaan ku faraxsanahay inaan kaa jawaabno su&apos;aalohaaga ama aan kaa
               caawino wixii aad u baahan tahay
             </p>
 
