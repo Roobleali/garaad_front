@@ -1,46 +1,62 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define protected routes
-const protectedRoutes = ["/courses", "/profile"];
-
 export function middleware(request: NextRequest) {
   // Get the pathname of the request
   const path = request.nextUrl.pathname;
 
-  // Check if the path is a protected route
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    path.startsWith(route)
-  );
+  // Define public paths that don't require authentication
+  const isPublicPath =
+    path === "/" ||
+    path.startsWith("/welcome") ||
+    path.startsWith("/about") ||
+    path.startsWith("/api/auth");
 
-  // If it's not a protected route, allow access
-  if (!isProtectedRoute) {
-    return NextResponse.next();
+  // Get the token from the cookies
+  const token = request.cookies.get("token")?.value || "";
+
+  // Redirect logic
+  if (isPublicPath && token && path === "/") {
+    // Only redirect from welcome to dashboard if user is logged in
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Get access token from cookies
-  const accessToken = request.cookies.get("accessToken")?.value;
-
-  // If no access token and trying to access protected route, redirect to welcome
-  if (!accessToken && isProtectedRoute) {
+  if (!isPublicPath && !token) {
+    // If user is not logged in and tries to access protected path, redirect to welcome
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // If there's an access token, allow access to protected routes
-  return NextResponse.next();
+  // Add security headers
+  const response = NextResponse.next();
+
+  // Add security headers
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  );
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+
+  return response;
 }
 
-// Configure which routes to run middleware on
+// Configure which paths the middleware should run on
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
+    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
   ],
 };

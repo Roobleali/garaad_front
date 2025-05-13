@@ -6,6 +6,8 @@ import ClientLayout from "./client-layout";
 import { Analytics } from "@vercel/analytics/react";
 import { Providers } from "./providers";
 import ShakeInitializer from "@/components/ShakeInitializer";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: {
@@ -186,23 +188,43 @@ export default function RootLayout({
   return (
     <html lang="so" suppressHydrationWarning>
       <head>
-        {/* <link
+        <link
           rel="preload"
           href="/fonts/inter-var.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
-        /> */}
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className={inter.className}>
-        <Providers>
-          <ClientLayout>
-            <ShakeInitializer />
-            {children}
-            <Toaster />
-          </ClientLayout>
-          <Analytics />
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            <ClientLayout>
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              }>
+                <ShakeInitializer />
+                {children}
+              </Suspense>
+              <Toaster />
+            </ClientLayout>
+            <Analytics />
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );
