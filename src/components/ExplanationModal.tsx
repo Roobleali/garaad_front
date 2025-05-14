@@ -1,8 +1,15 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  MoveRight,
+  LucideMoveRight,
+  MoveLeftIcon,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Latex from "react-latex-next";
 import { ExplanationText } from "@/types/learning";
@@ -22,28 +29,39 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({
   onClose,
   content,
 }) => {
-  // Build an array of paragraph strings, whether explanation is raw text or JSON.
+  // Build an array of paragraph strings
   let paragraphs: string[] = [];
 
   if (typeof content.explanation === "string") {
-    // Try parsing JSON
     try {
       const obj = JSON.parse(content.explanation) as ExplanationText;
       paragraphs = Object.values(obj)
         .filter((t) => typeof t === "string" && t.trim().length > 0)
         .map((t) => t.replace(/\\n\\n/g, "\n\n"));
     } catch {
-      // Not JSON — treat it as a plain Markdown/LaTeX string
       paragraphs = content.explanation
         .replace(/\\n\\n/g, "\n\n")
         .split(/\n{2,}/g);
     }
   } else {
-    // Already an ExplanationText object
     paragraphs = Object.values(content.explanation)
       .filter((t) => typeof t === "string" && t.trim().length > 0)
       .map((t) => t.replace(/\\n\\n/g, "\n\n"));
   }
+
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const total = paragraphs.length;
+  const hasMultiple = total > 1;
+  const isFirst = currentIdx === 0;
+  const isLast = currentIdx === total - 1;
+
+  const handlePrev = () => {
+    if (!isFirst) setCurrentIdx((prev) => prev - 1);
+  };
+
+  const handleNext = () => {
+    if (!isLast) setCurrentIdx((prev) => prev + 1);
+  };
 
   return (
     <div
@@ -89,40 +107,79 @@ const ExplanationModal: React.FC<ExplanationModalProps> = ({
           </button>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="px-6 pb-6 space-y-6"
-        >
+        <div className="relative px-6 pb-6">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-100 text-black">
-            <div className="prose prose-sm max-w-none space-y-4">
+            {/* <AnimatePresence initial={false} exitBeforeEnter> */}
+            <motion.div
+              key={currentIdx}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="prose prose-sm max-w-none space-y-4 p-4"
+            >
               {content.type === "latex" ? (
-                // Join paragraphs with spaces for LaTeX rendering
-                <Latex>{paragraphs.join(" ")}</Latex>
+                <Latex>{paragraphs[currentIdx]}</Latex>
               ) : (
-                // Render each paragraph via ReactMarkdown
-                paragraphs.map((para, idx) => (
-                  <ReactMarkdown key={idx} remarkPlugins={[remarkBreaks]}>
-                    {para}
-                  </ReactMarkdown>
-                ))
+                <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                  {paragraphs[currentIdx]}
+                </ReactMarkdown>
               )}
-            </div>
 
-            {content.image && (
-              <div className="mt-4 flex justify-center">
-                <Image
-                  src={content.image}
-                  alt="Explanation visual"
-                  width={400}
-                  height={200}
-                  className="rounded-lg max-h-32 object-contain"
-                />
+              {content.image && (
+                <div className="mt-4 flex justify-center">
+                  <Image
+                    src={content.image}
+                    alt="Explanation visual"
+                    width={400}
+                    height={200}
+                    className="rounded-lg max-h-32 object-contain"
+                  />
+                </div>
+              )}
+            </motion.div>
+            {/* </AnimatePresence> */}
+
+            {/* Controls (arrows + dots) */}
+            {hasMultiple && (
+              <div className="flex items-center justify-center mt-2 space-x-2">
+                <button
+                  onClick={handlePrev}
+                  disabled={isFirst}
+                  className={`p-1 rounded-full transition-colors ${
+                    isFirst
+                      ? "text-gray-400"
+                      : "text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <MoveLeftIcon className="w-4 h-4" />
+                </button>
+
+                <div className="flex space-x-2">
+                  {paragraphs.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIdx(idx)}
+                      className={`w-2 h-2 rounded-full transition-colors focus:outline-none ${
+                        idx === currentIdx ? "bg-gray-800" : "bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  disabled={isLast}
+                  className={`p-1 rounded-full transition-colors ${
+                    isLast ? "text-gray-400" : "text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <LucideMoveRight className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

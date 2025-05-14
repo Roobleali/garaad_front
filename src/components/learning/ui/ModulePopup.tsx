@@ -1,3 +1,5 @@
+"use client";
+
 import { useParams, useRouter } from "next/navigation";
 import { ArrowRight, PlayCircle, RefreshCwIcon } from "lucide-react";
 import { Module } from "@/types/learning";
@@ -20,16 +22,14 @@ export default function ModulePopup({
   const router = useRouter();
 
   const handleModuleClick = (moduleId: string | number) => {
-    // Reset the local storage for the current lesson
     const storageKey = `lesson_progress_${moduleId}`;
     localStorage.setItem(
       storageKey,
       JSON.stringify({
-        blockIndex: 0, // Reset to the first block
+        blockIndex: 0,
         timestamp: new Date().toISOString(),
       })
     );
-    // Navigate to the selected module
     router.push(
       `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
     );
@@ -37,17 +37,44 @@ export default function ModulePopup({
 
   return (
     <div
-      className={`absolute top-0 -ml-5 text-center items-center justify-center md:ml-0 left-1/2 transform md:translate-x-0 
-      ${
-        side === "right"
-          ? "-translate-x-[20%] md:-translate-x-[10%]"
-          : "translate-x-[20%] md:translate-x-[10%]"
-      }
-      translate-y-[calc(100%+55px)] w-80 bg-white rounded-lg shadow-lg p-4 z-20 animate-fadeIn border-2 border-border`}
+      className={`
+        absolute
+        top-full mt-8
+        left-1/2
+        transform
+        -translate-x-1/2
+        ${
+          side === "right"
+            ? "-translate-x-[70%] sm:-translate-x-[80%]"
+            : " -translate-x-[40%] sm:-translate-x-[30%]"
+        }
+        w-80
+        bg-white
+        rounded-lg
+        shadow-lg
+        p-4
+        border-2 border-border
+        z-20
+        animate-fadeIn
+        text-center
+      `}
     >
-      <div className="absolute top-0 left-1/2 transform translate-y-full -translate-x-1/2">
-        <div className="w-4 h-4 bg-white rotate-45 transform -translate-y-6 -translate-x-0 -z-30"></div>
-      </div>
+      {/* little arrow */}
+      <div
+        className="
+          absolute
+          top-0
+          left-1/2
+          -translate-x-1/2
+          -translate-y-1/2
+          w-4 h-4
+          bg-white
+          border-t-2 border-l-2 border-border
+          rotate-45
+          z-10
+        "
+      />
+
       <h3 className="font-bold mb-2">{module.title}</h3>
       <p className="text-sm mb-4">{module.description}</p>
 
@@ -60,7 +87,7 @@ export default function ModulePopup({
           ? "Sii Wado Casharka"
           : isCompleted
           ? "Muraajacee Casharka"
-          : "Billow Casharka"}{" "}
+          : "Billow Casharka"}
         {isInProgress ? (
           <PlayCircle className="ml-2 w-4 h-4" />
         ) : isCompleted ? (

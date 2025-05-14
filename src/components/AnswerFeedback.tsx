@@ -37,8 +37,8 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
     const { isLastQuestion } = useMemo(() => {
       const sortedBlocks = currentLesson?.content_blocks
         ? [...currentLesson.content_blocks].sort(
-          (a, b) => (a.order || 0) - (b.order || 0)
-        )
+            (a, b) => (a.order || 0) - (b.order || 0)
+          )
         : [];
 
       const problemBlockIndex = sortedBlocks.findIndex(
@@ -97,7 +97,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 image: explanationData?.image || "",
                 type:
                   explanationData?.type === "markdown" ||
-                    explanationData?.type === "latex"
+                  explanationData?.type === "latex"
                     ? explanationData.type
                     : "markdown",
               }}
@@ -125,7 +125,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 : "bg-red-50 border-red-200"
             )}
           >
-            <div className="flex flex-col items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 md:flex-row">
               <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
                 <div
                   className={cn(
@@ -141,7 +141,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                     <X className="h-5 w-5 text-white" />
                   )}
                 </div>
-                <div className="flex flex-col items-center ">
+                <div className="flex flex-col">
                   <p className="font-semibold text-sm sm:text-base">
                     {feedbackContent.title}
                   </p>

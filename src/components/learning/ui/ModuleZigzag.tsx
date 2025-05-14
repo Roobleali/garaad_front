@@ -153,7 +153,7 @@ export default function ModuleZigzag({
         const dx = currentX - prevX;
         const dy = currentY - prevY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const curveIntensity = distance * 1;
+        const curveIntensity = distance * 1.5;
 
         const isEven = i % 2 === 0;
         const controlX1 = prevX + (isEven ? -curveIntensity : curveIntensity);
@@ -184,110 +184,13 @@ export default function ModuleZigzag({
     if (index === 0 || index === uniqueModules.length - 1) {
       return "justify-center";
     }
-    return index % 2 === 1 ? "justify-start ml-50" : "justify-end mr-50";
+    return index % 2 === 1
+      ? "justify-start  ml-42 md:ml-60"
+      : "justify-end mr-42 mr-60";
   };
 
   return (
     <div className="relative" ref={containerRef}>
-      <svg
-        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 0 }}
-      >
-        <path
-          d={zigzagPath}
-          fill="none"
-          stroke="gray"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeDasharray="4 4"
-          className="stroke-gray-300 transition-all duration-500 ease-in-out"
-        />
-
-        <path
-          d={completedPath}
-          fill="none"
-          stroke="#3b82f6"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="transition-all duration-500 ease-in-out"
-        />
-
-        {modulePoints.map((point, index) => (
-          <g key={index} className="transition-all duration-300 ease-in-out">
-            <circle
-              cx={point.x}
-              cy={point.y}
-              r={12}
-              className={`${
-                point.completed
-                  ? "fill-green-500"
-                  : point.inProgress
-                  ? "fill-blue-400"
-                  : activeModuleId === uniqueModules[index]?.id
-                  ? "fill-blue-200"
-                  : "fill-gray-200"
-              } transition-all duration-300`}
-            />
-
-            {point.completed ? (
-              <g transform={`translate(${point.x - 6}, ${point.y - 6})`}>
-                <circle cx="6" cy="6" r="6" fill="white" />
-                <path
-                  d="M3.5 6.5L5 8L8.5 4.5"
-                  stroke="#22c55e"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </g>
-            ) : point.inProgress ? (
-              <g transform={`translate(${point.x - 6}, ${point.y - 6})`}>
-                <circle cx="6" cy="6" r="6" fill="white" />
-                <path
-                  d="M4 6L6 8L8 4"
-                  stroke="#3b82f6"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                  strokeDasharray="4 2"
-                />
-              </g>
-            ) : (
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r={6}
-                className={`${
-                  activeModuleId === uniqueModules[index]?.id
-                    ? "fill-blue-400"
-                    : "fill-white"
-                } transition-all duration-300`}
-              />
-            )}
-
-            <text
-              x={point.x}
-              y={point.y}
-              textAnchor="middle"
-              dominantBaseline="central"
-              className={`text-xs font-bold ${
-                point.completed ||
-                point.inProgress ||
-                activeModuleId === uniqueModules[index]?.id
-                  ? "fill-white"
-                  : "fill-gray-500"
-              }`}
-            >
-              {index + 1}
-            </text>
-          </g>
-        ))}
-      </svg>
-
       <div className="relative flex flex-col items-center z-10 no animate">
         {uniqueModules.map((module, index) => (
           <div
@@ -295,7 +198,7 @@ export default function ModuleZigzag({
             ref={(el) => {
               moduleRefs.current[index] = el;
             }}
-            className={`relative mb-24 ${getModulePosition(index)}`}
+            className={`relativ mb-0 md:mb-5 ${getModulePosition(index)}`}
           >
             <Popover.Root
               open={openPopoverId === module.id}
@@ -321,8 +224,8 @@ export default function ModuleZigzag({
               <Popover.Portal>
                 <Popover.Content
                   side={index % 2 === 0 ? "right" : "left"}
-                  sideOffset={20}
-                  className="z-[1000] bg-transparent p-0 shadow-none"
+                  sideOffset={0}
+                  className="z-[1000] bg-transparent p-0 shadow-none no-animate"
                 >
                   <ModulePopup
                     module={module}
