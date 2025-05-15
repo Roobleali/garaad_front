@@ -10,6 +10,7 @@ export function middleware(request: NextRequest) {
     path === "/" ||
     path.startsWith("/welcome") ||
     path.startsWith("/about") ||
+    path.startsWith("/blog") ||
     path.startsWith("/api/auth");
 
   // Get the token from the cookies

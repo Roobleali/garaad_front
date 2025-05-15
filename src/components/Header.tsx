@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { ProfileDropdown } from "./layout/ProfileDropdown";
 import { usePathname } from "next/navigation";
-import { FolderDot, BookOpen } from "lucide-react";
+import { FolderDot, } from "lucide-react";
 import clsx from "clsx";
 
 export function Header() {
@@ -15,7 +15,6 @@ export function Header() {
 
   const navLinks = [
     { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-    { name: "Wargeys", href: "/blog", icon: BookOpen },
   ];
 
   return (

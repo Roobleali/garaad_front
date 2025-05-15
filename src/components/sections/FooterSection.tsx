@@ -4,9 +4,8 @@ export function FooterSection() {
   const navigation = {
     product: [
       { name: "Koorsooyin", href: "/courses" },
-      { name: "Qiimeyn", href: "#" },
-      { name: "Markhaati", href: "#" },
-      { name: "Caawimo", href: "#" },
+      { name: "Wargeys", href: "/blog" },
+
     ],
     company: [
       { name: "Nagu saabsan", href: "/about" },
@@ -37,7 +36,7 @@ export function FooterSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:col-span-2 lg:col-span-3">
             <div>
               <h3 className="text-sm font-semibold">Alaabta</h3>
-              <ul className="mt-6 space-y-4">
+              <ul className="mt-6 flex flex-col gap-4">
                 {navigation.product.map((item) => (
                   <Link
                     href={item.href}

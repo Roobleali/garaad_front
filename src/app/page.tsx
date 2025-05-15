@@ -47,7 +47,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
           </div>
 
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 lg:pt-24 relative">
             <div className="flex flex-col items-center max-w-4xl mx-auto">
               <div className="space-y-6 sm:space-y-12 animate-fade-in text-center">
                 <div className="space-y-6 sm:space-y-12 max-w-xs sm:max-w-2xl mx-auto">

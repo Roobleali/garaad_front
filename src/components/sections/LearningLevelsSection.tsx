@@ -1,4 +1,3 @@
-
 const courseLevels = [
   {
     level: "Heerka 2",
@@ -66,7 +65,7 @@ export function LearningLevelsSection() {
 
       {/* Content */}
       <div className="relative">
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Text Content */}
             <div className="space-y-6">
