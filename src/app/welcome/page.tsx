@@ -547,11 +547,7 @@ export default function Page() {
         !userData.password.trim() ||
         !userData.age.trim()
       ) {
-        toast({
-          variant: "destructive",
-          title: "Khalad ayaa dhacay",
-          description: "Fadlan buuxi dhammaan xogta",
-        });
+
         return;
       }
 
@@ -591,11 +587,7 @@ export default function Page() {
 
       if (result) {
         console.log("Signup successful");
-        toast({
-          variant: "default",
-          title: "Mahadsanid!",
-          description: "Diiwaangelinta ayaa loo sameeyay si guul leh",
-        });
+
         router.push(`/verify-email?email=${userData.email}`);
       }
     } catch (error: any) {
@@ -618,11 +610,7 @@ export default function Page() {
           errorMessage = error.response.data.detail;
         }
       }
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: errorMessage,
-      });
+
     }
   };
 
@@ -953,19 +941,19 @@ export default function Page() {
                   currentStep === 6
                     ? " text-white"
                     : currentStep === 5
-                    ? userData.email &&
-                      userData.password &&
-                      userData.name &&
-                      userData.age
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                    : currentStep === 3
-                    ? topicLevels[selectedTopic]
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                    : selections[currentStep]
-                    ? " text-white"
-                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                      ? userData.email &&
+                        userData.password &&
+                        userData.name &&
+                        userData.age
+                        ? " text-white"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      : currentStep === 3
+                        ? topicLevels[selectedTopic]
+                          ? " text-white"
+                          : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : selections[currentStep]
+                          ? " text-white"
+                          : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {

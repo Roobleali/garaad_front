@@ -505,13 +505,7 @@ const LessonPage = () => {
     }
 
     // If answer is correct, show success message
-    if (isCorrect) {
-      toast({
-        title: "Success",
-        description: "Jawaabtaada waa sax ah!",
-        variant: "default",
-      });
-    }
+
   }, [
     selectedOption,
     currentProblem,

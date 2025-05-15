@@ -88,11 +88,7 @@ export function AuthDialog() {
   // Show toast when error changes
   useEffect(() => {
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: error,
-      });
+
       dispatch(clearError());
     }
   }, [error, toast, dispatch]);

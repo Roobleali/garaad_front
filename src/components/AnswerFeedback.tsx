@@ -128,7 +128,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                     <X className="h-5 w-5 text-white" />
                   )}
                 </div>
-                <div>
+                <div className="flex flex-col gap-1 text-left">
                   <p className="font-semibold text-sm sm:text-base">{title}</p>
                   <p className="text-xs sm:text-sm">{message}</p>
                 </div>

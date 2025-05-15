@@ -235,11 +235,7 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
         // Show the Shake UI after preparation is complete
         await Shake.show();
 
-        toast({
-          title: "Success",
-          description: "Warbixinta bug-ga waa la bilaabay",
-          variant: "default",
-        });
+
 
         // Try to detect when the modal is closed
         if (setIsReportingBug) {
@@ -248,32 +244,18 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
         }
       } else {
         console.warn("Shake SDK lama helin.");
-        toast({
-          title: "Error",
-          description: "Warbixinta bug-ga lama heli karo waqtigan",
-          variant: "destructive",
-        });
+
       }
     } catch (error) {
       console.error("Khalad ayaa dhacay:", error);
-      toast({
-        title: "Error",
-        description: "Warbixinta bug-ga ma bilaaban",
-        variant: "destructive",
-      });
+
       if (setIsReportingBug) setIsReportingBug(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    toast({
-      title: "Error",
-      description: "Warbixinta bug-ga ma bilaaban",
-      variant: "destructive",
-    });
-  };
+
 
   return (
     <div>

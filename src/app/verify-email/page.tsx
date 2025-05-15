@@ -130,10 +130,7 @@ export default function VerifyEmailPage() {
       // Success state
       setIsVerified(true);
 
-      toast({
-        title: "Email-kaaga waa la xaqiijiyay",
-        description: "Email-kaaga si guul leh ayaa loo xaqiijiyay",
-      });
+
 
       // Redirect after a short delay to show success state
       router.push("/courses");
@@ -142,11 +139,7 @@ export default function VerifyEmailPage() {
         err instanceof Error ? err.message : "An unknown error occurred";
 
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: errorMessage,
-      });
+
     } finally {
       setIsVerifying(false);
     }
@@ -178,7 +171,7 @@ export default function VerifyEmailPage() {
       if (!response.ok) throw new Error(data.error || "Failed to resend code");
 
       toast({
-        title: "Koodka cusub ayaa loo diray",
+        title: "Number sireed cusub ayaa loo diray",
         description: "Fadlan hubi email-kaaga koodka cusub",
       });
     } catch (err: any) {
@@ -186,11 +179,7 @@ export default function VerifyEmailPage() {
         err instanceof Error ? err.message : "Failed to send verification code";
 
       setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: errorMessage,
-      });
+
     } finally {
       setIsResending(false);
     }

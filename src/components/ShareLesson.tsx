@@ -44,17 +44,9 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Success",
-        description: "Linkiga waa la koobiyeeyay!",
-        variant: "default",
-      });
+
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "Ma awoodin in la koopiyo linkiga",
-        variant: "destructive",
-      });
+
     }
   };
 
@@ -66,25 +58,13 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
           text: "Eeg casharka aan kuu wadaagay!",
           url: window.location.href,
         });
-        toast({
-          title: "Success",
-          description: "Waad la wadaagtay!",
-          variant: "default",
-        });
+
       } else {
         handleCopyLink();
-        toast({
-          title: "Success",
-          description: "Waad la wadaagtay!",
-          variant: "default",
-        });
+
       }
     } catch (err) {
-      toast({
-        title: "Error",
-        description: "Ma awoodin in la wadaago",
-        variant: "destructive",
-      });
+
     }
   };
 

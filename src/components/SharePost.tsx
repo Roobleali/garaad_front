@@ -39,19 +39,12 @@ export function SharePost({ title, slug }: SharePostProps) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast({
-        title: "Link copied",
-        description: "The link has been copied to your clipboard",
-      });
+
 
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again or copy the URL manually",
-        variant: "destructive",
-      });
+
     }
   };
 
