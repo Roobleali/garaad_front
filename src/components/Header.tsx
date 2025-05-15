@@ -13,9 +13,9 @@ export function Header() {
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
 
-  const navLinks = [
+  const navLinks = user ? [
     { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-  ];
+  ] : [];
 
   return (
     <header className="sticky top-0 z-50 bg-white">
