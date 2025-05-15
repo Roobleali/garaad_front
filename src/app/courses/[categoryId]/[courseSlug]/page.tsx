@@ -175,25 +175,25 @@ export default function CourseDetailPage() {
                   {/* <div className="absolute w-1 h-full bg-gradient-to-b from-blue-200 to-transparent left-1/2 -translate-x-1/2 z-0" /> */}
 
                   {/* {(currentCourse?.modules ?? []).map(
-                    (module: Module, index: number) => (
-                      <div key={module.id} className="relative z-10">
-                      
-                        <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
-                          <ModuleZigzag
-                            modules={[module]}
-                            activeModuleId={activeModuleId}
-                            onModuleClick={handleModuleClick}
-                          />
-                          
-                          {index < (currentCourse.modules?.length ?? 0) - 1 && (
-                            <div className="absolute left-1/2 bottom-0 translate-y-24 -translate-x-1/2 text-blue-500">
-                              <ChevronRight className="w-8 h-8 animate-bounce" />
-                            </div>
-                          )}
-                        </div>
+                  (module: Module, index: number) => (
+                    <div key={module.id} className="relative z-10">
+                    
+                      <div className="relative hover:scale-[1.02] transition-transform duration-300 translate-y-12">
+                        <ModuleZigzag
+                          modules={[module]}
+                          activeModuleId={activeModuleId}
+                          onModuleClick={handleModuleClick}
+                        />
+                        
+                        {index < (currentCourse.modules?.length ?? 0) - 1 && (
+                          <div className="absolute left-1/2 bottom-0 translate-y-24 -translate-x-1/2 text-blue-500">
+                            <ChevronRight className="w-8 h-8 animate-bounce" />
+                          </div>
+                        )}
                       </div>
-                    )
-                  )} */}
+                    </div>
+                  )
+                )} */}
 
                   {currentCourse?.modules && (
                     <ModuleZigzag

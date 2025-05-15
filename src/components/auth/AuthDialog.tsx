@@ -131,7 +131,7 @@ export function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="font-semibold">
+        <Button variant="outline" className="font-semibold text-base md:text-lg">
           Soo gal
         </Button>
       </DialogTrigger>
@@ -199,6 +199,7 @@ export function AuthDialog() {
                           placeholder="email@example.com"
                           {...field}
                           disabled={isLoading}
+                          className="text-base md:text-lg"
                         />
                       </FormControl>
                       <FormMessage />
@@ -217,8 +218,7 @@ export function AuthDialog() {
                           placeholder="Geli lambarka sirta"
                           {...field}
                           disabled={isLoading}
-                        // className="w-full p-3 md:p-4 border rounded-xl focus:ring-2 focus:ring-primary/30 outline-none text-base md:text-lg transition-all duration-200 ease-in-out bg-white"
-                        // style={{ fontSize: "16px" }}
+                          className="text-base md:text-lg"
                         />
                       </FormControl>
                       <FormMessage />
@@ -228,7 +228,7 @@ export function AuthDialog() {
                 <Button
                   type="submit"
                   className={cn(
-                    "w-full relative",
+                    "w-full relative text-base md:text-lg",
                     isLoading && "animate-bounce"
                   )}
                   disabled={isLoading}

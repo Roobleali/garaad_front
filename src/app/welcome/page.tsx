@@ -848,7 +848,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, name: e.target.value })
                       }
-                      className="w-full p-3 rounded-lg border-slate-200 focus:border-peimary focus:ring-primary/20"
+                      className="w-full p-3 rounded-lg border-slate-200 focus:border-peimary focus:ring-primary/20 text-base md:text-lg"
                       disabled={isLoading}
                     />
                   </div>
@@ -888,7 +888,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, age: e.target.value })
                       }
-                      className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:ring-primary/20"
+                      className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:ring-primary/20 text-base md:text-lg"
                       disabled={isLoading}
                     />
                   </div>
@@ -908,7 +908,7 @@ export default function Page() {
                     onChange={(e) =>
                       setUserData({ ...userData, email: e.target.value })
                     }
-                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20"
+                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20 text-base md:text-lg"
                     disabled={isLoading}
                   />
                 </div>
@@ -927,7 +927,7 @@ export default function Page() {
                     onChange={(e) =>
                       setUserData({ ...userData, password: e.target.value })
                     }
-                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20"
+                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20 text-base md:text-lg"
                     disabled={isLoading}
                   />
                 </div>
