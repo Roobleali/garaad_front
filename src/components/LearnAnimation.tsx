@@ -2,7 +2,7 @@ import { Timeline } from "./Timeline";
 
 export function LearnAnimation() {
   return (
-    <div className="relative mt-8 mb-4">
+    <div className="relative mt-8 mb-4 bg-gradient-to-b from-white to-primary/5">
       <div
         className="absolute inset-0 opacity-5"
         style={{
@@ -10,19 +10,13 @@ export function LearnAnimation() {
           backgroundSize: '50px 50px'
         }}
       />
-      < div
-        className="relative"
-
-      >
+      <div className="relative">
         <div className="flex flex-col items-center justify-center gap-8">
-          < div
-            className="relative max-w-3xl mx-auto backdrop-blur-sm p-8 rounded-2xl"
-
-          >
+          <div className="relative max-w-3xl mx-auto backdrop-blur-sm p-8 rounded-2xl">
             <Timeline />
-          </ div>
+          </div>
         </div>
-      </ div>
+      </div>
     </div>
   );
 }

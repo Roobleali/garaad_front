@@ -1,14 +1,81 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { GuidedPathsSection } from "@/components/sections/GuidedPathsSection";
-import { ConceptsSection } from "@/components/sections/ConceptsSection";
-import { LearningLevelsSection } from "@/components/sections/LearningLevelsSection";
-import DownloadApp from "@/components/sections/DownloadApp";
+import { Button } from "@/components/ui/button";
+import { Atom, BarChart, Calculator, Code } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { FooterSection } from "@/components/sections/FooterSection";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { CourseGrid } from "@/components/CourseGrid";
+
+// Dynamically import heavy components with loading states
+const DynamicLearnAnimation = dynamic(
+  () => import("@/components/LearnAnimation").then((mod) => mod.LearnAnimation),
+  {
+    loading: () => (
+      <div className="h-[400px] w-full  animate-pulse" />
+    ),
+    ssr: false,
+  }
+);
+
+const DynamicMotivationSection = dynamic(
+  () => import("@/components/sections/MotivationSection").then((mod) => mod.MotivationSection),
+  {
+    loading: () => (
+      <div className="h-[300px] w-full  animate-pulse" />
+    ),
+  }
+);
+
+const DynamicGuidedPathsSection = dynamic(
+  () => import("@/components/sections/GuidedPathsSection").then((mod) => mod.GuidedPathsSection),
+  {
+    loading: () => (
+      <div className="h-[400px] w-full  animate-pulse" />
+    ),
+  }
+);
+
+const DynamicConceptsSection = dynamic(
+  () => import("@/components/sections/ConceptsSection").then((mod) => mod.ConceptsSection),
+  {
+    loading: () => (
+      <div className="h-[300px] w-full  animate-pulse" />
+    ),
+  }
+);
+
+const DynamicLearningLevelsSection = dynamic(
+  () => import("@/components/sections/LearningLevelsSection").then((mod) => mod.LearningLevelsSection),
+  {
+    loading: () => (
+      <div className="h-[400px] w-full  animate-pulse" />
+    ),
+  }
+);
+
+const DynamicInteractiveLessonsSection = dynamic(
+  () => import("@/components/sections/InteractiveLessonsSection").then((mod) => mod.InteractiveLessonsSection),
+  {
+    loading: () => (
+      <div className="h-[300px] w-full  animate-pulse" />
+    ),
+  }
+);
+
+const DynamicDownloadApp = dynamic(
+  () => import("@/components/sections/DownloadApp").then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="h-[200px] w-full  animate-pulse" />
+    ),
+  }
+);
 
 function HeroSection() {
+  const router = useRouter();
+
   return (
     <div className="relative bg-gradient-to-b from-primary/5 to-background overflow-hidden">
       <div className="absolute inset-0 animate-fade-in">
@@ -46,6 +113,35 @@ function HeroSection() {
                   Xal u hel dhibaatooyinka si waxtar leh
                 </span>
               </h1>
+
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Atom className="w-5 h-5" />
+                  <span>Xisaab</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <BarChart className="w-5 h-5" />
+                  <span>Statistiks</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Calculator className="w-5 h-5" />
+                  <span>Algebra</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Code className="w-5 h-5" />
+                  <span>Programming</span>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
+                  className="text-lg px-8 py-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold"
+                  onClick={() => router.push("/welcome")}
+                >
+                  Billaw Maanta
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -61,12 +157,13 @@ export default function Home() {
       <main>
         <div className="relative">
           <HeroSection />
-          <ProtectedRoute>
-            <GuidedPathsSection />
-            <ConceptsSection />
-            <LearningLevelsSection />
-          </ProtectedRoute>
-          <DownloadApp />
+          <DynamicLearnAnimation />
+          <CourseGrid />
+          <DynamicMotivationSection />
+          <DynamicGuidedPathsSection />
+          <DynamicConceptsSection />
+          <DynamicLearningLevelsSection />
+          <DynamicDownloadApp />
           <FooterSection />
         </div>
       </main>
