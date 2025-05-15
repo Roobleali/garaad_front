@@ -1,95 +1,64 @@
+// hooks/useSoundManager.ts
 "use client";
 
-import useSound from "use-sound";
+import { useEffect, useRef, useCallback } from "react";
 
-export type SoundEvent =
-  | "click"
-  | "continue"
-  | "skip"
-  | "correct"
-  | "incorrect"
-  | "start-lesson"
-  | "toggle-on"
-  | "toggle-off"
-  | "drag-released"
-  | "drag-started"
-  | "end-state"
-  | "hint"
-  | "lightweight-choice";
+type SoundKey = "click" | "correct" | "incorrect" | "continue";
 
-export function useSoundEffects() {
-  const [playClick] = useSound("/sounds/toggle-on");
-  const [playContinue] = useSound("/sounds/continue.mp3");
-  const [playSkip] = useSound("/sounds/skip.mp3");
-  const [playCorrect] = useSound("/sounds/correct.mp3");
-  const [playIncorrect] = useSound("/sounds/incorrect.mp3");
-  const [playHint] = useSound("/sounds/hint.mp3");
-  const [playStartLesson] = useSound("/sounds/start-lesson.mp3");
-  const [playToggleOn] = useSound("/sounds/toggle-on.mp3");
-  const [playToggleOff] = useSound("/sounds/toggle-off.mp3");
-  const [playDragReleased] = useSound("/sounds/drag-released.mp3");
-  const [playDragStarted] = useSound("/sounds/drag-started.mp3");
-  const [playEndState] = useSound("/sounds/endstate.mp3");
-  const [playLightweightChoice] = useSound("/sounds/lightweight-choice.mp3");
+interface SoundMap {
+  [key: string]: HTMLAudioElement;
+}
 
-  const playSound = (event: SoundEvent) => {
-    switch (event) {
-      case "click":
-        playClick();
-        break;
-      case "continue":
-        playContinue();
-        break;
-      case "skip":
-        playSkip();
-        break;
-      case "correct":
-        playCorrect();
-        break;
-      case "incorrect":
-        playIncorrect();
-        break;
-      case "hint":
-        playHint();
-        break;
-      case "start-lesson":
-        playStartLesson();
-        break;
-      case "toggle-on":
-        playToggleOn();
-        break;
-      case "toggle-off":
-        playToggleOff();
-        break;
-      case "drag-released":
-        playDragReleased();
-        break;
-      case "drag-started":
-        playDragStarted();
-        break;
-      case "end-state":
-        playEndState();
-        break;
-      case "lightweight-choice":
-        playLightweightChoice();
-        break;
-      default:
-        console.warn("Unknown sound event:", event);
+export function useSoundManager() {
+  const soundsRef = useRef<Partial<SoundMap>>({});
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Create and preload
+    const soundFiles: Record<SoundKey, string> = {
+      click: "/sounds/toggle-on.mp3",
+      correct: "/sounds/correct.mp3",
+      incorrect: "/sounds/incorrect.mp3",
+      continue: "/sounds/lightweight-choice.mp3",
+    };
+
+    const map: Partial<SoundMap> = {};
+
+    for (const key of Object.keys(soundFiles) as SoundKey[]) {
+      const audio = new Audio(soundFiles[key]);
+      audio.preload = "auto";
+      audio.load();
+      map[key] = audio;
     }
-  };
+
+    soundsRef.current = map;
+
+    // Cleanup: pause and reset
+    return () => {
+      Object.values(map).forEach((audio) => {
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      });
+    };
+  }, []);
+
+  const playSound = useCallback(async (key: SoundKey) => {
+    const audio = soundsRef.current[key];
+    if (!audio) return;
+    try {
+      audio.currentTime = 0;
+      const promise = audio.play();
+      if (promise instanceof Promise) {
+        await promise;
+      }
+    } catch (err) {
+      // ignore play errors (e.g. user hasn't interacted yet)
+      console.warn(`Sound "${key}" play failed:`, err);
+    }
+  }, []);
 
   return { playSound };
 }
-
-/**
- *
- * import {useSoundEffects} from "@hooks/use-sound-effects"
- *
- * const {playSound} = useSoundEffects()
- *
- * <button onClick={() => playSound("start-lesson")}>
- *   Start a lesson
- * </button>
- *
- *
- */

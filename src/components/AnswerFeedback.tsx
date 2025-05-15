@@ -1,13 +1,15 @@
-import React, { useState, useMemo, useCallback } from "react";
+"use client";
+import React, { memo, useState, useMemo, useCallback, Suspense } from "react";
 import { useDispatch } from "react-redux";
 import { resetAnswerState, revealAnswer } from "@/store/features/learningSlice";
 import { ExplanationText, Lesson } from "@/types/learning";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronRight, X } from "lucide-react";
-import ExplanationModal from "./ExplanationModal";
-import BugReportButton from "./BugRepportButton";
+
+// Lazy‑load heavy components
+const ExplanationModal = React.lazy(() => import("./ExplanationModal"));
+const BugReportButton = React.lazy(() => import("./BugRepportButton"));
 
 interface AnswerFeedbackProps {
   currentLesson: Lesson | null;
@@ -17,11 +19,11 @@ interface AnswerFeedbackProps {
   explanationData?: {
     explanation: string | ExplanationText;
     image: string;
-    type: string;
+    type: "markdown" | "latex" | string;
   };
 }
 
-export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
+export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
   ({
     currentLesson,
     isCorrect,
@@ -33,21 +35,14 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
     const [showExplanation, setShowExplanation] = useState(false);
     const [isReportingBug, setIsReportingBug] = useState(false);
 
-    // Memoize the sorted blocks and last question check
-    const { isLastQuestion } = useMemo(() => {
-      const sortedBlocks = currentLesson?.content_blocks
-        ? [...currentLesson.content_blocks].sort(
-            (a, b) => (a.order || 0) - (b.order || 0)
-          )
-        : [];
-
-      const problemBlockIndex = sortedBlocks.findIndex(
-        (block) => block.block_type === "problem"
+    // Determine if this is the last problem block
+    const isLastQuestion = useMemo(() => {
+      if (!currentLesson?.content_blocks) return false;
+      const blocks = [...currentLesson.content_blocks].sort(
+        (a, b) => (a.order || 0) - (b.order || 0)
       );
-
-      return {
-        isLastQuestion: problemBlockIndex === sortedBlocks.length - 1,
-      };
+      const idx = blocks.findIndex((b) => b.block_type === "problem");
+      return idx === blocks.length - 1;
     }, [currentLesson?.content_blocks]);
 
     const handleWhyClick = useCallback(() => {
@@ -57,65 +52,56 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
 
     const handleContinueClick = useCallback(() => {
       dispatch(resetAnswerState());
-      if (onContinue) {
-        onContinue();
-      }
+      onContinue?.();
     }, [dispatch, onContinue]);
 
     const handleCloseExplanation = useCallback(() => {
       setShowExplanation(false);
     }, []);
 
-    // Memoize the feedback content
-    const feedbackContent = useMemo(
-      () => ({
-        title: isCorrect ? "Jawaab Sax ah!" : "Jawaab Khalad ah",
-        message: isCorrect
-          ? "Hore usoco Garaad"
-          : "akhri sharaxaada oo ku celi markale",
-        continueText: isCorrect
-          ? isLastQuestion
-            ? "Casharka xiga"
-            : "Sii wado"
-          : "Isku day markale",
-        buttonAction: isCorrect ? handleContinueClick : onResetAnswer,
-      }),
-      [isCorrect, isLastQuestion, handleContinueClick, onResetAnswer]
-    );
+    // Memoized feedback text & action
+    const { title, message, buttonText, buttonAction } = useMemo(() => {
+      if (isCorrect) {
+        return {
+          title: "Jawaab Sax ah!",
+          message: "Hore usoco Garaad",
+          buttonText: isLastQuestion ? "Casharka xiga" : "Sii wado",
+          buttonAction: handleContinueClick,
+        };
+      }
+      return {
+        title: "Jawaab Khalad ah",
+        message: "akhri sharaxaada oo ku celi markale",
+        buttonText: "Isku day markale",
+        buttonAction: onResetAnswer,
+      };
+    }, [isCorrect, isLastQuestion, handleContinueClick, onResetAnswer]);
 
+    // While reporting bug, hide the entire feedback
     if (isReportingBug) return null;
 
     return (
       <>
-        <AnimatePresence>
-          {showExplanation && (
+        {/* Explanation Modal */}
+        {showExplanation && (
+          <Suspense fallback={null}>
             <ExplanationModal
-              isOpen={showExplanation}
+              isOpen
               onClose={handleCloseExplanation}
               content={{
                 explanation: explanationData?.explanation || "",
                 image: explanationData?.image || "",
-                type:
-                  explanationData?.type === "markdown" ||
-                  explanationData?.type === "latex"
-                    ? explanationData.type
-                    : "markdown",
+                type: explanationData?.type === "latex" ? "latex" : "markdown",
               }}
             />
-          )}
-        </AnimatePresence>
+          </Suspense>
+        )}
 
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 30,
-            mass: 0.5,
-          }}
-          className="fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 sm:p-4"
+        {/* Feedback Banner */}
+        <div
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 sm:p-4"
+          )}
         >
           <div
             className={cn(
@@ -125,14 +111,15 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 : "bg-red-50 border-red-200"
             )}
           >
-            <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 md:flex-row">
-              <div className="flex flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              {/* Icon + Text */}
+              <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2",
+                    "w-8 h-8 flex items-center justify-center rounded-full border-2",
                     isCorrect
-                      ? "bg-[#58CC02] border-[#58CC02] shadow-sm"
-                      : "bg-red-500 border-red-500 shadow-sm"
+                      ? "bg-[#58CC02] border-[#58CC02]"
+                      : "bg-red-500 border-red-500"
                   )}
                 >
                   {isCorrect ? (
@@ -141,22 +128,19 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                     <X className="h-5 w-5 text-white" />
                   )}
                 </div>
-                <div className="flex flex-col">
-                  <p className="font-semibold text-sm sm:text-base">
-                    {feedbackContent.title}
-                  </p>
-                  <p className="text-xs sm:text-sm">
-                    {feedbackContent.message}
-                  </p>
+                <div>
+                  <p className="font-semibold text-sm sm:text-base">{title}</p>
+                  <p className="text-xs sm:text-sm">{message}</p>
                 </div>
               </div>
 
-              <div className="flex flex-row gap-2 w-full sm:w-auto">
+              {/* Buttons */}
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={handleWhyClick}
-                  className="w-2/5 sm:w-auto rounded-full border-2 border-gray-300 py-2 sm:py-4 text-base sm:text-sm hover:border-gray-400 transition-all duration-200"
+                  className="rounded-full border-gray-300 hover:border-gray-400 text-base sm:text-sm"
                 >
                   Sharaxaad
                 </Button>
@@ -164,25 +148,26 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = React.memo(
                 <Button
                   size="lg"
                   variant={isCorrect ? "default" : "secondary"}
-                  onClick={feedbackContent.buttonAction}
+                  onClick={buttonAction}
                   className={cn(
-                    "w-2/5 sm:w-auto rounded-full gap-1 py-2 sm:py-4 text-base sm:text-sm",
-                    "border-2 transition-all duration-200",
+                    "rounded-full gap-1 text-base sm:text-sm",
                     isCorrect
                       ? "border-[#58CC02] hover:border-[#58CC02]/80"
                       : "border-red-200 hover:border-red-300"
                   )}
                 >
-                  {feedbackContent.continueText}
+                  {buttonText}
                   <ChevronRight className="h-5 w-5" />
                 </Button>
-                <div className="flex flex-col items-center">
+
+                {/* Bug Report */}
+                <Suspense fallback={null}>
                   <BugReportButton setIsReportingBug={setIsReportingBug} />
-                </div>
+                </Suspense>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </>
     );
   }

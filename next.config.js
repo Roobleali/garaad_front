@@ -5,6 +5,7 @@ const nextConfig = {
       "ds055uzetaobb.cloudfront.net",
       "res.cloudinary.com",
       "assets.grok.com",
+      "images.ctfassets.net",
     ],
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],

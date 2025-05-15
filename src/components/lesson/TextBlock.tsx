@@ -1,12 +1,27 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { TextContent } from "@/types/learning";
-import { motion } from "framer-motion";
 import { Card, CardContent } from "../ui/card";
 import HoverText from "./HoverText";
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+
+const renderMDList = (input: string[] | string | undefined) => {
+  if (!input) return null;
+
+  return Array.isArray(input) ? (
+    <ul className="list-disc mb-4">
+      {input.map((item, index) => (
+        <li className="flex items-center md:px-10 m-2" key={index}>
+          {item}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>{input}</p>
+  );
+};
 
 const TextBlock: React.FC<{
   content: TextContent;
@@ -18,30 +33,15 @@ const TextBlock: React.FC<{
     onContinue();
   };
 
-  function renderMDList(input: string[] | string) {
-    if (!input) return null;
-
-    if (Array.isArray(input)) {
-      return (
-        <ul className="list-disc mb-4">
-          {input.map((item, index) => (
-            <li className="flex items-center md:px-10 m-2" key={index}>
-              {item}
-            </li>
-          ))}
-        </ul>
-      );
-    }
-
-    return <p>{input}</p>;
-  }
+  const additionalTexts = useMemo(() => {
+    return Array.from(
+      { length: 6 },
+      (_, i) => content[`text${i + 1}` as keyof TextContent]
+    );
+  }, [content]);
 
   return (
-    <motion.div
-      className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4"
-      initial="hidden"
-      animate="visible"
-    >
+    <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
       <Card className="w-full max-w-full shadow-lg rounded-2xl border border-gray-100 bg-white">
         <CardContent className="flex flex-col items-center text-left justify-center p-3 md:p-2 space-y-6 md:space-y-10">
           {content.title && (
@@ -70,12 +70,12 @@ const TextBlock: React.FC<{
 
           {content.url && (
             <div className="flex justify-center w-full">
-              <div className="relative w-full max-w-[500px] aspect-[16/7] md:aspect-[16/7] my-6">
+              <div className="relative w-full max-w-[500px] aspect-[16/7] my-6">
                 <Image
                   src={content.url}
                   alt={content.alt || "lesson image"}
                   fill
-                  className="rounded-lg shadow-xl border border-gray-200 object-cover bg-white h-full"
+                  className="rounded-lg shadow-xl border border-gray-200 object-cover bg-white"
                   sizes="(max-width: 900px) 90vw, (max-width: 1200px) 50vw, 500px"
                   priority
                 />
@@ -83,73 +83,52 @@ const TextBlock: React.FC<{
             </div>
           )}
 
-          {content.text1 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text1)}
+          {additionalTexts.map((text, index) => {
+            // Only render if text is string or string[]
+            if (
+              typeof text === "string" ||
+              (Array.isArray(text) &&
+                text.every((item) => typeof item === "string"))
+            ) {
+              return (
+                <div
+                  key={index}
+                  className="prose prose-base mt-1 text-muted-foreground text-left text-md"
+                >
+                  {renderMDList(text as string | string[])}
+                </div>
+              );
+            }
+            return null;
+          })}
+
+          {content.type === "table" && (content.features?.length ?? 0) > 0 && (
+            <div className="overflow-x-auto mb-6">
+              <table className="min-w-full bg-white border border-gray-200 shadow rounded-lg border-separate overflow-hidden">
+                <tbody>
+                  {content.features?.map((feature, idx) => (
+                    <tr
+                      key={idx}
+                      className={`border-b last:border-0 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } hover:bg-blue-50 transition-colors`}
+                    >
+                      <td className="px-6 py-4 text-sm font-bold text-gray-800">
+                        {feature.title}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {feature.text}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-
-          {content.text2 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text2)}
-            </div>
-          )}
-
-          {content.text3 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text3)}
-            </div>
-          )}
-
-          {content.text4 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text4)}
-            </div>
-          )}
-
-          {content.text5 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text5)}
-            </div>
-          )}
-
-          {content.text6 && (
-            <div className="prose prose-base mt-1 text-muted-foreground text-left text-md">
-              {renderMDList(content.text6)}
-            </div>
-          )}
-
-          {content.type === "table" &&
-            content.features &&
-            (content.features ?? []).length > 0 && (
-              <div className="overflow-x-auto mb-6">
-                <table className="min-w-full bg-white border border-gray-200 shadow rounded-lg border-separate overflow-hidden">
-                  <tbody>
-                    {content.features?.map((feature, idx) => (
-                      <tr
-                        key={idx}
-                        className={
-                          `border-b last:border-0 ` +
-                          (idx % 2 === 0 ? "bg-white" : "bg-gray-50") +
-                          " hover:bg-blue-50 transition-colors"
-                        }
-                      >
-                        <td className="px-6 py-4 text-sm font-bold text-gray-800">
-                          {feature.title}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-700">
-                          {feature.text}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
 
           {content.type === "table-grid" &&
-            content.table &&
-            content.table.rows && (
+            content.table?.rows?.length &&
+            content.table.rows.length > 0 && (
               <div className="overflow-x-auto mb-6 w-full">
                 <table className="min-w-full bg-white border border-gray-200 shadow rounded-lg">
                   {content.table.header && (
@@ -201,8 +180,8 @@ const TextBlock: React.FC<{
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 
-export default TextBlock;
+export default React.memo(TextBlock);

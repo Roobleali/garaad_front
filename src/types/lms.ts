@@ -86,3 +86,61 @@ export interface LessonState {
   loading: boolean;
   error: string | null;
 }
+
+export type Position = "left" | "center" | "right";
+export type Orientation = "vertical" | "horizontal" | "none";
+
+export interface DiagramObject {
+  type: string;
+  color: string;
+  number: number;
+  position: Position;
+  orientation: Orientation;
+  weight_value?: number;
+}
+
+export interface DiagramConfig {
+  diagram_id: number;
+  diagram_type: string;
+  scale_weight: number;
+  objects: DiagramObject[];
+}
+
+// The shape returned by your `/api/lms/lessons/:id/` endpoint
+export interface LessonResponse {
+  id: number;
+  title: string;
+  // Each block in the lesson can be one of several types:
+  content_blocks: Array<{
+    id: number;
+    block_type: "problem" | "text" | "image" | "video" | "calculator_interface";
+    order?: number;
+    // If it's a problem block, it carries the problem ID to fetch separately:
+    problem?: number;
+    // For non‑problem blocks, content is usually JSON‑serialized:
+    content?: string;
+    // For calculator interfaces there may be additional options:
+    options?: {
+      view?: any;
+      [key: string]: any;
+    };
+  }>;
+}
+
+// The shape returned by your `/api/lms/problems/:id/` endpoint
+export interface ProblemResponse {
+  id: number;
+  question_text: string;
+  which: string;
+  options: { text: string }[];
+  correct_answer: { text: string }[];
+  explanation?: string;
+  diagram_config?: DiagramConfig;
+  question_type: string;
+  img?: string;
+  alt?: string;
+  content: {
+    format?: string;
+    type?: string;
+  };
+}

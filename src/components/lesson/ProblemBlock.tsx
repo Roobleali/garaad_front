@@ -1,4 +1,5 @@
 "use client";
+import React, { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,14 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import DiagramScale from "../DiagramScale";
+import dynamic from "next/dynamic";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Latex from "react-latex-next";
-import { motion } from "framer-motion";
-import { ProblemContent } from "@/app/courses/[categoryId]/[courseSlug]/lessons/[lessonId]/page";
+// import { ProblemContent } from "@/types/lms";
+import { ProblemContent } from "@/types/learning";
 
-// Dynamically import the code editor to avoid SSR issues
+// Dynamically import the diagram component
+const DiagramScale = dynamic(() => import("../DiagramScale"), {
+  ssr: false,
+  loading: () => <div>Loading diagram...</div>,
+});
 
 const ProblemBlock: React.FC<{
   onContinue: () => void;
@@ -45,10 +50,66 @@ const ProblemBlock: React.FC<{
   isCorrect,
   disabledOptions = [],
 }) => {
+  const hasAnswered = answerState.isCorrect !== null;
+
+  const renderOption = (option: string, idx: number) => {
+    const isSelected = selectedOption === option;
+    const isOptionCorrect = hasAnswered && isSelected && isCorrect;
+    const isOptionIncorrect = hasAnswered && isSelected && !isCorrect;
+    const isDisabled =
+      disabledOptions.includes(option) || (hasAnswered && isCorrect);
+
+    const buttonClass = cn(
+      "w-full p-3 text-sm rounded-xl border-2 relative text-left",
+      !isSelected &&
+        !hasAnswered &&
+        "border-gray-200 hover:border-primary/50 hover:bg-primary/5",
+      isSelected && !hasAnswered && "border-primary bg-primary/10 shadow-md",
+      isOptionCorrect && "border-green-500 bg-green-50 shadow-md",
+      isOptionIncorrect && "border-gray-300 bg-gray-50 text-gray-400",
+      isDisabled &&
+        "border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed"
+    );
+
+    return (
+      <button
+        key={idx}
+        onClick={() => onOptionSelect(option)}
+        disabled={isDisabled}
+        className={buttonClass}
+      >
+        {(isOptionIncorrect || isDisabled) && (
+          <span className="absolute top-2 right-2 text-gray-400">
+            <X className="h-5 w-5" />
+          </span>
+        )}
+        <div className="flex items-center justify-between">
+          <span
+            className={cn(
+              "font-normal",
+              isOptionIncorrect ? "text-gray-400" : "text-gray-800"
+            )}
+          >
+            {content?.content.type === "latex" ? (
+              <Latex>{option}</Latex>
+            ) : (
+              option
+            )}
+          </span>
+          {isOptionCorrect && (
+            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center">
+              <Check className="h-4 w-4 text-white" />
+            </div>
+          )}
+        </div>
+      </button>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="rounded-full h-12 w-12 border-b-2 border-primary animate-spin"></div>
       </div>
     );
   }
@@ -68,266 +129,92 @@ const ProblemBlock: React.FC<{
     );
   }
 
-  // Determine if user has checked an answer
-  const hasAnswered = answerState.isCorrect !== null;
-
-  console.log("CONTENT", content);
-
   return (
-    <div className="max-w-2xl mx-auto  ">
-      <motion.div className="space-y-8">
-        {/* Question Card */}
-        <Card className="border-none shadow-xl z-0">
-          <CardHeader className="relative text-left items-center justify-center flex   bg-gradient-to-r from-primary/10 to-primary/5 pb-2">
+    <div className="max-w-2xl mx-auto">
+      <div className="space-y-8">
+        <Card className="border-none shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-2">
             {content.content.type === "latex" ? (
-              <div className="pt-1">
-                <CardTitle className="text-md font-normal text-gray-600 items-center justify-center flex mt-1">
+              <>
+                <CardTitle className="text-md font-normal text-gray-600">
                   <Latex>{content.which}</Latex>
                 </CardTitle>
-                <CardTitle className="text-md text-max font-medium items-center justify-center flex mt-1">
+                <CardTitle className="text-md font-medium">
                   <Latex>{content.question}</Latex>
                 </CardTitle>
-              </div>
+              </>
             ) : (
-              <div className="pt-1">
-                <CardTitle className="text-md font-normal text-gray-600 items-center justify-center flex mt-1">
+              <>
+                <CardTitle className="text-md font-normal text-gray-600">
                   {content.which}
                 </CardTitle>
-                <CardTitle className="text-md text-max font-medium items-center justify-center flex mt-1">
+                <CardTitle className="text-md font-medium">
                   {content.question}
                 </CardTitle>
-              </div>
+              </>
             )}
           </CardHeader>
 
           {content.img && (
-            <CardContent className="flex justify-center py-2 mb-8">
-              <div className="relative w-full max-w-[500px] h-[250px] my-2">
+            <CardContent className="flex justify-center py-2">
+              <div className="relative w-full max-w-[500px] h-[250px]">
                 <Image
-                  src={content.img || "/placeholder.svg"}
+                  src={content.img}
                   alt={content.alt || "lesson image"}
                   fill
                   loading="lazy"
                   className="rounded-xl shadow-lg object-contain bg-white"
                   sizes="(max-width: 900px) 100vw, (max-width: 1200px) 50vw, 500px"
-                  quality={90}
+                  quality={75}
+                  priority={false}
                 />
               </div>
             </CardContent>
           )}
-          {content.question_type === "diagram" && (
-            <CardContent className="p-6 flex-col md:flex-row grid grid-cols-1 items-center text-center justify-center h-auto">
-              {content?.diagram_config &&
-                (Array.isArray(content.diagram_config) ? (
-                  content.diagram_config.length === 1 ? (
-                    <DiagramScale config={content.diagram_config[0]} />
-                  ) : (
-                    content.diagram_config.map((config, index) => (
-                      <DiagramScale key={index} config={config} />
-                    ))
-                  )
-                ) : (
-                  <DiagramScale config={content.diagram_config} />
-                ))}
+
+          {content.question_type === "diagram" && content.diagram_config && (
+            <CardContent className="p-6 grid items-center justify-center text-center">
+              {Array.isArray(content.diagram_config) ? (
+                content.diagram_config.map((cfg, i) => (
+                  <DiagramScale key={i} config={cfg} />
+                ))
+              ) : (
+                <DiagramScale config={content.diagram_config} />
+              )}
             </CardContent>
           )}
+
           <CardContent className="p-4">
-            {/* Options Layout */}
-            {content.question_type === "diagram" ? (
-              <div className="grid gap-4  grid-cols-2">
-                {content?.options?.map((option, idx) => {
-                  const isSelected = selectedOption === option;
-                  const isOptionCorrect =
-                    hasAnswered && isSelected && isCorrect;
-                  const isOptionIncorrect =
-                    hasAnswered && isSelected && !isCorrect;
-                  const isDisabled =
-                    disabledOptions.includes(option) ||
-                    (hasAnswered && isCorrect);
-                  return (
-                    <motion.button
-                      key={idx}
-                      onClick={() => onOptionSelect(option)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "p-3 rounded-xl border-2 transition-all duration-300 relative overflow-hidden text-left",
-                        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                        !isSelected &&
-                          !hasAnswered &&
-                          "border-gray-200 hover:border-primary/50 hover:bg-primary/5",
-                        isSelected &&
-                          !hasAnswered &&
-                          "border-primary bg-primary/10 shadow-md",
-                        isOptionCorrect &&
-                          "border-green-500 bg-green-50 shadow-md",
-                        isOptionIncorrect &&
-                          "border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed",
-                        isDisabled &&
-                          "border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed"
-                      )}
-                    >
-                      {/* X icon for incorrect or disabled */}
-                      {(isOptionIncorrect || isDisabled) && (
-                        <span className="absolute top-2 right-3 text-gray-400">
-                          <X className="h-5 w-5" />
-                        </span>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={cn(
-                            "text-sm   font-normal",
-                            isOptionIncorrect
-                              ? "text-gray-400"
-                              : "text-gray-800"
-                          )}
-                        >
-                          {content.content.type === "latex" ? (
-                            // <InlineMath
-                            //   math={
-                            //     option
-                            //       .replace(/^\\\(/, "") // remove leading \( if present
-                            //       .replace(/\\\)$/, "") // remove trailing \) if present
-                            //       .replace(/\\\\/g, "\\") // removes wrapping \( \)
-                            //   }
-                            // />
-                            <Latex>{option}</Latex>
-                          ) : (
-                            <span>{option} </span>
-                          )}
-                        </span>
-                        {isOptionCorrect && (
-                          <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center"
-                          >
-                            <Check className="h-4 w-4 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-                      {isSelected && !hasAnswered && (
-                        <motion.div
-                          className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none"
-                          layoutId="selectedOption"
-                        />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                className={`${
-                  content.content && content.content.format == "grid"
-                    ? "grid grid-cols-2 items-center gap-5"
-                    : "grid grid-cols-1 items-center gap-5 py-5 "
-                }`}
-              >
-                {content?.options?.map((option, idx) => {
-                  const isSelected = selectedOption === option;
-                  const isOptionCorrect =
-                    hasAnswered && isSelected && isCorrect;
-                  const isOptionIncorrect =
-                    hasAnswered && isSelected && !isCorrect;
-                  const isDisabled =
-                    disabledOptions.includes(option) ||
-                    (hasAnswered && isCorrect);
-                  return (
-                    <motion.button
-                      key={idx}
-                      onClick={() => onOptionSelect(option)}
-                      disabled={isDisabled}
-                      className={cn(
-                        "w-full p-3 text-sm rounded-xl border-2 transition-all duration-300 relative overflow-hidden text-left",
-                        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                        // Default state
-                        !isSelected &&
-                          !hasAnswered &&
-                          "border-gray-200 hover:border-primary/50 hover:bg-primary/5",
-                        // Selected but not yet checked
-                        isSelected &&
-                          !hasAnswered &&
-                          "border-primary bg-primary/10 shadow-md",
-                        // Correct
-                        isOptionCorrect &&
-                          "border-green-500 bg-green-50 shadow-md",
-                        // Incorrect (custom style)
-                        isOptionIncorrect &&
-                          "border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed",
-                        // Disabled (not selected, after selection)
-                        isDisabled &&
-                          "border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed"
-                      )}
-                    >
-                      {/* X icon for incorrect or disabled */}
-                      {(isOptionIncorrect || isDisabled) && (
-                        <span className="absolute top-2 right-2 text-gray-400">
-                          <X className="h-5 w-5" />
-                        </span>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={cn(
-                            "text-sm   font-normal",
-                            isOptionIncorrect
-                              ? "text-gray-400"
-                              : "text-gray-800"
-                          )}
-                        >
-                          {content.content.type === "latex" ? (
-                            // <InlineMath
-                            //   math={
-                            //     option
-                            //       .replace(/^\\\(/, "") // remove leading \( if present
-                            //       .replace(/\\\)$/, "") // remove trailing \) if present
-                            //       .replace(/\\\\/g, "\\") // removes wrapping \( \)
-                            //   }
-                            // />
-                            <Latex>{option}</Latex>
-                          ) : (
-                            <span>{option} </span>
-                          )}
-                        </span>
-                        {isOptionCorrect && (
-                          <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center"
-                          >
-                            <Check className="h-4 w-4 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-                      {isSelected && !hasAnswered && (
-                        <motion.div
-                          className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none"
-                          layoutId="selectedOption"
-                        />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            )}
+            <div
+              className={cn(
+                "gap-4",
+                content.content?.format === "grid"
+                  ? "grid grid-cols-2"
+                  : "grid grid-cols-1"
+              )}
+            >
+              {content.options.map(renderOption)}
+            </div>
           </CardContent>
+
           <CardFooter className="pt-2 pb-4 px-6">
             <div className="w-full space-y-2">
               {answerState.isCorrect === null && !hasAnswered && (
-                <Button
-                  onClick={onCheckAnswer}
-                  className="w-full bg-primary hover:bg-primary/90"
-                  size="lg"
-                  disabled={!selectedOption || isLoading}
-                >
+                <Button onClick={onCheckAnswer} className="w-full">
                   Hubi Jawaabta
+                </Button>
+              )}
+              {hasAnswered && (
+                <Button onClick={onContinue} className="w-full">
+                  SiiWado Qaybta Kale
                 </Button>
               )}
             </div>
           </CardFooter>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 };
 
-export default ProblemBlock;
+export default memo(ProblemBlock);
