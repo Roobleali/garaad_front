@@ -69,25 +69,14 @@ export default function ProgressPage() {
 
       setProgress(response.data || []);
 
-      if (refreshCount > 0) {
-        toast({
-          title: "Progress updated",
-          description: "Your learning progress has been refreshed",
-          duration: 3000,
-        });
-      }
+
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message || "Error fetching progress");
       } else {
         setError("Error fetching progress");
       }
-      toast({
-        title: "Error",
-        description: "Failed to load your progress",
-        variant: "destructive",
-        duration: 5000,
-      });
+
     } finally {
       setLoading(false);
       setIsRefreshing(false);

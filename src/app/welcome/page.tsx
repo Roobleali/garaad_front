@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import type { JSX } from "react";
 
@@ -481,13 +481,10 @@ const learningGoals = [
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>(
-    {}
-  );
-  // Add a new state to track the selected topic
+  const [selections, setSelections] = useState<Record<number, number | string>>({});
   const [selectedTopic, setSelectedTopic] = useState<string>("math");
-  // Add a new state to track topic-specific levels
   const [topicLevels, setTopicLevels] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -495,7 +492,6 @@ export default function Page() {
     confirmPassword: "",
     age: "",
   });
-  // Update the steps array to include a new step for setting levels for all topics
   const steps = [goals, learningApproach, topics, null, learningGoals];
   const router = useRouter();
   const progress = (currentStep / (steps.length + 2)) * 100;
@@ -503,7 +499,7 @@ export default function Page() {
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
   const isLoading = useSelector(selectIsLoading);
-  const error = useSelector(selectAuthError);
+  const authError = useSelector(selectAuthError);
   const { toast } = useToast();
 
   const handleSelect = (value: number | string) => {
@@ -531,11 +527,16 @@ export default function Page() {
     }
   };
 
-  // Add this function to check if all required topics have levels set
-  const allRequiredTopicsHaveLevels = () => {
-    // At minimum, the selected topic must have a level
-    return !!topicLevels[selectedTopic];
-  };
+  // Fix any types
+  interface Option {
+    id: string;
+    text: string;
+    badge: string;
+    icon: JSX.Element;
+    disabled?: boolean;
+  }
+
+  const currentOptions = steps[currentStep] as Option[] | null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -547,21 +548,13 @@ export default function Page() {
         !userData.password.trim() ||
         !userData.age.trim()
       ) {
-        toast({
-          variant: "destructive",
-          title: "Khalad ayaa dhacay",
-          description: "Fadlan buuxi dhammaan xogta",
-        });
+        setError("Fadlan buuxi dhammaan xogta");
         return;
       }
 
       // Check if all selections are made
       if (Object.keys(selections).length < 5) {
-        toast({
-          variant: "destructive",
-          title: "Khalad ayaa dhacay",
-          description: "Fadlan buuxi dhammaan su'aalaha",
-        });
+        setError("Fadlan buuxi dhammaan su'aalaha");
         return;
       }
 
@@ -616,15 +609,16 @@ export default function Page() {
         }
       }
 
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: errorMessage,
-      });
+      setError(errorMessage);
     }
   };
 
-  const currentOptions = steps[currentStep];
+  // Display Redux error if it exists
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-white px-2 py-6">
@@ -641,7 +635,7 @@ export default function Page() {
                 : "Fadlan geli Xogtaada"}
             </h2>
 
-            {/* Display Redux error if it exists */}
+            {/* Display error if it exists */}
             {error && (
               <Alert className="mb-6 border-rose-200 bg-rose-50 text-rose-800">
                 <AlertTitle className="text-rose-900 flex items-center gap-2 font-medium">
@@ -657,7 +651,7 @@ export default function Page() {
             {currentStep < 2 && (
               <div className="grid gap-3">
                 {currentOptions &&
-                  currentOptions.map((option: any) => (
+                  currentOptions.map((option: Option) => (
                     <div key={option.id}>
                       <button
                         onClick={(e) => {
@@ -704,7 +698,7 @@ export default function Page() {
             {currentStep === 2 && (
               <div className="grid gap-3">
                 {currentOptions &&
-                  currentOptions.map((option: any) => (
+                  currentOptions.map((option: Option) => (
                     <div key={option.id}>
                       <button
                         onClick={(e) => {
@@ -796,7 +790,7 @@ export default function Page() {
 
             {currentStep === 4 && (
               <div className="grid gap-3">
-                {learningGoals.map((option: any) => (
+                {learningGoals.map((option: Option) => (
                   <div key={option.id}>
                     <button
                       onClick={(e) => {

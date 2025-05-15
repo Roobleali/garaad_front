@@ -104,10 +104,6 @@ export function AuthDialog() {
           login({ email: values.email, password: values.password })
         );
         if (result) {
-          toast({
-            title: "Waad mahadsantahay!",
-            description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
-          });
           router.push("/courses");
         }
       } else {
@@ -115,31 +111,24 @@ export function AuthDialog() {
           email: values.email,
           password: values.password,
           name: values.email.split("@")[0],
-          age: 18,
+          // last_name: values.email.split("@")[0],
+          age: 18, // Default age
           onboarding_data: {
-            goal: "learn_math",
-            learning_approach: "self_paced",
-            topic: "general_math",
-            math_level: "beginner",
-            minutes_per_day: 30,
+            goal: "learn_math", // Default goal
+            learning_approach: "self_paced", // Default learning approach
+            topic: "general_math", // Default topic
+            math_level: "beginner", // Default math level
+            minutes_per_day: 30, // Default minutes per day
           },
+          // profile is optional, so we don't need to include it
         };
         const result = await dispatch(signup(signupData));
         if (result) {
-          toast({
-            title: "Waad mahadsantahay!",
-            description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
-          });
           router.push("/courses");
         }
       }
     } catch (error) {
       console.error("Auth error:", error);
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: "Fadlan isku day mar kale.",
-      });
     }
   };
 
@@ -170,96 +159,81 @@ export function AuthDialog() {
         </div>
 
         <div className="space-y-4 animate-in fade-in-50 duration-500 delay-200">
-
-
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Ama email ku soo gal
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                {error && (
-                  <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md relative">
-                    <button
-                      type="button"
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                      onClick={() => dispatch(clearError())}
-                    >
-                      <X size={16} />
-                    </button>
-                    {error}
-                  </div>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+            >
+              {error && (
+                <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md relative">
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      dispatch(clearError());
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
+                  {error}
+                </div>
+              )}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="email@example.com"
+                        {...field}
+                        disabled={isLoading}
+                        className="text-base md:text-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="email@example.com"
-                          {...field}
-                          disabled={isLoading}
-                          className="text-base md:text-lg"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>lamberka sir ah</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Geli lambarka sirta"
-                          {...field}
-                          disabled={isLoading}
-                          className="text-base md:text-lg"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className={cn(
-                    "w-full relative text-base md:text-lg",
-                    isLoading && "animate-bounce"
-                  )}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Soo galaya...
-                    </>
-                  ) : (
-                    "Soo gal"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </div>
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>lamberka sir ah</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Geli lambarka sirta"
+                        {...field}
+                        disabled={isLoading}
+                        className="text-base md:text-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                className={cn(
+                  "w-full relative text-base md:text-lg",
+                  isLoading && "animate-bounce"
+                )}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Soo galaya...
+                  </>
+                ) : (
+                  "Soo gal"
+                )}
+              </Button>
+            </form>
+          </Form>
         </div>
       </DialogContent>
     </Dialog>

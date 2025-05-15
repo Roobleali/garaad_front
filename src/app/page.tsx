@@ -116,20 +116,16 @@ function HeroSection() {
 
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Atom className="w-5 h-5" />
-                  <span>Xisaab</span>
+                  <Atom className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <BarChart className="w-5 h-5" />
-                  <span>Statistiks</span>
+                  <BarChart className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Calculator className="w-5 h-5" />
-                  <span>Algebra</span>
+                  <Calculator className="w-5 h-5 text-primary" />
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Code className="w-5 h-5" />
-                  <span>Programming</span>
+                  <Code className="w-5 h-5 text-primary" />
                 </div>
               </div>
 
@@ -139,8 +135,7 @@ function HeroSection() {
                   className="text-lg px-8 py-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold"
                   onClick={() => router.push("/welcome")}
                 >
-                  Billaw Maanta
-                </Button>
+                  Is diiwaangeli                </Button>
               </div>
             </div>
           </div>
