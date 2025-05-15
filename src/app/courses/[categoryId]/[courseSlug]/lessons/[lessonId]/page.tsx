@@ -11,7 +11,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { ExplanationText, TextContent } from "@/types/learning";
 import LessonHeader from "@/components/LessonHeader";
 import { AnswerFeedback } from "@/components/AnswerFeedback";
-import { toast } from "sonner";
+
 import type {
   LeaderboardEntry,
   UserRank,
@@ -37,6 +37,7 @@ import ImageBlock from "@/components/lesson/ImageBlock";
 import VideoBlock from "@/components/lesson/VideoBlock";
 import CalculatorProblemBlock from "@/components/lesson/CalculatorProblemBlock";
 import { useSoundManager } from "@/hooks/use-sound-effects";
+import { useToast } from "@/hooks/use-toast";
 
 type Position = "left" | "center" | "right";
 type Orientation = "vertical" | "horizontal" | "none";
@@ -83,16 +84,23 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-    | "code"
-    | "mcq"
-    | "short_input"
-    | "diagram"
-    | "multiple_choice";
+  | "code"
+  | "mcq"
+  | "short_input"
+  | "diagram"
+  | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
     format?: string;
     type?: string;
+  };
+}
+
+interface ProblemOptions {
+  view?: {
+    type: string;
+    config: Record<string, unknown>;
   };
 }
 
@@ -102,6 +110,7 @@ const LessonPage = () => {
   const params = useParams();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const { toast } = useToast();
   const { answerState, currentLesson } = useSelector(
     (state: RootState) => state.learning
   );
@@ -124,7 +133,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => {});
+  const continueRef = useRef<() => void>(() => { });
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -152,27 +161,21 @@ const LessonPage = () => {
   const {
     data: leaderboard,
     mutate: mutateLeaderboard,
-    isLoading: isLoadingLeaderboard,
   } = useLeaderboard() as {
     data: LeaderboardEntry[];
     mutate: () => void;
-    isLoading: boolean;
   };
 
   const {
     data: userRank,
     mutate: mutateUserRank,
-    isLoading: isLoadingUserRank,
   } = useUserRank() as {
     data: Partial<UserRank>;
     mutate: () => void;
-    isLoading: boolean;
   };
 
   const {
-    data: courseProgress,
     mutate: mutateCourseProgress,
-    isLoading: isLoadingCourseProgress,
   } = useCourseProgress(courseId);
 
   // Derived state for current problem
@@ -309,7 +312,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-            "Failed to load problems"
+          "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -385,7 +388,7 @@ const LessonPage = () => {
   const fetcher = async (
     url: string,
     method: "get" | "post" = "get",
-    body?: any
+    body?: Record<string, unknown>
   ) => {
     const service = AuthService.getInstance();
     return service.makeAuthenticatedRequest(method, url, body);
@@ -409,8 +412,6 @@ const LessonPage = () => {
     playSound("continue");
     window.scrollTo({ top: 0, behavior: "smooth" });
     setShowFeedback(false);
-    toast.dismiss("correct-answer-toast");
-    toast.dismiss("reward-toast");
 
     if (!isLastBlock) {
       // → not last: just advance
@@ -453,16 +454,13 @@ const LessonPage = () => {
           mutateUserRank(),
         ]);
 
-        // setIsLoadingRewards(false);
       } catch (err) {
         console.error("Completion error", err);
-        toast.error(
-          <div className="space-y-2">
-            <p className="font-medium">Xalad ayaa dhacday</p>
-            <p>Fadlan isku day mar kale.</p>
-          </div>,
-          { duration: 5000, id: "error-toast" }
-        );
+        toast({
+          title: "Error",
+          description: "Khalad ayaa dhacay markii la jawaabayo su'aasha",
+          variant: "destructive",
+        });
       }
     }
   }, [
@@ -474,6 +472,7 @@ const LessonPage = () => {
     mutateLeaderboard,
     mutateUserRank,
     mutateCourseProgress,
+    toast,
   ]);
 
   // Update the ref when handleContinue changes
@@ -507,39 +506,17 @@ const LessonPage = () => {
 
     // If answer is correct, show success message
     if (isCorrect) {
-      // Check if this is the last block in the lesson
-      const contentBlocks = currentLesson?.content_blocks || [];
-      const isLastBlock = currentBlockIndex === contentBlocks.length - 1;
-
-      toast.success(
-        <div className="space-y-2">
-          <p className="font-medium">Jawaab Sax ah!</p>
-          <p>Waxaad ku guulaysatay 10 dhibcood</p>
-          <Button
-            className="w-full mt-2"
-            onClick={() => {
-              // Close toast and continue
-              toast.dismiss("correct-answer-toast");
-              toast.dismiss("reward-toast");
-              continueRef.current?.();
-            }}
-          >
-            {isLastBlock ? "Casharka xiga" : "Sii wado"}
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>,
-        {
-          duration: 5000,
-          id: "correct-answer-toast",
-        }
-      );
+      toast({
+        title: "Success",
+        description: "Jawaabtaada waa sax ah!",
+        variant: "default",
+      });
     }
   }, [
     selectedOption,
     currentProblem,
-    currentLesson,
-    currentBlockIndex,
     playSound,
+    toast,
   ]);
 
   const handleContinueAfterCompletion = () => {
@@ -568,8 +545,6 @@ const LessonPage = () => {
     dispatch(resetAnswerState());
     setShowFeedback(false);
     setSelectedOption(null);
-    toast.dismiss("correct-answer-toast");
-    toast.dismiss("reward-toast");
   };
 
   // Render current block based on content type
@@ -611,23 +586,18 @@ const LessonPage = () => {
             const problemIndex = problems.findIndex((p) => p.id === problemId);
 
             if (problemIndex !== -1) {
-              const problem = problems[problemIndex];
+              const currentProblem = problems[problemIndex];
               // Special case: render calculator interface for problems with content.type === 'calculator'
-              console.log("+++++++++++++++++PROBLEM++++++++++++++", problem);
-              if (problem.content && problem.content.type === "calculator") {
+              console.log("+++++++++++++++++PROBLEM++++++++++++++", currentProblem);
+              if (currentProblem.content && currentProblem.content.type === "calculator") {
+                const options = currentProblem.options as unknown as ProblemOptions;
                 setCurrentBlock(
                   <CalculatorProblemBlock
-                    question={problem.question}
-                    which={problem?.which}
-                    view={(problem?.options as any)?.view}
+                    question={currentProblem.question}
+                    which={currentProblem?.which}
+                    view={options?.view}
                     onContinue={handleContinue}
                   />
-
-                  // <CalculatorProblemBlock
-                  //   question="Elgamal Signing Demo"
-                  //   view={viewConfig}
-                  //   onContinue={() => console.log('Continue pressed')}
-                  // />
                 );
                 break;
               }

@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Shake from "@shakebugs/browser";
 import { Button } from "./ui/button";
 import { Flag } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Advanced function to replace specific unsupported color formats (like oklch, oklab)
@@ -210,6 +210,7 @@ interface BugReportButtonProps {
 const BugReportButton: React.FC<BugReportButtonProps> = ({
   setIsReportingBug,
 }) => {
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize Shake with optimal settings when component mounts
@@ -234,7 +235,11 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
         // Show the Shake UI after preparation is complete
         await Shake.show();
 
-        toast.success("Warbixinta bug-ga waa la bilaabay");
+        toast({
+          title: "Success",
+          description: "Warbixinta bug-ga waa la bilaabay",
+          variant: "default",
+        });
 
         // Try to detect when the modal is closed
         if (setIsReportingBug) {
@@ -243,15 +248,31 @@ const BugReportButton: React.FC<BugReportButtonProps> = ({
         }
       } else {
         console.warn("Shake SDK lama helin.");
-        toast.error("Warbixinta bug-ga lama heli karo waqtigan");
+        toast({
+          title: "Error",
+          description: "Warbixinta bug-ga lama heli karo waqtigan",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Khalad ayaa dhacay:", error);
-      toast.error("Warbixinta bug-ga ma bilaaban");
+      toast({
+        title: "Error",
+        description: "Warbixinta bug-ga ma bilaaban",
+        variant: "destructive",
+      });
       if (setIsReportingBug) setIsReportingBug(false);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    toast({
+      title: "Error",
+      description: "Warbixinta bug-ga ma bilaaban",
+      variant: "destructive",
+    });
   };
 
   return (

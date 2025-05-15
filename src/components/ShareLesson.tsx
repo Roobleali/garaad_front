@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ChevronRight, Check, Share2, X } from "lucide-react";
 import Image from "next/image";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import AuthService from "@/services/auth";
 import { Button } from "./ui/button";
@@ -26,6 +26,7 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
     lessonId: string;
   }>();
   const { category, courseSlug, lessonId } = params;
+  const { toast } = useToast();
   // Utility function to capitalize the first letter of each word
   const capitalizeWords = (words: string[]) =>
     words.map((word) => word.charAt(0).toUpperCase() + word.slice(1));
@@ -42,53 +43,48 @@ const ShareLesson: React.FC<ShareLessonProps> = ({
 
   const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${shareText}`);
-      setCopied(true);
-      toast.success("Linkiga waa la koobiyeeyay!");
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Success",
+        description: "Linkiga waa la koobiyeeyay!",
+        variant: "default",
+      });
     } catch (err) {
-      toast.error("Ma awoodin in la koopiyo linkiga");
-      console.error("Failed to copy:", err);
+      toast({
+        title: "Error",
+        description: "Ma awoodin in la koopiyo linkiga",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleShare = async (platform: string) => {
+  const handleShare = async () => {
     try {
-      let url = "";
-      const encoded = encodeURIComponent(shareText);
-
-      switch (platform) {
-        case "whatsapp":
-          url = `https://wa.me/?text=${encoded}`;
-          break;
-        case "sms":
-          url = `sms:?body=${encoded}`;
-          break;
-        case "email":
-          url = `mailto:?subject=${encodeURIComponent(
-            `${courseName} - ${lessonTitle}`
-          )}&body=${encoded}`;
-          break;
-        default:
-          if (navigator.share) {
-            await navigator.share({
-              title: `${courseName} - ${lessonTitle}`,
-              text: shareText,
-              url: shareUrl,
-            });
-            toast.success("Waad la wadaagtay!");
-            return;
-          } else {
-            await handleCopyLink();
-            return;
-          }
+      if (navigator.share) {
+        await navigator.share({
+          title: "Garaad",
+          text: "Eeg casharka aan kuu wadaagay!",
+          url: window.location.href,
+        });
+        toast({
+          title: "Success",
+          description: "Waad la wadaagtay!",
+          variant: "default",
+        });
+      } else {
+        handleCopyLink();
+        toast({
+          title: "Success",
+          description: "Waad la wadaagtay!",
+          variant: "default",
+        });
       }
-
-      window.open(url, "_blank");
-      toast.success("Waad la wadaagtay!");
     } catch (err) {
-      toast.error("Ma awoodin in la wadaago");
-      console.error("Failed to share:", err);
+      toast({
+        title: "Error",
+        description: "Ma awoodin in la wadaago",
+        variant: "destructive",
+      });
     }
   };
 

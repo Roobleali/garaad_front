@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
+
 import AuthService from "@/services/auth";
 import { LeaderboardEntry, UserRank, UserReward } from "@/services/progress";
 import { LessonContentBlock } from "@/types/learning";
@@ -48,8 +48,8 @@ export const useLessonCompletionHandler = ({
       const isLastBlock = currentBlockIndex === contentBlocks.length - 1;
 
       setShowFeedback(false);
-      toast.dismiss("correct-answer-toast");
-      toast.dismiss("reward-toast");
+      // toast.dismiss("correct-answer-toast");
+      // toast.dismiss("reward-toast");
 
       if (isLastBlock) {
         setIsCompleting(true);
