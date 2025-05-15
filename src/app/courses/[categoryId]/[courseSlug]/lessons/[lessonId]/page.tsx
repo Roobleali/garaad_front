@@ -84,11 +84,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-  | "code"
-  | "mcq"
-  | "short_input"
-  | "diagram"
-  | "multiple_choice";
+    | "code"
+    | "mcq"
+    | "short_input"
+    | "diagram"
+    | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -133,7 +133,7 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => { });
+  const continueRef = useRef<() => void>(() => {});
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
 
@@ -158,25 +158,17 @@ const LessonPage = () => {
     isLoading: boolean;
   };
 
-  const {
-    data: leaderboard,
-    mutate: mutateLeaderboard,
-  } = useLeaderboard() as {
+  const { data: leaderboard, mutate: mutateLeaderboard } = useLeaderboard() as {
     data: LeaderboardEntry[];
     mutate: () => void;
   };
 
-  const {
-    data: userRank,
-    mutate: mutateUserRank,
-  } = useUserRank() as {
+  const { data: userRank, mutate: mutateUserRank } = useUserRank() as {
     data: Partial<UserRank>;
     mutate: () => void;
   };
 
-  const {
-    mutate: mutateCourseProgress,
-  } = useCourseProgress(courseId);
+  const { mutate: mutateCourseProgress } = useCourseProgress(courseId);
 
   // Derived state for current problem
   const currentProblem =
@@ -312,7 +304,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-          "Failed to load problems"
+            "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -453,7 +445,6 @@ const LessonPage = () => {
           mutateLeaderboard(),
           mutateUserRank(),
         ]);
-
       } catch (err) {
         console.error("Completion error", err);
         toast({
@@ -505,13 +496,7 @@ const LessonPage = () => {
     }
 
     // If answer is correct, show success message
-
-  }, [
-    selectedOption,
-    currentProblem,
-    playSound,
-    toast,
-  ]);
+  }, [selectedOption, currentProblem, playSound, toast]);
 
   const handleContinueAfterCompletion = () => {
     setShowLeaderboard(false);
@@ -582,9 +567,16 @@ const LessonPage = () => {
             if (problemIndex !== -1) {
               const currentProblem = problems[problemIndex];
               // Special case: render calculator interface for problems with content.type === 'calculator'
-              console.log("+++++++++++++++++PROBLEM++++++++++++++", currentProblem);
-              if (currentProblem.content && currentProblem.content.type === "calculator") {
-                const options = currentProblem.options as unknown as ProblemOptions;
+              console.log(
+                "+++++++++++++++++PROBLEM++++++++++++++",
+                currentProblem
+              );
+              if (
+                currentProblem.content &&
+                currentProblem.content.type === "calculator"
+              ) {
+                const options =
+                  currentProblem.options as unknown as ProblemOptions;
                 setCurrentBlock(
                   <CalculatorProblemBlock
                     question={currentProblem.question}

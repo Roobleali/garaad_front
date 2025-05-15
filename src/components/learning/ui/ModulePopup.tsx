@@ -10,6 +10,8 @@ interface ModulePopupProps {
   isInProgress: boolean;
   isCompleted: boolean;
   side: "left" | "right";
+  isFirstModule: boolean;
+  isLastModule: boolean;
 }
 
 export default function ModulePopup({
@@ -17,6 +19,8 @@ export default function ModulePopup({
   isInProgress,
   isCompleted,
   side,
+  isFirstModule,
+  isLastModule,
 }: ModulePopupProps) {
   const params = useParams();
   const router = useRouter();
@@ -35,6 +39,8 @@ export default function ModulePopup({
     );
   };
 
+  console.log(isFirstModule);
+
   return (
     <div
       className={`
@@ -45,9 +51,12 @@ export default function ModulePopup({
         -translate-x-1/2
         ${
           side === "right"
-            ? "-translate-x-[70%] sm:-translate-x-[80%]"
-            : " -translate-x-[40%] sm:-translate-x-[30%]"
+            ? "-translate-[50%]  -translate-x-[20%] "
+            : "-translate-[50%]  -translate-x-[60%]"
         }
+        ${isFirstModule ? "-translate-x-[50%]" : ""}
+        ${isLastModule ? "-translate-x-[50%]" : ""}
+
         w-80
         bg-white
         rounded-lg

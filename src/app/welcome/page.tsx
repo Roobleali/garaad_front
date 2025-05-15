@@ -79,7 +79,7 @@ const goals = [
   {
     id: "Caawinta ardaydayda",
     text: "Caawinta ardaydayda",
-    badge: "Macallin waa iftiin",
+    badge: "Macallin waa waalidka labaad",
     icon: <Brain className="w-5 h-5" />,
   },
 ];
@@ -143,13 +143,13 @@ const topics = [
   {
     id: "logical-reasoning",
     text: "Fikirka iyo Xalinta",
-    badge: "Xalinta mushkiladaha ayaa muhiim ah",
+    badge: "Xalinta mushkiladahu maskaxda ayay koriyaan",
     icon: <Brain className="w-5 h-5" />,
   },
   {
     id: "puzzles",
     text: "Tijaabooyinka (puzzles)",
-    badge: "Ku tababar maskaxdaada xalinta dhibta",
+    badge: "Ku tababar maskaxdaada xalinta mushkiladaha",
     icon: <Puzzle className="w-5 h-5" />,
   },
 ];
@@ -481,7 +481,9 @@ const learningGoals = [
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>({});
+  const [selections, setSelections] = useState<Record<number, number | string>>(
+    {}
+  );
   const [selectedTopic, setSelectedTopic] = useState<string>("math");
   const [topicLevels, setTopicLevels] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -589,7 +591,7 @@ export default function Page() {
       console.log("Submission failed:", error);
       let errorMessage = "Wax khalad ah ayaa dhacay";
 
-      if (error && typeof error === 'object' && 'response' in error) {
+      if (error && typeof error === "object" && "response" in error) {
         const errorResponse = error.response as {
           data?: {
             error?: string;
@@ -598,10 +600,13 @@ export default function Page() {
           status?: number;
         };
 
-        if (errorResponse.status === 400 &&
+        if (
+          errorResponse.status === 400 &&
           (errorResponse.data?.error === "Email already exists" ||
-            errorResponse.data?.error === "Username already exists")) {
-          errorMessage = "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale";
+            errorResponse.data?.error === "Username already exists")
+        ) {
+          errorMessage =
+            "Emailkan horey ayaa loo diiwaangeliyay. Fadlan isticmaal email kale";
         } else if (errorResponse.data?.error) {
           errorMessage = errorResponse.data.error;
         } else if (errorResponse.data?.detail) {
@@ -945,19 +950,19 @@ export default function Page() {
                   currentStep === 6
                     ? " text-white"
                     : currentStep === 5
-                      ? userData.email &&
-                        userData.password &&
-                        userData.name &&
-                        userData.age
-                        ? " text-white"
-                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : currentStep === 3
-                        ? topicLevels[selectedTopic]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                        : selections[currentStep]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                    ? userData.email &&
+                      userData.password &&
+                      userData.name &&
+                      userData.age
+                      ? " text-white"
+                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                    : currentStep === 3
+                    ? topicLevels[selectedTopic]
+                      ? " text-white"
+                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                    : selections[currentStep]
+                    ? " text-white"
+                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {

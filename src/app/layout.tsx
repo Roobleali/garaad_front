@@ -8,6 +8,7 @@ import { Providers } from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import ShakeInitializer from "@/components/ShakeInitializer";
+import { Loader } from "lucide-react";
 
 export const metadata: Metadata = {
   title: {
@@ -206,17 +207,16 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <meta name="theme-color" content="#ffffff" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=5"
+        />
       </head>
       <body className={inter.className}>
         <ErrorBoundary>
           <Providers>
             <ClientLayout>
-              <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
-              }>
+              <Suspense fallback={<Loader className="spin " />}>
                 <ShakeInitializer />
                 {children}
               </Suspense>

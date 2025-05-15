@@ -24,21 +24,17 @@ const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => {
       return false;
     }
   };
-
-  const imageSrc = src && isValidUrl(src) ? src : defaultCategoryImage;
-
   return (
     <div className="relative w-20 h-20">
       <Image
-        src={imageSrc}
+        src={src && isValidUrl(src) ? src : defaultCategoryImage}
         alt={alt}
         fill
         className="object-contain"
         priority
         loading="eager"
         onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.src = defaultCategoryImage;
+          (e.target as HTMLImageElement).src = defaultCategoryImage;
         }}
       />
     </div>
@@ -54,21 +50,17 @@ const CourseImage = ({ src, alt }: { src?: string; alt: string }) => {
       return false;
     }
   };
-
-  const imageSrc = src && isValidUrl(src) ? src : defaultCourseImage;
-
   return (
     <div className="relative w-full h-40 bg-[#F8F9FB] flex items-center justify-center">
       <Image
-        src={imageSrc}
+        src={src && isValidUrl(src) ? src : defaultCourseImage}
         alt={alt}
         width={100}
         height={100}
         className="object-contain"
         loading="lazy"
         onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          target.src = defaultCourseImage;
+          (e.target as HTMLImageElement).src = defaultCourseImage;
         }}
       />
     </div>
@@ -86,52 +78,51 @@ export default function CoursesPage() {
 
   const courseRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Initialize activeCourse from URL or default to first published
   useEffect(() => {
     const categoryId = searchParams.get("categoryId");
     const courseId = searchParams.get("courseId");
-
     if (categoryId && courseId) {
       setActiveCourse({ categoryId, courseId });
     } else if (!isLoading && categories) {
-      const cat = categories.find((c) =>
+      const firstCat = categories.find((c) =>
         c.courses?.some((co) => co.is_published)
       );
-      if (cat) {
-        const firstCourse = cat.courses?.find((co) => co.is_published);
-        if (firstCourse) {
-          setActiveCourse({ categoryId: cat.id, courseId: firstCourse.id });
-        }
+      const firstCourse = firstCat?.courses?.find((co) => co.is_published);
+      if (firstCat && firstCourse) {
+        setActiveCourse({ categoryId: firstCat.id, courseId: firstCourse.id });
       }
     }
   }, [isLoading, categories, searchParams]);
 
+  // Redirect if not authenticated
   useEffect(() => {
-    const authService = AuthService.getInstance();
-    if (!authService.isAuthenticated()) router.push("/");
+    if (!AuthService.getInstance().isAuthenticated()) {
+      router.push("/");
+    }
   }, [router]);
 
+  // IntersectionObserver to sync scroll → URL
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const id = entry.target.id;
-            if (entry.isIntersecting) {
-              const [, categoryId, courseId] = id.split("-");
-              const url = new URL(window.location.href);
-              url.searchParams.set("categoryId", categoryId);
-              url.searchParams.set("courseId", courseId);
-              window.history.replaceState({}, "", url.toString());
-            }
-          });
-        },
-        { threshold: 0.5 }
-      );
-
-      return () => observerRef.current?.disconnect();
-    }
+    if (typeof window === "undefined") return;
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const [, categoryId, courseId] = entry.target.id.split("-");
+            const url = new URL(window.location.href);
+            url.searchParams.set("categoryId", categoryId);
+            url.searchParams.set("courseId", courseId);
+            window.history.replaceState({}, "", url.toString());
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, []);
 
   const registerCourseRef = (id: string, el: HTMLDivElement | null) => {
@@ -141,16 +132,17 @@ export default function CoursesPage() {
     }
   };
 
+  // Scroll active course into view
   useEffect(() => {
-    if (activeCourse) {
-      const id = `course-${activeCourse.categoryId}-${activeCourse.courseId}`;
-      const el = courseRefs.current.get(id);
-      if (el)
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "center",
-        });
+    if (!activeCourse) return;
+    const id = `course-${activeCourse.categoryId}-${activeCourse.courseId}`;
+    const el = courseRefs.current.get(id);
+    if (el) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
     }
   }, [activeCourse]);
 
@@ -160,81 +152,6 @@ export default function CoursesPage() {
   ) => {
     setActiveCourse({ categoryId, courseId });
   };
-
-  useEffect(() => {
-    const slider = scrollRef.current;
-    if (!slider) return;
-    let isDown = false;
-    let startX: number;
-    let scrollLeft: number;
-
-    // Mouse handlers
-    const onMouseDown = (e: MouseEvent) => {
-      isDown = true;
-      slider.classList.add("cursor-grabbing");
-      startX = e.pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-    };
-
-    const onMouseLeave = () => {
-      isDown = false;
-      slider.classList.remove("cursor-grabbing");
-    };
-
-    const onMouseUp = () => {
-      isDown = false;
-      slider.classList.remove("cursor-grabbing");
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 1;
-      slider.scrollLeft = scrollLeft - walk;
-    };
-
-    // Touch handlers
-    const onTouchStart = (e: TouchEvent) => {
-      isDown = true;
-      startX = e.touches[0].pageX - slider.offsetLeft;
-      scrollLeft = slider.scrollLeft;
-      e.preventDefault();
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDown) return;
-      const x = e.touches[0].pageX - slider.offsetLeft;
-      const walk = (x - startX) * 1;
-      slider.scrollLeft = scrollLeft - walk;
-      e.preventDefault();
-    };
-
-    const onTouchEnd = () => {
-      isDown = false;
-    };
-
-    // Event listeners
-    slider.addEventListener("mousedown", onMouseDown);
-    slider.addEventListener("mouseleave", onMouseLeave);
-    slider.addEventListener("mouseup", onMouseUp);
-    slider.addEventListener("mousemove", onMouseMove);
-
-    slider.addEventListener("touchstart", onTouchStart, { passive: false });
-    slider.addEventListener("touchmove", onTouchMove, { passive: false });
-    slider.addEventListener("touchend", onTouchEnd);
-
-    return () => {
-      slider.removeEventListener("mousedown", onMouseDown);
-      slider.removeEventListener("mouseleave", onMouseLeave);
-      slider.removeEventListener("mouseup", onMouseUp);
-      slider.removeEventListener("mousemove", onMouseMove);
-
-      slider.removeEventListener("touchstart", onTouchStart);
-      slider.removeEventListener("touchmove", onTouchMove);
-      slider.removeEventListener("touchend", onTouchEnd);
-    };
-  }, []);
 
   if (isError) {
     return (
@@ -253,129 +170,112 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto">
-        <Header />
-      </div>
-      <main className="max-w-7xl mx-auto">
-        <div className="p-4 sm:p-6 md:p-8">
-          <div className="max-w-[1200px] mx-auto">
-            <div className="mb-8">
-              <h1 className="text-xl md:text-3xl font-bold mb-2">
-                Wadooyinka Waxbarashada
-              </h1>
-              <p className="text-[16px] text-[#6B7280]">
-                Wadooyin isku xiga oo loo maro hanashada
-              </p>
-            </div>
+      <Header />
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
+        <h1 className="text-xl md:text-3xl font-bold mb-2">
+          Wadooyinka Waxbarashada
+        </h1>
+        <p className="text-[16px] text-[#6B7280] mb-8">
+          Wadooyin isku xiga oo loo maro hanashada
+        </p>
 
-            {isLoading ? (
-              <div className="space-y-12">
-                {[1, 2].map((i) => (
-                  <div key={i}>
-                    <div className="flex items-center gap-4 mb-6">
-                      <Skeleton className="h-20 w-20" />
-                      <div>
-                        <Skeleton className="h-8 w-64 mb-2" />
-                        <Skeleton className="h-5 w-96" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                      {[...Array(4)].map((_, idx) => (
-                        <Skeleton key={idx} className="h-[220px] rounded-2xl" />
-                      ))}
-                    </div>
+        {isLoading ? (
+          <div className="space-y-12">
+            {[1, 2].map((i) => (
+              <div key={i}>
+                <div className="flex items-center gap-4 mb-6">
+                  <Skeleton className="h-20 w-20" />
+                  <div>
+                    <Skeleton className="h-8 w-64 mb-2" />
+                    <Skeleton className="h-5 w-96" />
                   </div>
-                ))}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, idx) => (
+                    <Skeleton key={idx} className="h-[220px] rounded-2xl" />
+                  ))}
+                </div>
               </div>
-            ) : (
-              <div className="space-y-16">
-                {categories?.map((category) => (
-                  <div key={category.id}>
-                    <div className="flex items-start gap-6 mb-8">
-                      <CategoryImage
-                        src={category.image}
-                        alt={category.title}
-                      />
-                      <div>
-                        <h2 className="md:text-2xl font-bold mb-1">
-                          {category.title}
-                        </h2>
-                        <p className="text-[#6B7280] text-lg">
-                          {category.description}
-                        </p>
-                      </div>
-                    </div>
-                    <div
-                      ref={scrollRef}
-                      className="grid grid-flow-col auto-cols-[minmax(280px,1fr)] sm:grid-flow-row sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-x-auto p-4 rounded-lg bg-accent scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent cursor-grab touch-pan-x"
-                    >
-                      {category.courses?.map((course: Course) => {
-                        const courseId = `course-${category.id}-${course.id}`;
-                        const isActive =
-                          activeCourse?.categoryId === category.id &&
-                          activeCourse?.courseId === course.id;
-
-                        return (
-                          <div
-                            key={course.id}
-                            id={courseId}
-                            ref={(el) => registerCourseRef(courseId, el)}
-                            className={`${isActive
-                                ? "scale-105 ring-2 ring-primary ring-offset-2"
-                                : ""
-                              } transition-all duration-300`}
-                            onClick={() =>
-                              course.is_published &&
-                              handleCourseSelect(category.id, course.id)
-                            }
-                          >
-                            {course.is_published ? (
-                              <Link
-                                href={`/courses/${category.id}/${course.slug}`}
-                              >
-                                <Card className="group overflow-hidden bg-white rounded-3xl hover:shadow-lg transition-all duration-300 border border-[#E5E7EB]">
-                                  <CourseImage
-                                    src={course.thumbnail || undefined}
-                                    alt={course.title}
-                                  />
-                                  {course.is_new && (
-                                    <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md">
-                                      NEW
-                                    </span>
-                                  )}
-                                  <div className="p-4 text-center">
-                                    <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
-                                      {course.title}
-                                    </h3>
-                                  </div>
-                                </Card>
-                              </Link>
-                            ) : (
-                              <Card className="group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] opacity-60">
-                                <CourseImage
-                                  src={course.thumbnail || undefined}
-                                  alt={course.title}
-                                />
-                                <span className="absolute top-3 right-3 bg-gray-500 text-white text-xs font-medium px-2 py-1 rounded-md">
-                                  Dhowaan
-                                </span>
-                                <div className="p-4 text-center">
-                                  <h3 className="font-medium text-base">
-                                    {course.title}
-                                  </h3>
-                                </div>
-                              </Card>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-16">
+            {categories?.map((category) => (
+              <div key={category.id}>
+                <div className="flex items-start gap-6 mb-8">
+                  <CategoryImage src={category.image} alt={category.title} />
+                  <div>
+                    <h2 className="md:text-2xl font-bold mb-1">
+                      {category.title}
+                    </h2>
+                    <p className="text-[#6B7280] text-lg">
+                      {category.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Updated grid: vertical on mobile, multi-col on larger */}
+                <div
+                  className="
+                    grid grid-cols-1
+                    sm:grid-cols-2
+                    md:grid-cols-3
+                    lg:grid-cols-4
+                    gap-6
+                    p-4 rounded-lg bg-accent
+                  "
+                >
+                  {category.courses?.map((course) => {
+                    const courseKey = `course-${category.id}-${course.id}`;
+                    const isActive =
+                      activeCourse?.categoryId === category.id &&
+                      activeCourse?.courseId === course.id;
+                    const href = `/courses/${category.id}/${course.slug}`;
+
+                    return (
+                      <Link
+                        key={course.id}
+                        href={href}
+                        onClick={() =>
+                          course.is_published &&
+                          handleCourseSelect(category.id, course.id)
+                        }
+                        className="block"
+                      >
+                        <div
+                          id={courseKey}
+                          ref={(el) => registerCourseRef(courseKey, el)}
+                          className={`transition-all duration-300 ${
+                            isActive
+                              ? "scale-105 ring-2 ring-primary ring-offset-2"
+                              : ""
+                          }`}
+                        >
+                          <Card className="group overflow-hidden bg-white rounded-3xl hover:shadow-lg border border-[#E5E7EB]">
+                            <CourseImage
+                              src={course.thumbnail || undefined}
+                              alt={course.title}
+                            />
+                            {course.is_new && (
+                              <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md">
+                                NEW
+                              </span>
+                            )}
+                            <div className="p-4 text-center">
+                              <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
+                                {course.title}
+                              </h3>
+                            </div>
+                          </Card>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

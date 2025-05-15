@@ -135,7 +135,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
               </div>
 
               {/* Buttons */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex  gap-2">
                 <Button
                   size="lg"
                   variant="outline"

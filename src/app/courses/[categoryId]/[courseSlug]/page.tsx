@@ -117,7 +117,7 @@ export default function CourseDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <ProtectedRoute>
-        <div className="max-w-6xl mx-auto p-8">
+        <div className="max-w-6xl mx-auto p-8 mb-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Left Column: Course Info */}
             <div className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white rounded-xl shadow-md border-gray-200 md:sticky md:top-10">
@@ -152,7 +152,8 @@ export default function CourseDetailPage() {
                 <div className="flex items-center gap-1">
                   <span>📘</span>
                   <span>
-                    {currentCourse.modules?.flatMap((m) => m.lessons).length || 0}{" "}
+                    {currentCourse.modules?.flatMap((m) => m.lessons).length ||
+                      0}{" "}
                     casharo
                   </span>
                 </div>
@@ -167,7 +168,9 @@ export default function CourseDetailPage() {
             <div className="relative">
               <div className="space-y-12">
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold mb-4">Naqshada Barashada</h2>
+                  <h2 className="text-3xl font-bold mb-4">
+                    Naqshada Barashada
+                  </h2>
                 </div>
 
                 <div className="relative flex flex-col items-center gap-12">

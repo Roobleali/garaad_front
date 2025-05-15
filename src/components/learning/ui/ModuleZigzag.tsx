@@ -223,7 +223,6 @@ export default function ModuleZigzag({
 
               <Popover.Portal>
                 <Popover.Content
-                  side={index % 2 === 0 ? "right" : "left"}
                   sideOffset={0}
                   className="z-[1000] bg-transparent p-0 shadow-none no-animate"
                 >
@@ -232,6 +231,8 @@ export default function ModuleZigzag({
                     isInProgress={hasModuleProgress(module.course_id)}
                     isCompleted={isModuleCompleted(module.title)}
                     side={index % 2 === 0 ? "right" : "left"}
+                    isFirstModule={module.id === modules[0]?.id}
+                    isLastModule={module.id === modules[modules.length - 1].id}
                   />
                 </Popover.Content>
               </Popover.Portal>

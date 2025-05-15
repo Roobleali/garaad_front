@@ -1,56 +1,59 @@
-'use client';
+"use client";
 
-import { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from "react";
 
 interface Props {
-    children: ReactNode;
-    fallback?: ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
-    hasError: boolean;
-    error?: Error;
+  hasError: boolean;
+  error?: Error;
 }
 
-class ErrorBoundary extends Component<Props, State> {
-    public state: State = {
-        hasError: false
-    };
+export default class ErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false };
 
-    public static getDerivedStateFromError(error: Error): State {
-        return { hasError: true, error };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Waxaa dhacay qalad aan la filayn:", error, info);
+  }
+
+  handleReload = () => {
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        this.props.fallback ?? (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="max-w-md w-full space-y-6 p-8 bg-white rounded-2xl shadow-xl">
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold text-gray-900">
+                  Waxbaa qaldamay
+                </h2>
+                <p className="mt-2 text-sm text-gray-600">
+                  Waxaan ka xunnahay dhibkaan. Fadlan isku day inaad bogga dib u
+                  cusbooneysiiso.
+                </p>
+                <button
+                  onClick={this.handleReload}
+                  className="mt-4 px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/50 focus:outline-none focus:ring-2 focus:ring-1 focus:ring-offset-2"
+                >
+                  Dib u cusbooneysii bogga
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      );
     }
 
-    public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('Uncaught error:', error, errorInfo);
-    }
-
-    public render() {
-        if (this.state.hasError) {
-            return this.props.fallback || (
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                    <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-                        <div className="text-center">
-                            <h2 className="mt-6 text-3xl font-bold text-gray-900">
-                                Something went wrong
-                            </h2>
-                            <p className="mt-2 text-sm text-gray-600">
-                                We apologize for the inconvenience. Please try refreshing the page.
-                            </p>
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                Refresh Page
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        return this.props.children;
-    }
+    return this.props.children;
+  }
 }
-
-export default ErrorBoundary; 
