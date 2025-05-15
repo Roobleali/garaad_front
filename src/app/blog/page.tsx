@@ -6,7 +6,6 @@ import {
   CardContent,
   CardFooter,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, Calendar, BookOpen } from "lucide-react";
@@ -37,155 +36,171 @@ export async function generateMetadata() {
   };
 }
 
+interface ImageFields {
+  file?: {
+    url?: string;
+  };
+  title?: string;
+}
+
+interface PostFields {
+  title?: string;
+  body?: unknown;
+  excerpt?: string;
+  image?: {
+    fields?: ImageFields;
+  };
+  publishDate?: string;
+  author?: string;
+  category?: string;
+  slug?: string;
+}
+
 export default async function BlogListPage() {
   const posts = await getBlogPages();
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <section className="mb-16 text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">
-          Wargeyska Garaad
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Nagala soco halkan waxyaalaha naga cusub, sida casharda , wararka iyo
-          waxyaalaha ku saabsan.
-        </p>
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 relative inline-block">
+              Wargeyska Garaad
+              <div className="absolute -bottom-2 left-0 right-0 h-1 bg-primary/20 rounded-full transform -skew-x-12" />
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Nagala soco halkan waxyaalaha naga cusub, sida casharda, wararka iyo
+              waxyaalaha ku saabsan.
+            </p>
+          </div>
+        </div>
       </section>
 
-      {posts.length === 0 ? (
-        <div className="text-center py-12">
-          <h2 className="text-xl font-medium mb-2">Wax boosti ah kuma jiro</h2>
-          <p className="text-muted-foreground">
-            Nagu soo noqo saad u gaatid waxyaalaha naga cusub.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post) => {
-            const fields = post.fields as {
-              title?: string;
-              body?: unknown;
-              excerpt?: string;
-              image?: any;
-              publishDate?: string;
-              author?: string;
-              category?: string;
-              slug?: string;
-            };
+      <section className="container mx-auto px-4 py-12">
+        {posts.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-xl font-medium mb-2">Wax boosti ah kuma jiro</h2>
+            <p className="text-muted-foreground">
+              Nagu soo noqo saad u gaatid waxyaalaha naga cusub.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.map((post) => {
+              const fields = post.fields as PostFields;
 
-            const readingTime = fields.body
-              ? Math.max(
+              const readingTime = fields.body
+                ? Math.max(
                   1,
                   Math.ceil(
                     JSON.stringify(fields.body).split(/\s+/).length / 200
                   )
                 )
-              : 1;
+                : 1;
 
-            const slug = post.sys.id;
-            const href = `/blog/${slug ?? ""}`;
+              const slug = post.sys.id;
+              const href = `/blog/${slug ?? ""}`;
 
-            const imageFields = (fields.image?.fields ?? {}) as {
-              file?: { url?: string };
-              title?: string;
-            };
-            const rawUrl = imageFields.file?.url ?? "";
-            const src = rawUrl
-              ? rawUrl.startsWith("//")
-                ? `https:${rawUrl}`
-                : rawUrl
-              : "";
-            const alt =
-              typeof imageFields.title === "string"
-                ? imageFields.title
-                : fields.title ?? "";
+              const imageFields = (fields.image?.fields ?? {}) as ImageFields;
+              const rawUrl = imageFields.file?.url ?? "";
+              const src = rawUrl
+                ? rawUrl.startsWith("//")
+                  ? `https:${rawUrl}`
+                  : rawUrl
+                : "";
+              const alt =
+                typeof imageFields.title === "string"
+                  ? imageFields.title
+                  : fields.title ?? "";
 
-            return (
-              <Card
-                key={post.sys.id}
-                className="h-full flex flex-col group hover:shadow-lg transition-shadow overflow-hidden"
-              >
-                <div className="relative h-52 w-full overflow-hidden">
-                  <Link href={href} className="absolute inset-0 z-10">
-                    {src ? (
-                      <Image
-                        src={src || "/placeholder.svg"}
-                        alt={alt}
-                        fill
-                        priority
-                        sizes="(max-width: 768px) 100vw,
-                               (max-width: 1200px) 50vw,
-                               33vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="bg-muted w-full h-full flex items-center justify-center">
-                        <span className="text-muted-foreground">No image</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                  </Link>
-                  {fields.category && (
-                    <Badge className="absolute top-4 left-4 z-20 bg-primary/90 hover:bg-primary text-primary-foreground">
-                      {fields.category}
-                    </Badge>
-                  )}
-                </div>
-
-                <CardHeader className="pb-2">
-                  <Link href={href}>
-                    <CardTitle className="line-clamp-2 text-lg hover:underline">
-                      {fields.title || "Untitled Post"}
-                    </CardTitle>
-                  </Link>
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs">
-                    <div className="flex items-center">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      <time dateTime={fields.publishDate || post.sys.createdAt}>
-                        {new Date(
-                          fields.publishDate || post.sys.createdAt
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </time>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="mr-1 h-3 w-3" />
-                      <span>{readingTime} min read</span>
-                    </div>
-                    {fields.author && (
-                      <div className="flex items-center">
-                        <User className="mr-1 h-3 w-3" />
-                        <span>{fields.author}</span>
-                      </div>
+              return (
+                <Card
+                  key={post.sys.id}
+                  className="h-full flex flex-col group hover:shadow-lg transition-shadow overflow-hidden"
+                >
+                  <div className="relative h-52 w-full overflow-hidden">
+                    <Link href={href} className="absolute inset-0 z-10">
+                      {src ? (
+                        <Image
+                          src={src || "/placeholder.svg"}
+                          alt={alt}
+                          fill
+                          priority
+                          sizes="(max-width: 768px) 100vw,
+                                 (max-width: 1200px) 50vw,
+                                 33vw"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="bg-muted w-full h-full flex items-center justify-center">
+                          <span className="text-muted-foreground">No image</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                    </Link>
+                    {fields.category && (
+                      <Badge className="absolute top-4 left-4 z-20 bg-primary/90 hover:bg-primary text-primary-foreground">
+                        {fields.category}
+                      </Badge>
                     )}
                   </div>
-                </CardHeader>
 
-                <CardContent className="flex-grow">
-                  <p className="line-clamp-3 text-sm text-muted-foreground">
-                    {fields.excerpt || "No excerpt available"}
-                  </p>
-                </CardContent>
+                  <CardHeader className="pb-2">
+                    <Link href={href}>
+                      <CardTitle className="line-clamp-2 text-lg hover:underline">
+                        {fields.title || "Untitled Post"}
+                      </CardTitle>
+                    </Link>
+                    <div className="flex flex-wrap gap-3 mt-2 text-xs">
+                      <div className="flex items-center">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        <time dateTime={fields.publishDate || post.sys.createdAt}>
+                          {new Date(
+                            fields.publishDate || post.sys.createdAt
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </time>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="mr-1 h-3 w-3" />
+                        <span>{readingTime} min read</span>
+                      </div>
+                      {fields.author && (
+                        <div className="flex items-center">
+                          <User className="mr-1 h-3 w-3" />
+                          <span>{fields.author}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
 
-                <CardFooter className="flex justify-between items-center bg-muted/50">
-                  <Link
-                    href={href}
-                    className="flex items-center text-sm font-medium text-primary hover:underline"
-                    aria-label={`Read more about ${fields.title}`}
-                  >
-                    <BookOpen className="mr-1 h-4 w-4" />
-                    Faahfaahin
-                  </Link>
-                  <SharePost title={fields.title!} slug={slug ?? ""} />
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  <CardContent className="flex-grow">
+                    <p className="line-clamp-3 text-sm text-muted-foreground">
+                      {fields.excerpt || "No excerpt available"}
+                    </p>
+                  </CardContent>
+
+                  <CardFooter className="flex justify-between items-center bg-muted/50">
+                    <Link
+                      href={href}
+                      className="flex items-center text-sm font-medium text-primary hover:underline"
+                      aria-label={`Read more about ${fields.title}`}
+                    >
+                      <BookOpen className="mr-1 h-4 w-4" />
+                      Faahfaahin
+                    </Link>
+                    <SharePost title={fields.title!} slug={slug ?? ""} />
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
