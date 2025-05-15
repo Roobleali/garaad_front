@@ -93,14 +93,11 @@ export default function Home() {
                   <div className="flex justify-center gap-4 animate-fade-in mt-6 sm:mt-12">
                     <Button
                       size="lg"
-                      className="bg-primary/100  cursor-not-allowed hover:bg-primary/50 text-white px-6 sm:px-8 py-3 sm:py-6 text-base sm:text-lg font-semibold rounded-full shadow-lg cursor-not-allowed relative max-w-xs w-full"
-                      disabled
+                      className="bg-primary    hover:bg-primary/50 text-white px-6 sm:px-8 py-3 sm:py-6 text-base sm:text-lg font-semibold rounded-full shadow-lg cursor-not-allowed relative max-w-xs w-full"
                     >
                       {" "}
                       Billaw Maanta
-                      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                        Dhowaan
-                      </span>
+
                     </Button>
                   </div>
                   <div className="container max-w-xs sm:max-w-4xl mx-auto px-0 sm:px-6 lg:px-8 mt-6 sm:mt-12 lg:mt-16">
