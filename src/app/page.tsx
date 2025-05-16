@@ -135,7 +135,7 @@ function HeroSection() {
                   className="text-lg px-8 py-6 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold"
                   onClick={() => router.push("/welcome")}
                 >
-                  Is diiwaangeli                </Button>
+                  Is diiwaangeli      </Button>
               </div>
             </div>
           </div>
