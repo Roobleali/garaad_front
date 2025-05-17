@@ -39,7 +39,7 @@ export default function ModulePopup({
     );
   };
 
-  console.log(isFirstModule);
+  console.log(isLastModule);
 
   return (
     <div
@@ -48,13 +48,13 @@ export default function ModulePopup({
         top-full mt-8
         left-1/2
         transform
-        -translate-x-1/2
+        -translate-y-16
         ${
-          side === "right"
-            ? "-translate-[50%]  -translate-x-[20%] "
-            : "-translate-[50%]  -translate-x-[60%]"
+          side === "left" && !isLastModule
+            ? " -translate-x-[70%]"
+            : "-translate-x-[10%]"
         }
-        ${isFirstModule ? "-translate-x-[50%]" : ""}
+        ${isFirstModule ? "-translate-x-[50%]" : ""} 
         ${isLastModule ? "-translate-x-[50%]" : ""}
 
         w-80
@@ -68,22 +68,6 @@ export default function ModulePopup({
         text-center
       `}
     >
-      {/* little arrow */}
-      <div
-        className="
-          absolute
-          top-0
-          left-1/2
-          -translate-x-1/2
-          -translate-y-1/2
-          w-4 h-4
-          bg-white
-          border-t-2 border-l-2 border-border
-          rotate-45
-          z-10
-        "
-      />
-
       <h3 className="font-bold mb-2">{module.title}</h3>
       <p className="text-sm mb-4">{module.description}</p>
 

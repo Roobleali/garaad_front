@@ -6,6 +6,7 @@ import { ExplanationText, Lesson } from "@/types/learning";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Check, ChevronRight, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion"; // Import motion and AnimatePresence
 
 // Lazy‑load heavy components
 const ExplanationModal = React.lazy(() => import("./ExplanationModal"));
@@ -77,11 +78,10 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
       };
     }, [isCorrect, isLastQuestion, handleContinueClick, onResetAnswer]);
 
-    // While reporting bug, hide the entire feedback
-    if (isReportingBug) return null;
-
     return (
-      <>
+      <AnimatePresence>
+        {" "}
+        {/* Wrap the conditional rendering with AnimatePresence */}
         {/* Explanation Modal */}
         {showExplanation && (
           <Suspense fallback={null}>
@@ -96,79 +96,87 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
             />
           </Suspense>
         )}
-
-        {/* Feedback Banner */}
-        <div
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 sm:p-4"
-          )}
-        >
-          <div
+        {/* Feedback Banner - Only render if not reporting a bug */}
+        {!isReportingBug && (
+          <motion.div
+            key="answer-feedback-banner" // Crucial for AnimatePresence to track mount/unmount
+            initial={{ y: 100, opacity: 0 }} // Starts 100px below and invisible
+            animate={{ y: 0, opacity: 1 }} // Slides to its position and fades in
+            exit={{ y: 100, opacity: 0 }} // Slides down and fades out when unmounted
+            transition={{ type: "spring", stiffness: 120, damping: 15 }} // A gentle spring animation
             className={cn(
-              "w-full max-w-2xl p-4 sm:p-6 rounded-2xl shadow-xl border-2",
-              isCorrect
-                ? "bg-[#D7FFB8] border-[#58CC02]"
-                : "bg-red-50 border-red-200"
+              "fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 sm:p-4"
             )}
           >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              {/* Icon + Text */}
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "w-8 h-8 flex items-center justify-center rounded-full border-2",
-                    isCorrect
-                      ? "bg-[#58CC02] border-[#58CC02]"
-                      : "bg-red-500 border-red-500"
-                  )}
-                >
-                  {isCorrect ? (
-                    <Check className="h-5 w-5 text-white" />
-                  ) : (
-                    <X className="h-5 w-5 text-white" />
-                  )}
+            <div
+              className={cn(
+                "w-full max-w-2xl p-4 sm:p-6 rounded-2xl shadow-xl border-2",
+                isCorrect
+                  ? "bg-[#D7FFB8] border-[#58CC02]"
+                  : "bg-red-50 border-red-200"
+              )}
+            >
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                {/* Icon + Text */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      "w-8 h-8 flex items-center justify-center rounded-full border-2",
+                      isCorrect
+                        ? "bg-[#58CC02] border-[#58CC02]"
+                        : "bg-red-500 border-red-500"
+                    )}
+                  >
+                    {isCorrect ? (
+                      <Check className="h-5 w-5 text-white" />
+                    ) : (
+                      <X className="h-5 w-5 text-white" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 text-left">
+                    <p className="font-semibold text-sm sm:text-base">
+                      {title}
+                    </p>
+                    <p className="text-xs sm:text-sm">{message}</p>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 text-left">
-                  <p className="font-semibold text-sm sm:text-base">{title}</p>
-                  <p className="text-xs sm:text-sm">{message}</p>
+
+                {/* Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleWhyClick}
+                    className="rounded-full border-gray-300 hover:border-gray-400 text-base sm:text-sm"
+                  >
+                    Sharaxaad
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    variant={isCorrect ? "default" : "secondary"}
+                    onClick={buttonAction}
+                    className={cn(
+                      "rounded-full gap-1 text-base sm:text-sm",
+                      isCorrect
+                        ? "border-[#58CC02] hover:border-[#58CC02]/80"
+                        : "border-red-200 hover:border-red-300"
+                    )}
+                  >
+                    {buttonText}
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+
+                  {/* Bug Report */}
+                  <Suspense fallback={null}>
+                    <BugReportButton setIsReportingBug={setIsReportingBug} />
+                  </Suspense>
                 </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex  gap-2">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={handleWhyClick}
-                  className="rounded-full border-gray-300 hover:border-gray-400 text-base sm:text-sm"
-                >
-                  Sharaxaad
-                </Button>
-
-                <Button
-                  size="lg"
-                  variant={isCorrect ? "default" : "secondary"}
-                  onClick={buttonAction}
-                  className={cn(
-                    "rounded-full gap-1 text-base sm:text-sm",
-                    isCorrect
-                      ? "border-[#58CC02] hover:border-[#58CC02]/80"
-                      : "border-red-200 hover:border-red-300"
-                  )}
-                >
-                  {buttonText}
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-
-                {/* Bug Report */}
-                <Suspense fallback={null}>
-                  <BugReportButton setIsReportingBug={setIsReportingBug} />
-                </Suspense>
               </div>
             </div>
-          </div>
-        </div>
-      </>
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
   }
 );
