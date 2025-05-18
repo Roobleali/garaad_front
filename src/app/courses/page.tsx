@@ -226,6 +226,7 @@ export default function CoursesPage() {
                   "
                 >
                   {category.courses?.map((course) => {
+                    console.log('Course:', course.title, 'is_published:', course.is_published, 'type:', typeof course.is_published);
                     const courseKey = `course-${category.id}-${course.id}`;
                     const isActive =
                       activeCourse?.categoryId === category.id &&
@@ -235,34 +236,43 @@ export default function CoursesPage() {
                     return (
                       <Link
                         key={course.id}
-                        href={href}
-                        onClick={() =>
-                          course.is_published &&
-                          handleCourseSelect(category.id, course.id)
-                        }
-                        className="block"
+                        href={course.is_published ? href : '#'}
+                        onClick={(e) => {
+                          if (!course.is_published) {
+                            e.preventDefault();
+                            return;
+                          }
+                          handleCourseSelect(category.id, course.id);
+                        }}
+                        className={`block ${!course.is_published ? 'cursor-not-allowed opacity-60' : ''}`}
                       >
                         <div
                           id={courseKey}
                           ref={(el) => registerCourseRef(courseKey, el)}
-                          className={`transition-all duration-300 ${
-                            isActive
-                              ? "scale-105 ring-2 ring-primary ring-offset-2"
-                              : ""
-                          }`}
+                          className={`transition-all duration-300 ${isActive
+                            ? "scale-105 ring-2 ring-primary ring-offset-2"
+                            : ""
+                            }`}
                         >
-                          <Card className="group overflow-hidden bg-white rounded-3xl hover:shadow-lg border border-[#E5E7EB]">
-                            <CourseImage
-                              src={course.thumbnail || undefined}
-                              alt={course.title}
-                            />
-                            {course.is_new && (
-                              <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-2 py-1 rounded-md">
-                                NEW
-                              </span>
-                            )}
+                          <Card className={`group overflow-hidden bg-white rounded-3xl hover:shadow-lg border border-[#E5E7EB] ${!course.is_published ? 'hover:shadow-none' : ''}`}>
+                            <div className="relative">
+                              <CourseImage
+                                src={course.thumbnail || undefined}
+                                alt={course.title}
+                              />
+                              {course.is_new && (
+                                <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
+                                  NEW
+                                </span>
+                              )}
+                              {course.is_published === false && (
+                                <span className="absolute top-3 right-3 bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm z-20">
+                                  Dhowaan
+                                </span>
+                              )}
+                            </div>
                             <div className="p-4 text-center">
-                              <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
+                              <h3 className={`font-medium text-base ${course.is_published ? 'group-hover:text-[#2563EB]' : 'text-gray-500'} transition-colors`}>
                                 {course.title}
                               </h3>
                             </div>
