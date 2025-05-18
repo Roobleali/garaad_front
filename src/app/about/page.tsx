@@ -81,7 +81,7 @@ export default function AboutPage() {
                 Garaad: Iftiimin mustaqbalka ardayda Soomaaliyeed
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Iyadoo la adeegsanayo hal-abuurka
+                Hadafka Garaad waa in uu kor u qaado kartida xallinta dhibaatooyinka ee dadka Soomaaliyeed
               </p>
               <p className="text-gray-600 leading-relaxed mb-8 text-lg">
                 Ka fikir adduun uu arday kasta oo Soomaali ah, meel kasta oo uu
