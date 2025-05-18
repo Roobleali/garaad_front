@@ -28,7 +28,27 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const post = await getBlogPageBySlug((await params).slug);
+  const { slug } = await params;
+  if (!slug) {
+    return {
+      title: "Post Not Found",
+      description: "The requested blog post could not be found",
+    };
+  }
+
+  // Try to get post by slug
+  let post = await getBlogPageBySlug(slug);
+  if (!post) {
+    // If not found by slug, try to find by title
+    const posts = await getBlogPages();
+    const matchingPost = posts.find((p: any) => {
+      const title = typeof p.fields.title === 'string' ? p.fields.title : "";
+      return createSlug(title) === slug;
+    });
+    if (matchingPost) {
+      post = matchingPost;
+    }
+  }
 
   if (!post) {
     return {
@@ -154,7 +174,7 @@ export default async function BlogPageBySlug({
             className="group mb-8 hover:bg-slate-100 transition-all duration-200"
           >
             <Link
-              href="/blog"
+              href="/wargeys"
               className="inline-flex items-center text-slate-600"
             >
               <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
