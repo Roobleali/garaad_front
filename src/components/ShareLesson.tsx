@@ -1,11 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import AuthService from "@/services/auth";
 import { useRef } from "react";
 import html2canvas from "html2canvas";
-import { Share2 } from "lucide-react";
+import { Share2, X } from "lucide-react";
 import Image from "next/image";
 
 const CERTIFICATE_FONT = "font-serif";
@@ -29,6 +29,7 @@ const formatDate = (date: Date) =>
   date.toLocaleDateString("so-SO", { year: "numeric", month: "long", day: "numeric" });
 
 const ShareLesson: React.FC<{ lessonTitle: string }> = ({ lessonTitle }) => {
+  const router = useRouter();
   const params = useParams<{ category: string; courseSlug: string; lessonId: string }>();
   const { courseSlug } = params;
   const storedUser = AuthService.getInstance().getCurrentUser();
@@ -76,8 +77,21 @@ const ShareLesson: React.FC<{ lessonTitle: string }> = ({ lessonTitle }) => {
     }
   };
 
+  const handleContinue = () => {
+    router.push(`/courses/${params.category}/${params.courseSlug}`);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-white print:bg-white">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-white print:bg-white relative">
+      {/* Close button in top-right corner */}
+      <button
+        onClick={handleContinue}
+        className="absolute top-4 right-4 z-50 bg-white/90 hover:bg-white text-gray-600 hover:text-primary p-2 rounded-full shadow-lg transition-all duration-200 print:hidden"
+        aria-label="Si wad"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
       <motion.div
         ref={certRef}
         initial={{ opacity: 0, y: 20 }}
@@ -127,8 +141,6 @@ const ShareLesson: React.FC<{ lessonTitle: string }> = ({ lessonTitle }) => {
             </div>
           </div>
         </div>
-        {/* Share Button Only */}
-
         {/* Slogan at bottom */}
         <div className="absolute bottom-4 left-0 w-full text-center text-primary font-semibold text-lg tracking-wide z-20">
           Aqoon la&apos;aan,  waa iftiin la&apos;aan.
