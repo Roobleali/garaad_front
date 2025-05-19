@@ -1,5 +1,3 @@
-import appstore from '../images/app-store.svg'
-import playstore from '../images/google-play.svg'
 import Image from 'next/image'
 
 function DownloadApp() {
@@ -13,7 +11,7 @@ function DownloadApp() {
                 <div className="flex flex-wrap justify-center gap-4">
                     <div className="relative">
                         <Image
-                            src={appstore}
+                            src="/images/app-store.svg"
                             alt="Download on App Store"
                             width={140}
                             height={56}
@@ -25,7 +23,7 @@ function DownloadApp() {
                     </div>
                     <div className="relative">
                         <Image
-                            src={playstore}
+                            src="/images/google-play.svg"
                             alt="Get it on Google Play"
                             width={140}
                             height={56}

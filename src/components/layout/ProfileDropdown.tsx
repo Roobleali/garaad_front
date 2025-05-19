@@ -22,6 +22,8 @@ export const ProfileDropdown: React.FC = () => {
     dispatch(logoutAction());
     router.push("/");
     setIsOpen(false);
+    // Force reload after logout
+    window.location.reload();
   };
 
   return (
