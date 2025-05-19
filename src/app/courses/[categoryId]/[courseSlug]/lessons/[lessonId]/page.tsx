@@ -84,11 +84,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-    | "code"
-    | "mcq"
-    | "short_input"
-    | "diagram"
-    | "multiple_choice";
+  | "code"
+  | "mcq"
+  | "short_input"
+  | "diagram"
+  | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -133,12 +133,8 @@ const LessonPage = () => {
     type: "",
   });
   const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => {});
-  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const continueRef = useRef<() => void>(() => { });
   const [navigating, setNavigating] = useState(false);
-
-  // 1. Add a new state to track whether to show the share component
-  const [showShareComponent, setShowShareComponent] = useState(false);
 
   // State for all problems and current problem
   const [problems, setProblems] = useState<ProblemContent[]>([]);
@@ -304,7 +300,7 @@ const LessonPage = () => {
         console.error("Error fetching problems:", err);
         setError(
           (err instanceof Error ? err.message : String(err)) ||
-            "Failed to load problems"
+          "Failed to load problems"
         );
       } finally {
         setProblemLoading(false);
@@ -506,17 +502,7 @@ const LessonPage = () => {
   };
 
   const handleShowLeaderboard = () => {
-    setShowShareComponent(false); // Hide ShareLesson
-    setLeaderboardLoading(true);
-    setTimeout(() => {
-      setShowLeaderboard(true); // Show Leaderboard after delay
-      setLeaderboardLoading(false);
-    }, 200);
-  };
-
-  // Add the new function to handle showing the share component
-  const handleShowShareComponent = () => {
-    setShowShareComponent(true);
+    setShowLeaderboard(true);
   };
 
   // Reset answer state
@@ -762,10 +748,10 @@ const LessonPage = () => {
   console.log("Render state:", {
     isLessonCompleted,
     showLeaderboard,
-    leaderboardLoading,
   });
   return (
     <div className="min-h-screen bg-white">
+
       {navigating ? (
         <div className="min-h-screen bg-white flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
@@ -775,26 +761,12 @@ const LessonPage = () => {
             </p>
           </div>
         </div>
-      ) : isLessonCompleted && showShareComponent ? (
-        <ShareLesson
-          lessonTitle={currentLesson?.title}
-          onContinue={handleShowLeaderboard} // Now properly triggers Leaderboard
-        />
       ) : isLessonCompleted && showLeaderboard ? (
         <Leaderboard
           onContinue={handleContinueAfterCompletion}
           leaderboard={leaderboard || []}
           userRank={userRank}
         />
-      ) : isLessonCompleted && leaderboardLoading ? (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-muted-foreground">
-              Soo dajinaya shaxda tartanka...
-            </p>
-          </div>
-        </div>
       ) : isLessonCompleted ? (
         <div>
           {isLoadingRewards ? (
@@ -809,11 +781,10 @@ const LessonPage = () => {
           ) : rewards.length === 0 && !isLoadingRewards ? (
             <ShareLesson
               lessonTitle={currentLesson?.title || "Cashar"}
-              onContinue={handleShowLeaderboard}
             />
           ) : (
             <RewardComponent
-              onContinue={handleShowShareComponent}
+              onContinue={handleShowLeaderboard}
               rewards={rewards.map((reward) => ({
                 id: reward.id,
                 user: reward.user,
