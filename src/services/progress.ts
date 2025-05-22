@@ -29,6 +29,7 @@ export interface LeaderboardEntry {
   id: number;
   user: number;
   username: string;
+  streak: number;
   points: number;
   time_period: "all_time" | "weekly" | "monthly";
   last_updated: string;
