@@ -386,15 +386,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
-            <Progress
-              value={
-                (userLevel.experience_points /
-                  userLevel.experience_to_next_level) *
-                100
-              }
-              className="h-3 bg-muted"
-            />
           </Card>
         )}
 
@@ -760,9 +751,11 @@ export default function Home() {
                   </div>
                   <h3 className="font-bold text-lg">Koorsooyinkaada</h3>
                 </div>
-                <Button variant="outline" size="sm">
-                  Arag kulli <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
+                <Link href={"/courses"}>
+                  <Button variant="outline" size="sm">
+                    Arag kulli <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
 
               <div
@@ -901,9 +894,6 @@ export default function Home() {
                       alt={course.title}
                       className="object-contain mx-auto"
                     />
-                    <p className="text-xs mt-2 truncate max-w-[60px] text-center font-medium">
-                      {course.title.split(" ")[0]}
-                    </p>
                   </button>
                 ))}
               </div>

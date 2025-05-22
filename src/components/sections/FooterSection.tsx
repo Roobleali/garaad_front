@@ -5,7 +5,7 @@ export function FooterSection() {
     product: [
       { name: "Koorsooyin", href: "/courses" },
       { name: "Wargeys", href: "/wargeys" },
-
+      { name: "Guriga", href: "/home" },
     ],
     company: [
       { name: "Nagu saabsan", href: "/about" },

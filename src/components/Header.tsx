@@ -6,16 +6,19 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { ProfileDropdown } from "./layout/ProfileDropdown";
 import { usePathname } from "next/navigation";
-import { FolderDot, } from "lucide-react";
+import { FolderDot, Home } from "lucide-react";
 import clsx from "clsx";
 
 export function Header() {
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
 
-  const navLinks = user ? [
-    { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-  ] : [];
+  const navLinks = user
+    ? [
+        { name: "Guriga", href: "/home", icon: Home },
+        { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
+      ]
+    : [];
 
   return (
     <header className="sticky top-0 z-50 bg-white">
@@ -36,7 +39,7 @@ export function Header() {
                 className={clsx(
                   "text-gray-600 hover:text-black transition-all font-medium flex items-center gap-2 py-1",
                   (pathname === href || pathname.startsWith(`${href}/`)) &&
-                  "text-primary border-b-2 border-primary"
+                    "text-primary border-b-2 border-primary"
                 )}
               >
                 {/* icon */}
