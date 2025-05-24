@@ -9,10 +9,9 @@ import { usePathname } from "next/navigation";
 import { FolderDot, Home } from "lucide-react";
 import clsx from "clsx";
 import StreakDisplay from "./StreakDisplay";
-import { useUserStreak } from "@/hooks/useApi";
-import { useEffect, useState } from "react";
+import { useMemo, useCallback } from "react";
 import AuthService from "@/services/auth";
-import axios from "axios";
+import useSWR from "swr";
 
 interface Energy {
   current: number;
@@ -40,57 +39,83 @@ interface StreakData {
   daily_activity: DailyActivity[];
 }
 
+// SWR fetcher function with authentication
+const streakFetcher = async (url: string): Promise<StreakData> => {
+  const authService = AuthService.getInstance();
+  const token = authService.getToken();
+
+  if (!token) {
+    throw new Error("No authentication token available");
+  }
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export function Header() {
-  const [streakData, setStreakData] = useState<StreakData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
 
-  // const { streak, isLoading, isError } = useUserStreak();
-
-  // console.log("user:", user);
-  console.log("streak:", streakData);
-
-  const fetchStreakData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const authService = AuthService.getInstance();
-      const token = authService.getToken();
-
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/streaks/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setStreakData(response.data);
-      setLoading(false);
-      console.log(response.data);
-      console.log(response.data.username);
-    } catch (err) {
-      console.error("Error fetching streak data:", err);
-      setError("Failed to load streak data. Please try again.");
-    } finally {
-      setLoading(false);
+  // SWR hook for streak data with caching and automatic revalidation
+  const {
+    data: streakData,
+    error,
+    isLoading: loading,
+    mutate: refreshStreakData,
+  } = useSWR<StreakData>(
+    user ? `${process.env.NEXT_PUBLIC_API_URL}/api/streaks/` : null,
+    streakFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 300000, // 5 minutes
+      errorRetryCount: 3,
+      errorRetryInterval: 5000,
+      onSuccess: (data) => {
+        console.log("Streak data loaded:", data);
+        console.log("Username:", data.username);
+      },
+      onError: (err) => {
+        console.error("Error fetching streak data:", err);
+      },
     }
-  };
+  );
 
-  useEffect(() => {
-    fetchStreakData();
-  }, []);
+  // Memoized navigation links to prevent unnecessary re-renders
+  const navLinks = useMemo(
+    () =>
+      user
+        ? [
+            { name: "Guriga", href: "/home", icon: Home },
+            { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
+          ]
+        : [],
+    [user]
+  );
 
-  const navLinks = user
-    ? [
-        { name: "Guriga", href: "/home", icon: Home },
-        { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-      ]
-    : [];
+  // Memoized function to check if a link is active
+  const isLinkActive = useCallback(
+    (href: string) => pathname === href || pathname.startsWith(`${href}/`),
+    [pathname]
+  );
+
+  // Convert SWR error to string for StreakDisplay component
+  const errorMessage = error
+    ? "Failed to load streak data. Please try again."
+    : null;
+
+  console.log("user:", user);
+  console.log("streak:", streakData);
 
   return (
     <header className="sticky top-0 z-50 bg-white">
@@ -110,15 +135,14 @@ export function Header() {
                 href={href}
                 className={clsx(
                   "text-gray-600 hover:text-black transition-all font-medium flex items-center gap-2 py-1",
-                  (pathname === href || pathname.startsWith(`${href}/`)) &&
-                    "text-primary border-b-2 border-primary"
+                  isLinkActive(href) && "text-primary border-b-2 border-primary"
                 )}
               >
                 {/* icon */}
                 <span className="w-4 h-4">
                   {Icon && <Icon className="w-4 h-4" />}
                 </span>
-                {name}
+                <span className="hidden md:block">{name}</span>
               </Link>
             ))}
           </nav>
@@ -128,8 +152,8 @@ export function Header() {
           {user && (
             <StreakDisplay
               loading={loading}
-              error={error}
-              streakData={streakData}
+              error={errorMessage}
+              streakData={streakData || null}
             />
           )}
 

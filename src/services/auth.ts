@@ -212,8 +212,11 @@ class AuthService {
       console.log("SINGUP DATA", response.data);
 
       // Store token and user data
-      if (response.data.token) {
-        this.setTokens(response.data.token, response.data.token);
+      if (response.data.tokens) {
+        this.setTokens(
+          response.data.tokens.access,
+          response.data.tokens.refresh
+        );
         this.setCurrentUser(response.data.user);
       }
 

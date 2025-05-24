@@ -582,6 +582,7 @@ export default function Page() {
 
       if (result) {
         toast({
+          variant: "default",
           title: "Waad mahadsantahay!",
           description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
         });
@@ -950,19 +951,19 @@ export default function Page() {
                   currentStep === 6
                     ? " text-white"
                     : currentStep === 5
-                      ? userData.email &&
-                        userData.password &&
-                        userData.name &&
-                        userData.age
-                        ? " text-white"
-                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : currentStep === 3
-                        ? topicLevels[selectedTopic]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                        : selections[currentStep]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                    ? userData.email &&
+                      userData.password &&
+                      userData.name &&
+                      userData.age
+                      ? " text-white"
+                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                    : currentStep === 3
+                    ? topicLevels[selectedTopic]
+                      ? " text-white"
+                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                    : selections[currentStep]
+                    ? " text-white"
+                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {

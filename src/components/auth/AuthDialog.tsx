@@ -135,7 +135,10 @@ export function AuthDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="font-semibold text-base md:text-lg">
+        <Button
+          variant="outline"
+          className="font-semibold text-base md:text-lg"
+        >
           Soo gal
         </Button>
       </DialogTrigger>
@@ -160,10 +163,7 @@ export function AuthDialog() {
 
         <div className="space-y-4 animate-in fade-in-50 duration-500 delay-200">
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {error && (
                 <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md relative">
                   <button
@@ -183,7 +183,7 @@ export function AuthDialog() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Email-kaaga</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="email@example.com"
@@ -201,7 +201,7 @@ export function AuthDialog() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>lamberka sir ah</FormLabel>
+                    <FormLabel>lamberka sirta ah</FormLabel>
                     <FormControl>
                       <Input
                         type="password"

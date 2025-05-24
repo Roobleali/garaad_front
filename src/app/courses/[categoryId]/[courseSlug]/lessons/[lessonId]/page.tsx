@@ -1,8 +1,9 @@
 "use client";
 import type React from "react";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
+import useSWR from "swr";
 import type { RootState, AppDispatch } from "@/store";
 import { fetchLesson, resetAnswerState } from "@/store/features/learningSlice";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { ExplanationText, TextContent } from "@/types/learning";
 import LessonHeader from "@/components/LessonHeader";
 import { AnswerFeedback } from "@/components/AnswerFeedback";
-
 import type {
   LeaderboardEntry,
   UserRank,
@@ -28,8 +28,6 @@ import {
   useRewards,
   useUserRank,
 } from "@/hooks/useCompletedLessonFetch";
-// import "katex/dist/katex.min.css";
-// import { BlockMath, InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 import ProblemBlock from "@/components/lesson/ProblemBlock";
 import TextBlock from "@/components/lesson/TextBlock";
@@ -84,11 +82,11 @@ export interface ProblemContent {
   explanation?: string;
   diagram_config?: DiagramConfig;
   question_type?:
-  | "code"
-  | "mcq"
-  | "short_input"
-  | "diagram"
-  | "multiple_choice";
+    | "code"
+    | "mcq"
+    | "short_input"
+    | "diagram"
+    | "multiple_choice";
   img?: string;
   alt?: string;
   content: {
@@ -104,7 +102,59 @@ interface ProblemOptions {
   };
 }
 
-// Sound manager for better audio handling
+// SWR fetchers
+const publicFetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
+  return response.json();
+};
+
+const authFetcher = async (
+  url: string,
+  method: "get" | "post" = "get",
+  body?: Record<string, unknown>
+) => {
+  const service = AuthService.getInstance();
+  return service.makeAuthenticatedRequest(method, url, body);
+};
+
+// Memoized loading component
+const LoadingSpinner = ({ message }: { message: string }) => (
+  <div className="min-h-screen bg-white flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <p className="text-muted-foreground">{message}</p>
+    </div>
+  </div>
+);
+
+// Memoized error component
+const ErrorCard = ({
+  coursePath,
+  onRetry,
+}: {
+  coursePath: string;
+  onRetry: () => void;
+}) => (
+  <div className="min-h-screen bg-white flex items-center justify-center">
+    <Card className="max-w-md w-full">
+      <CardContent className="p-6 text-center">
+        <div className="text-gray-600 space-y-4">
+          <h2 className="text-xl font-semibold">No Lesson Found</h2>
+          <p>The requested lesson could not be found or loaded.</p>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <Button asChild>
+              <a href={coursePath}>Kulaabo Bogga Casharka</a>
+            </Button>
+            <Button className="gap-2" onClick={onRetry}>
+              <ReplaceIcon /> Isku day
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const LessonPage = () => {
   const params = useParams();
@@ -115,6 +165,8 @@ const LessonPage = () => {
     (state: RootState) => state.learning
   );
   const isLoading = useSelector((state: RootState) => state.learning.isLoading);
+
+  // Local state
   const [courseId, setCourseId] = useState("");
   const [isLessonCompleted, setIsLessonCompleted] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -122,7 +174,6 @@ const LessonPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-
   const [explanationData, setExplanationData] = useState<{
     explanation: string | ExplanationText;
     image: string;
@@ -132,17 +183,26 @@ const LessonPage = () => {
     image: "",
     type: "",
   });
-  const { playSound } = useSoundManager();
-  const continueRef = useRef<() => void>(() => { });
   const [navigating, setNavigating] = useState(false);
-
-  // State for all problems and current problem
   const [problems, setProblems] = useState<ProblemContent[]>([]);
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
   const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
   const [currentBlock, setCurrentBlock] = useState<React.ReactNode>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [disabledOptions, setDisabledOptions] = useState<string[]>([]);
+
+  const { playSound } = useSoundManager();
+  const continueRef = useRef<() => void>(() => {});
+
+  // SWR hooks for data fetching with caching
+  const { data: courses } = useSWR<Course[]>(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`,
+    publicFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
 
   const {
     data: rewards,
@@ -166,41 +226,46 @@ const LessonPage = () => {
 
   const { mutate: mutateCourseProgress } = useCourseProgress(courseId);
 
-  // Derived state for current problem
-  const currentProblem =
-    problems.length > 0 && currentProblemIndex < problems.length
+  // Memoized derived values
+  const currentProblem = useMemo(() => {
+    return problems.length > 0 && currentProblemIndex < problems.length
       ? problems[currentProblemIndex]
       : null;
+  }, [problems, currentProblemIndex]);
 
-  const coursePath = `/courses/${params.categoryId}/${params.courseSlug}`;
+  const coursePath = useMemo(
+    () => `/courses/${params.categoryId}/${params.courseSlug}`,
+    [params]
+  );
+
+  const sortedBlocks = useMemo(() => {
+    if (!currentLesson?.content_blocks) return [];
+    return [...currentLesson.content_blocks]
+      .filter((b) => !(b.block_type === "problem" && !b.problem))
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [currentLesson?.content_blocks]);
+
+  // Memoized course ID lookup
+  const courseIdFromSlug = useMemo(() => {
+    if (!courses || !params.courseSlug) return null;
+    const course = courses.find(
+      (course: Course) => course.slug === params.courseSlug
+    );
+    return course?.id || null;
+  }, [courses, params.courseSlug]);
+
+  // Update courseId when found
+  useEffect(() => {
+    if (courseIdFromSlug) {
+      setCourseId(String(courseIdFromSlug));
+    }
+  }, [courseIdFromSlug]);
 
   // Reset state when block changes
   useEffect(() => {
     setSelectedOption(null);
     setDisabledOptions([]);
   }, [currentBlockIndex]);
-
-  const fetchCourseIdFromSlug = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch course ID: ${response.statusText}`);
-      }
-      const data = await response.json();
-      if (data && data.length > 0) {
-        return setCourseId(
-          data.filter((course: Course) => course.slug === params.courseSlug)[0]
-            .id
-        ); // Assuming the API returns an array of courses
-      }
-      throw new Error("Course not found");
-    } catch (error) {
-      console.error("Error fetching course ID:", error);
-      return null;
-    }
-  };
 
   // Fetch lesson data
   useEffect(() => {
@@ -209,110 +274,101 @@ const LessonPage = () => {
     }
   }, [dispatch, params.lessonId]);
 
-  useEffect(() => {
-    fetchCourseIdFromSlug();
-  }, [params.courseSlug]);
+  // Memoized problem fetching function
+  const fetchAllProblems = useCallback(async () => {
+    if (!currentLesson?.content_blocks) {
+      setProblems([]);
+      return;
+    }
 
-  // Fetch all problems for the lesson
-  useEffect(() => {
-    const fetchAllProblems = async () => {
-      if (!currentLesson?.content_blocks) {
-        setProblems([]);
-        return;
-      }
+    const problemBlocks = sortedBlocks.filter(
+      (b) => b.block_type === "problem" && b.problem !== null
+    );
 
-      // Sort and filter all problem blocks
-      const sortedBlocks = [...(currentLesson?.content_blocks || [])]
-        .filter((b) => !(b.block_type === "problem" && !b.problem))
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (problemBlocks.length === 0) {
+      setProblems([]);
+      setProblemLoading(false);
+      return;
+    }
 
-      const problemBlocks = sortedBlocks.filter(
-        (b) => b.block_type === "problem" && b.problem !== null
+    setProblemLoading(true);
+
+    try {
+      // Parallel fetching for better performance
+      const fetches = problemBlocks.map((block) =>
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/lms/problems/${block.problem}/`
+        )
+      );
+      const responses = await Promise.all(fetches);
+
+      // Check for errors
+      responses.forEach((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch problem: ${res.statusText}`);
+        }
+      });
+
+      // Parse JSON bodies in parallel
+      const datas = await Promise.all(
+        responses.map((r) => r.json() as Promise<ProblemData>)
       );
 
-      if (problemBlocks.length === 0) {
-        setProblems([]);
-        setProblemLoading(false);
-        return;
-      }
+      // Transform data
+      const transformed: ProblemContent[] = datas.map((pd: ProblemData) => ({
+        id: pd.id,
+        question: pd.question_text,
+        which: pd.which,
+        options: Array.isArray(pd.options)
+          ? pd.options.map((opt) => opt.text)
+          : pd?.options,
+        correct_answer: pd.correct_answer.map((ans, index) => ({
+          id: `answer-${index}`,
+          text: ans.text,
+        })),
+        img: pd.img,
+        alt: pd.alt,
+        explanation: pd.explanation || "No explanation available",
+        diagram_config: pd.diagram_config,
+        question_type: ["code", "mcq", "short_input", "diagram"].includes(
+          pd.question_type
+        )
+          ? (pd.question_type as "code" | "mcq" | "short_input" | "diagram")
+          : undefined,
+        content: pd.content,
+        type: pd.content.type,
+      }));
 
-      setProblemLoading(true);
+      setProblems(transformed);
 
-      try {
-        // Kick off all fetches in parallel
-        const fetches = problemBlocks.map((block) =>
-          fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/lms/problems/${block.problem}/`
-          )
-        );
-        const responses = await Promise.all(fetches);
-
-        // Check for errors
-        responses.forEach((res) => {
-          if (!res.ok) {
-            throw new Error(`Failed to fetch problem: ${res.statusText}`);
-          }
+      // Set initial explanation data
+      if (transformed.length > 0) {
+        setExplanationData({
+          explanation: transformed[0].explanation || "",
+          image: "",
+          type: transformed[0].content.type || "",
         });
-
-        // Parse JSON bodies in parallel
-        const datas = await Promise.all(
-          responses.map((r) => r.json() as Promise<ProblemData>)
-        );
-        console.log(datas);
-        // Transform into your shape
-        const transformed: ProblemContent[] = datas.map((pd: ProblemData) => ({
-          id: pd.id,
-          question: pd.question_text,
-          which: pd.which,
-          options: Array.isArray(pd.options)
-            ? pd.options.map((opt) => opt.text)
-            : pd?.options,
-          correct_answer: pd.correct_answer.map((ans, index) => ({
-            id: `answer-${index}`,
-            text: ans.text,
-          })),
-          img: pd.img,
-          alt: pd.alt,
-          explanation: pd.explanation || "No explanation available",
-          diagram_config: pd.diagram_config,
-          question_type: ["code", "mcq", "short_input", "diagram"].includes(
-            pd.question_type
-          )
-            ? (pd.question_type as "code" | "mcq" | "short_input" | "diagram")
-            : undefined,
-          content: pd.content,
-          type: pd.content.type,
-        }));
-        // Update state with new data
-        setProblems(transformed);
-
-        // Set initial explanation data
-        if (transformed.length > 0) {
-          setExplanationData({
-            explanation: transformed[0].explanation || "",
-            image: "", // Set image if available in your data
-            type: transformed[0].content.type || "",
-          });
-        }
-
-        setError(null);
-      } catch (err: unknown) {
-        console.error("Error fetching problems:", err);
-        setError(
-          (err instanceof Error ? err.message : String(err)) ||
-          "Failed to load problems"
-        );
-      } finally {
-        setProblemLoading(false);
       }
-    };
 
-    fetchAllProblems();
-  }, [currentLesson]);
+      setError(null);
+    } catch (err: unknown) {
+      console.error("Error fetching problems:", err);
+      setError(
+        (err instanceof Error ? err.message : String(err)) ||
+          "Failed to load problems"
+      );
+    } finally {
+      setProblemLoading(false);
+    }
+  }, [currentLesson, sortedBlocks]);
 
-  // Save and restore lesson progress using localStorage
+  // Fetch problems when lesson changes
   useEffect(() => {
-    // When component mounts, try to restore progress from localStorage
+    fetchAllProblems();
+  }, [fetchAllProblems]);
+
+  // Memoized progress management
+  useEffect(() => {
     if (currentLesson?.id) {
       const storageKey = `lesson_progress_${currentLesson.id}`;
       const savedProgress = localStorage.getItem(storageKey);
@@ -320,11 +376,10 @@ const LessonPage = () => {
       if (savedProgress) {
         try {
           const { blockIndex } = JSON.parse(savedProgress);
-          // Only restore if the saved block index is valid
           if (
             blockIndex >= 0 &&
-            currentLesson.content_blocks &&
-            blockIndex < currentLesson.content_blocks.length
+            sortedBlocks &&
+            blockIndex < sortedBlocks.length
           ) {
             setCurrentBlockIndex(blockIndex);
           }
@@ -333,9 +388,9 @@ const LessonPage = () => {
         }
       }
     }
-  }, [currentLesson?.id]);
+  }, [currentLesson?.id, sortedBlocks]);
 
-  // Save progress whenever block changes
+  // Save progress
   useEffect(() => {
     if (currentLesson?.id && currentBlockIndex >= 0) {
       const storageKey = `lesson_progress_${currentLesson.id}`;
@@ -354,64 +409,42 @@ const LessonPage = () => {
     if (currentProblem) {
       setExplanationData({
         explanation: currentProblem.explanation || "",
-        image: "", // Set image if available in your data
+        image: "",
         type: currentProblem.content.type || "",
       });
     }
   }, [currentProblem]);
 
-  // Handle option selection
+  // Memoized event handlers
   const handleOptionSelect = useCallback(
     (option: string) => {
-      // Prevent further selection after the first choice
-      // if (selectedOption !== null) return;
       setShowFeedback(false);
       dispatch(resetAnswerState());
       setSelectedOption(String(option));
       playSound("click");
     },
-    [dispatch, playSound, selectedOption]
+    [dispatch, playSound]
   );
 
-  const fetcher = async (
-    url: string,
-    method: "get" | "post" = "get",
-    body?: Record<string, unknown>
-  ) => {
-    const service = AuthService.getInstance();
-    return service.makeAuthenticatedRequest(method, url, body);
-  };
-
-  // Handle continue to next block
   const handleContinue = useCallback(async () => {
-    // 1) sort & filter your blocks
-    const sortedBlocks = (currentLesson?.content_blocks || [])
-      .filter((b) => !(b.block_type === "problem" && !b.problem))
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-    if (sortedBlocks.length === 0) {
-      return;
-    }
+    if (sortedBlocks.length === 0) return;
 
     const lastIndex = sortedBlocks.length - 1;
     const isLastBlock = currentBlockIndex === lastIndex;
 
-    // common UI stuff
     playSound("continue");
     window.scrollTo({ top: 0, behavior: "smooth" });
     setShowFeedback(false);
 
     if (!isLastBlock) {
-      // → not last: just advance
       setCurrentBlockIndex((i) => Math.min(i + 1, lastIndex));
       return;
     }
 
-    // → last block: handle completion
+    // Handle completion
     setIsLessonCompleted(true);
 
     if (currentLesson?.id) {
-      // fallback localStorage
       try {
         const done = JSON.parse(
           localStorage.getItem("completedLessons") || "[]"
@@ -425,8 +458,7 @@ const LessonPage = () => {
       }
 
       try {
-        // 1. mark lesson complete
-        await fetcher(
+        await authFetcher(
           `/api/lms/lessons/${currentLesson.id}/complete/`,
           "post",
           {
@@ -434,7 +466,7 @@ const LessonPage = () => {
           }
         );
 
-        // 2. revalidate all SWR hooks in parallel
+        // Revalidate all SWR hooks in parallel
         await Promise.all([
           mutateCourseProgress(),
           mutateRewards(),
@@ -460,6 +492,7 @@ const LessonPage = () => {
     mutateUserRank,
     mutateCourseProgress,
     toast,
+    sortedBlocks,
   ]);
 
   // Update the ref when handleContinue changes
@@ -467,300 +500,221 @@ const LessonPage = () => {
     continueRef.current = handleContinue;
   }, [handleContinue]);
 
-  // Handle answer checking
   const handleCheckAnswer = useCallback(() => {
-    if (!selectedOption || !currentProblem) {
-      return;
-    }
+    if (!selectedOption || !currentProblem) return;
 
-    // Get correct answer from the current problem
     const correctAnswer = currentProblem.correct_answer?.map((ans) => ans.text);
-
-    // Check if selected option is correct
     const isCorrect = correctAnswer?.includes(selectedOption) || false;
 
-    // Update state
     setIsCorrect(isCorrect);
     setShowFeedback(true);
-
-    // Play appropriate sound
     playSound(isCorrect ? "correct" : "incorrect");
 
     if (!isCorrect) {
       setDisabledOptions((prev) => [...prev, selectedOption]);
-      setSelectedOption(null); // allow user to pick another
+      setSelectedOption(null);
     }
+  }, [selectedOption, currentProblem, playSound]);
 
-    // If answer is correct, show success message
-  }, [selectedOption, currentProblem, playSound, toast]);
-
-  const handleContinueAfterCompletion = () => {
+  const handleContinueAfterCompletion = useCallback(() => {
     setShowLeaderboard(false);
     setIsLessonCompleted(false);
     setNavigating(true);
-    router.push(`${coursePath}`);
-  };
+    router.push(coursePath);
+  }, [router, coursePath]);
 
-  const handleShowLeaderboard = () => {
+  const handleShowLeaderboard = useCallback(() => {
     setShowLeaderboard(true);
-  };
+  }, []);
 
-  // Reset answer state
-  const handleResetAnswer = () => {
+  const handleResetAnswer = useCallback(() => {
     dispatch(resetAnswerState());
     setShowFeedback(false);
     setSelectedOption(null);
-  };
+  }, [dispatch]);
 
-  // Render current block based on content type
-  useEffect(() => {
-    const renderCurrentBlock = async () => {
-      if (
-        currentLesson?.content_blocks &&
-        currentLesson.content_blocks.length > 0
-      ) {
-        // Debug: log all block types in the lesson
-        const allBlockTypes = currentLesson.content_blocks.map((b, i) => ({
-          i,
-          type: b.block_type,
-        }));
-        console.log("[DEBUG] All block types in lesson:", allBlockTypes);
-        if (
-          !currentLesson.content_blocks.some(
-            (b) => b.block_type === "calculator_interface"
-          )
-        ) {
-          console.warn(
-            "[DEBUG] No calculator_interface block found in lesson!"
-          );
+  const handleRetry = useCallback(() => {
+    router.refresh();
+  }, [router]);
+
+  // Memoized block rendering
+  const renderCurrentBlock = useCallback(() => {
+    if (!sortedBlocks || sortedBlocks.length === 0) return null;
+
+    const block = sortedBlocks[currentBlockIndex];
+    if (!block) return null;
+
+    const isLastBlock = currentBlockIndex === sortedBlocks.length - 1;
+
+    switch (block.block_type) {
+      case "problem":
+        const problemId = block.problem;
+        const problemIndex = problems.findIndex((p) => p.id === problemId);
+
+        if (problemIndex !== -1) {
+          const currentProblem = problems[problemIndex];
+
+          if (
+            currentProblem.content &&
+            currentProblem.content.type === "calculator"
+          ) {
+            const options = currentProblem.options as unknown as ProblemOptions;
+            return (
+              <CalculatorProblemBlock
+                question={currentProblem.question}
+                which={currentProblem?.which}
+                view={options?.view}
+                onContinue={handleContinue}
+              />
+            );
+          }
+          setCurrentProblemIndex(problemIndex);
         }
-        const sortedBlocks = [...currentLesson.content_blocks]
-          .filter((b) => !(b.block_type === "problem" && !b.problem))
-          .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-        const block = sortedBlocks[currentBlockIndex];
-        if (!block) return;
+        return (
+          <ProblemBlock
+            onContinue={handleContinue}
+            selectedOption={selectedOption}
+            answerState={answerState}
+            onOptionSelect={handleOptionSelect}
+            onCheckAnswer={handleCheckAnswer}
+            isLoading={problemLoading}
+            error={error}
+            content={currentProblem}
+            isCorrect={isCorrect}
+            isLastInLesson={isLastBlock}
+            disabledOptions={disabledOptions}
+          />
+        );
 
-        const isLastBlock = currentBlockIndex === sortedBlocks.length - 1;
-        console.log(block);
+      case "diagram":
+        const diagramProblemId = block.problem;
+        const diagramProblemIndex = problems.findIndex(
+          (p) => p.id === diagramProblemId
+        );
 
-        switch (block.block_type) {
-          case "problem":
-            // Find the problem index that corresponds to this block
-            const problemId = block.problem;
-            const problemIndex = problems.findIndex((p) => p.id === problemId);
-
-            if (problemIndex !== -1) {
-              const currentProblem = problems[problemIndex];
-              // Special case: render calculator interface for problems with content.type === 'calculator'
-              console.log(
-                "+++++++++++++++++PROBLEM++++++++++++++",
-                currentProblem
-              );
-              if (
-                currentProblem.content &&
-                currentProblem.content.type === "calculator"
-              ) {
-                const options =
-                  currentProblem.options as unknown as ProblemOptions;
-                setCurrentBlock(
-                  <CalculatorProblemBlock
-                    question={currentProblem.question}
-                    which={currentProblem?.which}
-                    view={options?.view}
-                    onContinue={handleContinue}
-                  />
-                );
-                break;
-              }
-              setCurrentProblemIndex(problemIndex);
-            }
-            setCurrentBlock(
-              <ProblemBlock
-                onContinue={handleContinue}
-                selectedOption={selectedOption}
-                answerState={answerState}
-                onOptionSelect={handleOptionSelect}
-                onCheckAnswer={handleCheckAnswer}
-                isLoading={problemLoading}
-                error={error}
-                content={currentProblem}
-                isCorrect={isCorrect}
-                isLastInLesson={isLastBlock}
-                disabledOptions={disabledOptions}
-              />
-            );
-            break;
-
-          case "diagram":
-            // Similar to problem case, find the corresponding problem
-            const diagramProblemId = block.problem;
-            const diagramProblemIndex = problems.findIndex(
-              (p) => p.id === diagramProblemId
-            );
-
-            if (diagramProblemIndex !== -1) {
-              setCurrentProblemIndex(diagramProblemIndex);
-            }
-
-            setCurrentBlock(
-              <ProblemBlock
-                onContinue={handleContinue}
-                selectedOption={selectedOption}
-                answerState={answerState}
-                onOptionSelect={handleOptionSelect}
-                onCheckAnswer={handleCheckAnswer}
-                isLoading={problemLoading}
-                error={error}
-                content={currentProblem}
-                isCorrect={isCorrect}
-                isLastInLesson={isLastBlock}
-                disabledOptions={disabledOptions}
-              />
-            );
-            break;
-
-          case "text":
-            const textContent =
-              typeof block.content === "string"
-                ? (JSON.parse(block.content) as TextContent)
-                : (block.content as TextContent);
-
-            // Ensure we're using the global sorted blocks for determining last block
-            const isActuallyLastBlock =
-              currentBlockIndex === sortedBlocks.length - 1;
-
-            setCurrentBlock(
-              <TextBlock
-                content={textContent}
-                onContinue={handleContinue}
-                isLastBlock={isActuallyLastBlock}
-              />
-            );
-            break;
-
-          case "image":
-            const imageContent =
-              typeof block.content === "string"
-                ? JSON.parse(block.content)
-                : block.content;
-
-            setCurrentBlock(
-              <ImageBlock
-                content={imageContent}
-                onContinue={handleContinue}
-                isLastBlock={isLastBlock}
-              />
-            );
-            break;
-
-          case "video":
-            const videoContent =
-              typeof block.content === "string"
-                ? JSON.parse(block.content)
-                : block.content;
-
-            setCurrentBlock(
-              <VideoBlock
-                content={videoContent}
-                onContinue={handleContinue}
-                isLastBlock={isLastBlock}
-              />
-            );
-            break;
-
-          default:
-            setCurrentBlock(
-              <div className="max-w-2xl mx-auto px-4">
-                <Card>
-                  <CardContent className="p-6 text-center">
-                    <p className="text-muted-foreground">
-                      This content type is not supported.
-                    </p>
-                  </CardContent>
-                  <CardFooter className="flex justify-center">
-                    <Button onClick={handleContinue}>
-                      Sii wado
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
-            );
+        if (diagramProblemIndex !== -1) {
+          setCurrentProblemIndex(diagramProblemIndex);
         }
-      }
-    };
 
-    renderCurrentBlock();
+        return (
+          <ProblemBlock
+            onContinue={handleContinue}
+            selectedOption={selectedOption}
+            answerState={answerState}
+            onOptionSelect={handleOptionSelect}
+            onCheckAnswer={handleCheckAnswer}
+            isLoading={problemLoading}
+            error={error}
+            content={currentProblem}
+            isCorrect={isCorrect}
+            isLastInLesson={isLastBlock}
+            disabledOptions={disabledOptions}
+          />
+        );
+
+      case "text":
+        const textContent =
+          typeof block.content === "string"
+            ? (JSON.parse(block.content) as TextContent)
+            : (block.content as TextContent);
+
+        return (
+          <TextBlock
+            content={textContent}
+            onContinue={handleContinue}
+            isLastBlock={isLastBlock}
+          />
+        );
+
+      case "image":
+        const imageContent =
+          typeof block.content === "string"
+            ? JSON.parse(block.content)
+            : block.content;
+
+        return (
+          <ImageBlock
+            content={imageContent}
+            onContinue={handleContinue}
+            isLastBlock={isLastBlock}
+          />
+        );
+
+      case "video":
+        const videoContent =
+          typeof block.content === "string"
+            ? JSON.parse(block.content)
+            : block.content;
+
+        return (
+          <VideoBlock
+            content={videoContent}
+            onContinue={handleContinue}
+            isLastBlock={isLastBlock}
+          />
+        );
+
+      default:
+        return (
+          <div className="max-w-2xl mx-auto px-4">
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-muted-foreground">
+                  This content type is not supported.
+                </p>
+              </CardContent>
+              <CardFooter className="flex justify-center">
+                <Button onClick={handleContinue}>
+                  Sii wado
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        );
+    }
   }, [
-    currentLesson,
+    sortedBlocks,
     currentBlockIndex,
+    problems,
+    handleContinue,
     selectedOption,
     answerState,
+    handleOptionSelect,
+    handleCheckAnswer,
     problemLoading,
     error,
-    problems,
     currentProblem,
-    currentProblemIndex,
     isCorrect,
-    handleCheckAnswer,
-    handleContinue,
-    handleOptionSelect,
+    disabledOptions,
   ]);
+
+  // Update current block when dependencies change
+  useEffect(() => {
+    setCurrentBlock(renderCurrentBlock());
+  }, [renderCurrentBlock]);
+
+  // Memoized total questions count
+  const totalQuestions = useMemo(() => {
+    return sortedBlocks.length;
+  }, [sortedBlocks]);
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Soo-dejinaya casharada....</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Soo-dejinaya casharada...." />;
   }
 
   // No lesson found
   if (!currentLesson) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <div className="text-gray-600 space-y-4">
-              <h2 className="text-xl font-semibold">No Lesson Found</h2>
-              <p>The requested lesson could not be found or loaded.</p>
-              <div className="flex items-center justify-center gap-3 mt-2">
-                <Button asChild className="">
-                  <a href={`${coursePath}`}>Kulaabo Bogga Casharka</a>
-                </Button>
-                <Button className="gap-2" onClick={() => router.refresh()}>
-                  <ReplaceIcon /> Isku day
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ErrorCard coursePath={coursePath} onRetry={handleRetry} />;
   }
 
   // Render the page
-  console.log("Render state:", {
-    isLessonCompleted,
-    showLeaderboard,
-  });
   return (
     <div className="min-h-screen bg-white">
-
       {navigating ? (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-muted-foreground">
-              Soo dajinaya bogga casharada...
-            </p>
-          </div>
-        </div>
+        <LoadingSpinner message="Soo dajinaya bogga casharada..." />
       ) : isLessonCompleted && showLeaderboard ? (
         <Leaderboard
           onContinue={handleContinueAfterCompletion}
@@ -770,18 +724,9 @@ const LessonPage = () => {
       ) : isLessonCompleted ? (
         <div>
           {isLoadingRewards ? (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-muted-foreground">
-                  soo dajinaya abaalmarinada...
-                </p>
-              </div>
-            </div>
+            <LoadingSpinner message="soo dajinaya abaalmarinada..." />
           ) : rewards.length === 0 && !isLoadingRewards ? (
-            <ShareLesson
-              lessonTitle={currentLesson?.title || "Cashar"}
-            />
+            <ShareLesson lessonTitle={currentLesson?.title || "Cashar"} />
           ) : (
             <RewardComponent
               onContinue={handleShowLeaderboard}
@@ -800,11 +745,7 @@ const LessonPage = () => {
         <div>
           <LessonHeader
             currentQuestion={currentBlockIndex + 1}
-            totalQuestions={
-              currentLesson.content_blocks?.filter(
-                (b) => !(b.block_type === "problem" && b.problem === null)
-              ).length || 0
-            }
+            totalQuestions={totalQuestions}
             coursePath={coursePath}
           />
 
@@ -812,7 +753,6 @@ const LessonPage = () => {
             <div className="container mx-auto">{currentBlock}</div>
           </main>
 
-          {/* Show AnswerFeedback for all answers */}
           {showFeedback && (
             <AnswerFeedback
               isCorrect={isCorrect}

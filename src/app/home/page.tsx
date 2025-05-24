@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import type React from "react";
 import Image from "next/image";
+import useSWR from "swr";
 import {
   Clock,
   Trophy,
@@ -77,26 +78,23 @@ interface UserLevel {
   experience_to_next_level: number;
 }
 
+// SWR fetcher function with authentication
+const authFetcher = async <T = any,>(url: string): Promise<T> => {
+  const service = AuthService.getInstance();
+  return await service.makeAuthenticatedRequest("get", url);
+};
+
+// Public fetcher for courses
+const publicFetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Failed to fetch");
+  return response.json();
+};
+
 export default function Home() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
-  const [leaderboardData, setLeaderboardData] = useState<
-    LeaderboardEntry[] | null
-  >(null);
-  const [userRankData, setUserRankData] = useState<UserRank | null>(null);
-  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(true);
-  const [isLoadingUserRank, setIsLoadingUserRank] = useState(true);
-  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
-  const [userRankError, setUserRankError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true);
-  const [dailyChallenges, setDailyChallenges] = useState<Challenge[]>([]);
-  const [isLoadingChallenges, setIsLoadingChallenges] = useState(true);
-  const [userLevel, setUserLevel] = useState<UserLevel | null>(null);
-  const [isLoadingUserLevel, setIsLoadingUserLevel] = useState(true);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState("all_time");
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -105,150 +103,105 @@ export default function Home() {
   const router = useRouter();
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // fetch the categoryid of a course by its name
-  const getCategoryIdByName = (categoryName: string): string | null => {
-    const category = (categories ?? []).find((cat) =>
-      cat.courses.some((course) => course.title === categoryName)
-    );
-    return category?.id ?? null;
-  };
+  // SWR hooks for data fetching with caching
+  const { data: courses = [], isLoading: isLoadingCourses } = useSWR<Course[]>(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`,
+    publicFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 300000, // 5 minutes
+    }
+  );
 
-  const storedUser = AuthService.getInstance().getCurrentUser();
+  const {
+    data: leaderboardData,
+    isLoading: isLoadingLeaderboard,
+    error: leaderboardError,
+  } = useSWR<LeaderboardEntry[]>(
+    `/api/lms/leaderboard/?time_period=${leaderboardPeriod}`,
+    authFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
+
+  const {
+    data: userRankData,
+    isLoading: isLoadingUserRank,
+    error: userRankError,
+    mutate: mutateUserRank,
+  } = useSWR<UserRank>(
+    `/api/lms/leaderboard/my_rank/?time_period=${leaderboardPeriod}`,
+    authFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000, // 1 minute
+    }
+  );
+
+  const { data: achievements = [], isLoading: isLoadingAchievements } = useSWR<
+    Achievement[]
+  >("/api/lms/achievements/user_achievements/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000, // 10 minutes
+  });
+
+  const {
+    data: dailyChallenges = [],
+    isLoading: isLoadingChallenges,
+    mutate: mutateChallenges,
+  } = useSWR<Challenge[]>("/api/lms/challenges/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 300000, // 5 minutes
+  });
+
+  const { data: userLevel, isLoading: isLoadingUserLevel } = useSWR<UserLevel>(
+    "/api/lms/levels/",
+    authFetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 600000, // 10 minutes
+    }
+  );
+
+  // Memoized category lookup function
+  const getCategoryIdByName = useCallback(
+    (categoryName: string): string | null => {
+      const category = (categories ?? []).find((cat) =>
+        cat.courses.some(
+          (course: { title: string }) => course.title === categoryName
+        )
+      );
+      return category?.id ?? null;
+    },
+    [categories]
+  );
+
+  const storedUser = useMemo(
+    () => AuthService.getInstance().getCurrentUser(),
+    []
+  );
   const minSwipeDistance = 50;
-
-  // Fetch protected leaderboard and user rank
-  useEffect(() => {
-    const service = AuthService.getInstance();
-
-    const fetchLeaderboard = async () => {
-      try {
-        const response = await service.makeAuthenticatedRequest(
-          "get",
-          `/api/lms/leaderboard/?time_period=${leaderboardPeriod}`
-        );
-        setLeaderboardData(response as LeaderboardEntry[]);
-      } catch (err: any) {
-        console.error("Error fetching leaderboard:", err);
-        setLeaderboardError(err.message || "Failed to fetch leaderboard");
-      } finally {
-        setIsLoadingLeaderboard(false);
-      }
-    };
-
-    // Fetch user rank
-    const fetchUserRank = async () => {
-      try {
-        const response = await service.makeAuthenticatedRequest(
-          "get",
-          `/api/lms/leaderboard/my_rank/?time_period=${leaderboardPeriod}`
-        );
-        setUserRankData(response as UserRank);
-      } catch (err: any) {
-        console.error("Error fetching user rank:", err);
-        setUserRankError(err.message || "Failed to fetch user rank");
-      } finally {
-        setIsLoadingUserRank(false);
-      }
-    };
-
-    fetchLeaderboard();
-    fetchUserRank();
-  }, [leaderboardPeriod]);
-
-  // Fetch user achievements
-  useEffect(() => {
-    const service = AuthService.getInstance();
-
-    const fetchAchievements = async () => {
-      try {
-        const response = await service.makeAuthenticatedRequest(
-          "get",
-          "/api/lms/achievements/user_achievements/"
-        );
-        setAchievements(response as Achievement[]);
-      } catch (err) {
-        console.error("Error fetching achievements:", err);
-      } finally {
-        setIsLoadingAchievements(false);
-      }
-    };
-
-    fetchAchievements();
-  }, []);
-
-  // Fetch daily challenges
-  useEffect(() => {
-    const service = AuthService.getInstance();
-
-    const fetchChallenges = async () => {
-      try {
-        const response = await service.makeAuthenticatedRequest(
-          "get",
-          "/api/lms/challenges/"
-        );
-        setDailyChallenges(response as Challenge[]);
-      } catch (err) {
-        console.error("Error fetching challenges:", err);
-      } finally {
-        setIsLoadingChallenges(false);
-      }
-    };
-
-    fetchChallenges();
-  }, []);
-
-  // Fetch user level
-  useEffect(() => {
-    const service = AuthService.getInstance();
-
-    const fetchUserLevel = async () => {
-      try {
-        const response = await service.makeAuthenticatedRequest(
-          "get",
-          "/api/lms/levels/"
-        );
-        setUserLevel(response as UserLevel);
-      } catch (err) {
-        console.error("Error fetching user level:", err);
-      } finally {
-        setIsLoadingUserLevel(false);
-      }
-    };
-
-    fetchUserLevel();
-  }, []);
 
   useEffect(() => {
     const authService = AuthService.getInstance();
     if (!authService.isAuthenticated()) router.push("/");
   }, [router]);
 
-  // Fetch public courses
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`
-        );
-        const data: Course[] = await response.json();
-        setCourses(data);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      } finally {
-        setIsLoadingCourses(false);
-      }
-    };
-    fetchCourses();
-  }, []);
-
-  // Carousel touch handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Memoized touch handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-  };
-  const handleTouchMove = (e: React.TouchEvent) =>
-    setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
+  }, []);
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX),
+    []
+  );
+
+  const handleTouchEnd = useCallback(() => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance && currentSlide < courses.length - 1) {
@@ -257,50 +210,54 @@ export default function Home() {
     if (distance < -minSwipeDistance && currentSlide > 0) {
       setCurrentSlide((s) => s - 1);
     }
-  };
+  }, [touchStart, touchEnd, currentSlide, courses.length]);
 
-  const getInitials = (username: string) => username.slice(0, 2).toUpperCase();
+  const getInitials = useCallback(
+    (username: string) => username.slice(0, 2).toUpperCase(),
+    []
+  );
 
-  // Function to handle challenge completion
-  const handleCompleteChallenge = async (challengeId: number) => {
-    const service = AuthService.getInstance();
-    try {
-      await service.makeAuthenticatedRequest(
-        "post",
-        `/api/lms/challenges/${challengeId}/submit_attempt/`
-      );
+  // Optimized challenge completion handler
+  const handleCompleteChallenge = useCallback(
+    async (challengeId: number) => {
+      const service = AuthService.getInstance();
+      try {
+        await service.makeAuthenticatedRequest(
+          "post",
+          `/api/lms/challenges/${challengeId}/submit_attempt/`
+        );
 
-      // Update the challenges list to mark this one as completed
-      setDailyChallenges(
-        dailyChallenges.map((challenge) =>
+        // Optimistically update challenges
+        const updatedChallenges = dailyChallenges.map((challenge) =>
           challenge.id === challengeId
             ? { ...challenge, completed: true }
             : challenge
-        )
-      );
+        );
 
-      // Show notification
-      setNotificationMessage(
-        `Challenge completed! +${
-          dailyChallenges.find((c) => c.id === challengeId)?.points_reward
-        } points`
-      );
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 3000);
+        // Update cache immediately
+        mutateChallenges(updatedChallenges, false);
 
-      // Refresh user rank to update points
-      const rankResponse = await service.makeAuthenticatedRequest(
-        "get",
-        `/api/lms/leaderboard/my_rank/?time_period=${leaderboardPeriod}`
-      );
-      setUserRankData(rankResponse as UserRank);
-    } catch (err) {
-      console.error("Error completing challenge:", err);
-    }
-  };
+        // Show notification
+        const challenge = dailyChallenges.find((c) => c.id === challengeId);
+        setNotificationMessage(
+          `Challenge completed! +${challenge?.points_reward} points`
+        );
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
 
-  // Get icon component based on achievement icon name
-  const getAchievementIcon = (iconName: string) => {
+        // Refresh user rank
+        mutateUserRank();
+      } catch (err) {
+        console.error("Error completing challenge:", err);
+        // Revert optimistic update on error
+        mutateChallenges();
+      }
+    },
+    [dailyChallenges, mutateChallenges, mutateUserRank]
+  );
+
+  // Memoized achievement icon function
+  const getAchievementIcon = useCallback((iconName: string) => {
     switch (iconName) {
       case "lesson-1":
         return <BookOpen className="h-5 w-5" />;
@@ -317,15 +274,23 @@ export default function Home() {
       default:
         return <Medal className="h-5 w-5" />;
     }
-  };
+  }, []);
 
-  const toggleCardExpansion = (cardId: string) => {
-    if (expandedCard === cardId) {
-      setExpandedCard(null);
-    } else {
-      setExpandedCard(cardId);
-    }
-  };
+  const toggleCardExpansion = useCallback((cardId: string) => {
+    setExpandedCard((prev) => (prev === cardId ? null : cardId));
+  }, []);
+
+  // Memoized streak visualization data
+  const streakVisualization = useMemo(() => {
+    const currentStreak = userRankData?.user_info?.stats?.current_streak || 0;
+    return Array.from({ length: 7 }).map((_, idx) => {
+      const isActive = idx < currentStreak % 8;
+      return {
+        isActive,
+        height: isActive ? `${30 + Math.random() * 20}px` : "10px",
+      };
+    });
+  }, [userRankData?.user_info?.stats?.current_streak]);
 
   return (
     <>
@@ -352,20 +317,6 @@ export default function Home() {
                   <h3 className="font-bold text-xl">
                     Level-kaaga {userLevel.level}
                   </h3>
-                  {/* <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      {userLevel.experience_points} /{" "}
-                      {userLevel.experience_to_next_level} XP
-                    </p>
-                    <Badge variant="outline">
-                      {Math.round(
-                        (userLevel.experience_points /
-                          userLevel.experience_to_next_level) *
-                          100
-                      )}
-                      %
-                    </Badge>
-                  </div> */}
                 </div>
               </div>
 
@@ -413,7 +364,7 @@ export default function Home() {
                 </div>
               ) : userRankError ? (
                 <div className="text-center py-4 text-destructive">
-                  {userRankError}
+                  {userRankError.message || "Failed to load user rank"}
                 </div>
               ) : userRankData ? (
                 <div className="space-y-4">
@@ -554,7 +505,7 @@ export default function Home() {
                 </div>
               ) : leaderboardError ? (
                 <div className="text-center py-4 text-destructive">
-                  {leaderboardError}
+                  {leaderboardError.message || "Failed to load leaderboard"}
                 </div>
               ) : leaderboardData && leaderboardData.length > 0 ? (
                 <ScrollArea className="h-[320px] pr-4">
@@ -795,7 +746,9 @@ export default function Home() {
                             height={192}
                             alt={course.title}
                             className="object-contain"
-                            priority
+                            loading="lazy"
+                            placeholder="blur"
+                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4xOLvLKcZTHLl+NU9ADzSdNrBBCJlUAKoUBQOgHQCgD//2Q=="
                           />
                           {course.progress > 75 && (
                             <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
@@ -893,6 +846,7 @@ export default function Home() {
                       height={40}
                       alt={course.title}
                       className="object-contain mx-auto"
+                      loading="lazy"
                     />
                   </button>
                 ))}
@@ -986,9 +940,6 @@ export default function Home() {
                     maalmood
                   </p>
                 </div>
-                {/* <div className="ml-auto">
-                  <Button>Continue Streak</Button>
-                </div> */}
               </div>
 
               {/* Streak visualization */}
@@ -998,25 +949,16 @@ export default function Home() {
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="flex justify-between items-end mt-2 h-12">
-                  {Array.from({ length: 7 }).map((_, idx) => {
-                    const isActive =
-                      idx <
-                      (userRankData?.user_info?.stats?.current_streak || 0) % 8;
-                    return (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "w-8 rounded-t-md",
-                          isActive ? "bg-primary" : "bg-muted"
-                        )}
-                        style={{
-                          height: isActive
-                            ? `${30 + Math.random() * 20}px`
-                            : "10px",
-                        }}
-                      />
-                    );
-                  })}
+                  {streakVisualization.map((bar, idx) => (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "w-8 rounded-t-md",
+                        bar.isActive ? "bg-primary" : "bg-muted"
+                      )}
+                      style={{ height: bar.height }}
+                    />
+                  ))}
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   {["S", "A", "I", "T", "A", "KH", "J"].map((day, idx) => (

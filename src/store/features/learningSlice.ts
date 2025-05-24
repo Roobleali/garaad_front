@@ -1,8 +1,9 @@
 // src/store/features/learningSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type { Course, Category, Lesson } from "@/types/learning";
+import type { Course, Category, Lesson, Module } from "@/types/learning";
 import axios from "axios";
 import AuthService from "@/services/auth";
+import useSWR from "swr";
 
 type LessonType = Lesson;
 

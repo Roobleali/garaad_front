@@ -87,7 +87,10 @@ export default function StreakDisplay({
           <Zap />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4 mr-10" align="center">
+      <PopoverContent
+        className="w-80 p-4 mr-[30px] md:mr-[60px] lg:mr-[80px]"
+        align="center"
+      >
         {loading ? (
           <div className="flex justify-center py-6">
             <div className="animate-pulse flex flex-col items-center">

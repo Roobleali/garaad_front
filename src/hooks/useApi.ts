@@ -1,5 +1,7 @@
 import useSWR from "swr";
-import { Category, Course, Module, Lesson } from "@/types/lms";
+import { Category, Course, Lesson } from "@/types/lms";
+import axios from "axios";
+import { Module } from "@/types/learning";
 
 // Add cache configuration
 const swrConfig = {
@@ -49,22 +51,22 @@ export function useCategories() {
   };
 }
 
-export function useCourse(categoryId: string, courseSlug: string) {
-  const { data, error, isLoading, mutate } = useSWR<Course>(
-    categoryId && courseSlug
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/lms/categories/${categoryId}/courses/${courseSlug}/`
-      : null,
-    fetcher,
-    swrConfig
-  );
+// export function useCourse(categoryId: string, courseSlug: string) {
+//   const { data, error, isLoading, mutate } = useSWR<Course>(
+//     categoryId && courseSlug
+//       ? `${process.env.NEXT_PUBLIC_API_URL}/api/lms/categories/${categoryId}/courses/${courseSlug}/`
+//       : null,
+//     fetcher,
+//     swrConfig
+//   );
 
-  return {
-    course: data,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-}
+//   return {
+//     course: data,
+//     isLoading,
+//     isError: error,
+//     mutate,
+//   };
+// }
 
 // Modules
 export function useModule(courseId: string, moduleId: string) {
@@ -184,6 +186,35 @@ export function useUserStreak() {
     streak: data,
     isLoading,
     isError: error,
+    mutate,
+  };
+}
+
+export function useCourse(categoryId: string, courseSlug: string) {
+  const shouldFetch = !!categoryId && !!courseSlug;
+
+  const { data, error, isLoading, mutate } = useSWR(
+    shouldFetch ? ["/course", categoryId, courseSlug] : null,
+    async () => {
+      const coursesRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/?category=${categoryId}`
+      );
+      const course: Course | undefined = coursesRes.data.find(
+        (c: Course) => c.slug === courseSlug
+      );
+      if (!course) throw new Error("Course not found");
+
+      const modulesRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/?course=${course.id}`
+      );
+      return { ...course, modules: modulesRes.data as Module[] };
+    }
+  );
+
+  return {
+    course: data as Course & { modules: Module[] },
+    isLoading,
+    error,
     mutate,
   };
 }
