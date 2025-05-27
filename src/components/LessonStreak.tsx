@@ -16,18 +16,12 @@ import {
 } from "lucide-react";
 import AuthService from "@/services/auth";
 
-interface Energy {
-  current: number;
-  max: number;
-  next_update: string;
-}
-
 interface DailyActivity {
   date: string;
   day: string;
-  status: "none" | "partial" | "complete";
+  status: "complete" | "none";
   problems_solved: number;
-  lesson_ids: string[];
+  lesson_ids: number[];
   isToday: boolean;
 }
 
@@ -38,8 +32,14 @@ interface StreakData {
   max_streak: number;
   lessons_completed: number;
   problems_to_next_streak: number;
-  energy: Energy;
-  daily_activity: DailyActivity[];
+  energy: {
+    current: number;
+    max: number;
+    next_update: string;
+  };
+  dailyActivity: DailyActivity[];
+  xp: number;
+  daily_xp: number;
 }
 
 interface StreakDisplayProps {
@@ -128,8 +128,10 @@ export default function LessonStreak({
 
   // Memoized today's status calculation
   const todayStatus = useMemo(() => {
-    return streakData?.daily_activity?.find((d) => d.isToday)?.status ?? "none";
-  }, [streakData?.daily_activity]);
+    return streakData?.dailyActivity?.[0]?.status;
+  }, [streakData?.dailyActivity]);
+
+  console.log(todayStatus);
 
   // Memoized streak display value
   const streakValue = useMemo(() => {
@@ -148,13 +150,15 @@ export default function LessonStreak({
 
   // Memoized motivational message for today
   const todayMessage = useMemo(() => {
-    return getMotivationalMessage(todayStatus);
+    return getMotivationalMessage(todayStatus ?? "none");
   }, [todayStatus, getMotivationalMessage]);
 
   // Memoized Zap icon styling
   const zapIconClass = useMemo(() => {
     return `w-6 h-6 ${
-      todayStatus === "complete" ? "text-green-500" : "text-gray-400"
+      todayStatus === "complete"
+        ? "text-yellow-500 fill-yellow-500"
+        : "text-gray-400"
     }`;
   }, [todayStatus]);
 

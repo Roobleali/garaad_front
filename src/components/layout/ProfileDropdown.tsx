@@ -1,17 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/store/features/authSlice";
-import { Menu } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "../ui/button";
+import { Menu, User, Settings, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import AuthService from "@/services/auth";
 
 export const ProfileDropdown: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -21,53 +26,65 @@ export const ProfileDropdown: React.FC = () => {
     authService.logout();
     dispatch(logoutAction());
     router.push("/");
-    setIsOpen(false);
+    setOpen(false);
     // Force reload after logout
     window.location.reload();
   };
 
-  return (
-    <div className="relative">
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 text-gray-700 hover:text-black "
-        variant="ghost"
-      >
-        <Menu className="w-5 h-5" />
-      </Button>
+  const handleLinkClick = () => {
+    setOpen(false);
+  };
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-4 w-60 bg-white rounded-md shadow-lg py-2 z-50 border"
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <Menu className="h-5 w-5 text-gray-600" />
+          <span className="sr-only">Open menu</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-0" align="end" sideOffset={8}>
+        <div className="flex flex-col space-y-1 p-2">
+          <div className="px-2 py-1.5">
+            {/* <p className="text-sm font-medium text-gray-900">Menu</p> */}
+            <p className="text-xs text-gray-500">Maaree akoonkaaga</p>
+          </div>
+
+          <Separator className="my-1" />
+
+          <Link
+            href="/profile"
+            onClick={handleLinkClick}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
           >
-            <Link
-              href="/profile"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Profile-kaaga
-            </Link>
-            <Link
-              href="/settings"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Dejinta
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-            >
-              Ka bax
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            <User className="h-4 w-4" />
+            Profile-kaaga
+          </Link>
+
+          <Link
+            href="/settings"
+            onClick={handleLinkClick}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+            Dejinta
+          </Link>
+
+          <Separator className="my-1" />
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full text-left"
+          >
+            <LogOut className="h-4 w-4" />
+            Ka bax
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };

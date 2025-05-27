@@ -143,7 +143,7 @@ export function AuthDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-[400px] sm:max-w-[500px] md:max-w-[600px] px-4 py-6 rounded-2xl shadow-2xl border bg-white
+        className="max-w-[375px] sm:max-w-[480px] md:max-w-[550px] px-4 py-6 rounded-xl shadow-2xl border bg-white
         transition-all duration-300 ease-in-out
         data-[state=open]:animate-in data-[state=closed]:animate-out
         data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0

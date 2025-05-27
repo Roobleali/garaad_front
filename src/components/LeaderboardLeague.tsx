@@ -116,7 +116,11 @@ export default function LeaderboardLeague({
         {/* Leaderboard */}
         <div className="space-y-3">
           {data?.standings?.map((standing, index) => {
-            const isCurrentUser = standing.user.id === 75; // Assuming this is the current user
+            const currentUserId = data?.my_standing
+              ? data.standings.find((s) => s.rank === data.my_standing.rank)
+                  ?.user.id
+              : undefined;
+            const isCurrentUser = standing.user.id === currentUserId;
             return (
               <div
                 key={standing.user.id}

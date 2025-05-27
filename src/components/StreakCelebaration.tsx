@@ -37,7 +37,7 @@ export default function StreakCelebration({
   onContinue,
 }: StreakCelebrationProps) {
   // Get the last 5 days for the weekly view
-  const lastFiveDays = userData.dailyActivity.slice(0, 5);
+  const lastFiveDays = userData.dailyActivity.slice(0, 5).reverse();
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 mx-w-md">

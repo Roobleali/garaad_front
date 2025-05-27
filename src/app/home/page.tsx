@@ -7,19 +7,17 @@ import {
   Clock,
   Trophy,
   ChevronRight,
-  Award,
   User,
   Flame,
   Star,
-  Calendar,
   Target,
   Medal,
   Sparkles,
   BookOpen,
   BarChart3,
-  ChevronDown,
   CheckCircle2,
   Zap,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,7 +36,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import AuthService from "@/services/auth";
 import { Header } from "@/components/Header";
 import Link from "next/link";
-import type { LeaderboardEntry, UserRank } from "@/services/progress";
 import { useCategories } from "@/hooks/useApi";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -78,13 +75,87 @@ interface UserLevel {
   experience_to_next_level: number;
 }
 
-// SWR fetcher function with authentication
+interface DailyActivity {
+  date: string;
+  day: string;
+  status: "complete" | "none";
+  problems_solved: number;
+  lesson_ids: number[];
+  isToday: boolean;
+}
+
+interface StreakData {
+  userId: string;
+  username: string;
+  current_streak: number;
+  max_streak: number;
+  lessons_completed: number;
+  problems_to_next_streak: number;
+  energy: {
+    current: number;
+    max: number;
+    next_update: string;
+  };
+  dailyActivity: DailyActivity[];
+  xp: number;
+  daily_xp: number;
+}
+
+// League API interfaces
+interface LeagueInfo {
+  id: string;
+  name: string;
+  min_xp: number;
+}
+
+interface LeagueStatus {
+  current_league: LeagueInfo;
+  current_points: number;
+  weekly_rank: number;
+  streak: {
+    current_streak: number;
+    max_streak: number;
+    streak_charges: number;
+    last_activity_date: string;
+  };
+  next_league?: {
+    id: string;
+    name: string;
+    min_xp: number;
+    points_needed: number;
+  };
+}
+
+interface LeagueStanding {
+  rank: number;
+  user: {
+    id: string;
+    name: string;
+  };
+  points: number;
+  streak: number;
+}
+
+interface LeagueLeaderboard {
+  time_period: string;
+  league: string;
+  standings: LeagueStanding[];
+  my_standing: {
+    rank: number;
+    points: number;
+    streak: number;
+  };
+}
+
+const MAX_BAR_HEIGHT = 48;
+const MIN_BAR_HEIGHT = 8;
+const minSwipeDistance = 50;
+
 const authFetcher = async <T = any,>(url: string): Promise<T> => {
   const service = AuthService.getInstance();
   return await service.makeAuthenticatedRequest("get", url);
 };
 
-// Public fetcher for courses
 const publicFetcher = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) throw new Error("Failed to fetch");
@@ -95,7 +166,7 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [leaderboardPeriod, setLeaderboardPeriod] = useState("all_time");
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState("weekly");
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -103,78 +174,101 @@ export default function Home() {
   const router = useRouter();
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // SWR hooks for data fetching with caching
-  const { data: courses = [], isLoading: isLoadingCourses } = useSWR<Course[]>(
+  const {
+    data: courses = [],
+    isLoading: isLoadingCourses,
+    error: coursesError,
+  } = useSWR<Course[]>(
     `${process.env.NEXT_PUBLIC_API_URL}/api/lms/courses/`,
     publicFetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: true,
-      dedupingInterval: 300000, // 5 minutes
+      dedupingInterval: 300000,
     }
   );
 
+  // League Status API
   const {
-    data: leaderboardData,
+    data: leagueStatus,
+    isLoading: isLoadingLeagueStatus,
+    error: leagueStatusError,
+    mutate: mutateLeagueStatus,
+  } = useSWR<LeagueStatus>("/api/league/leagues/status/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
+
+  // League Leaderboard API
+  const {
+    data: leagueLeaderboard,
     isLoading: isLoadingLeaderboard,
     error: leaderboardError,
-  } = useSWR<LeaderboardEntry[]>(
-    `/api/lms/leaderboard/?time_period=${leaderboardPeriod}`,
+    mutate: mutateLeaderboard,
+  } = useSWR<LeagueLeaderboard>(
+    leagueStatus?.current_league?.id
+      ? `/api/league/leagues/leaderboard/?time_period=${leaderboardPeriod}&league=${leagueStatus.current_league.id}`
+      : null,
     authFetcher,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 60000, // 1 minute
+      dedupingInterval: 60000,
     }
   );
 
   const {
-    data: userRankData,
-    isLoading: isLoadingUserRank,
-    error: userRankError,
-    mutate: mutateUserRank,
-  } = useSWR<UserRank>(
-    `/api/lms/leaderboard/my_rank/?time_period=${leaderboardPeriod}`,
+    data: achievements = [],
+    isLoading: isLoadingAchievements,
+    error: achievementsError,
+  } = useSWR<Achievement[]>(
+    "/api/lms/achievements/user_achievements/",
     authFetcher,
     {
       revalidateOnFocus: false,
-      dedupingInterval: 60000, // 1 minute
+      dedupingInterval: 600000,
     }
   );
-
-  const { data: achievements = [], isLoading: isLoadingAchievements } = useSWR<
-    Achievement[]
-  >("/api/lms/achievements/user_achievements/", authFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 600000, // 10 minutes
-  });
 
   const {
     data: dailyChallenges = [],
     isLoading: isLoadingChallenges,
     mutate: mutateChallenges,
+    error: challengesError,
   } = useSWR<Challenge[]>("/api/lms/challenges/", authFetcher, {
     revalidateOnFocus: false,
-    dedupingInterval: 300000, // 5 minutes
+    dedupingInterval: 300000,
   });
 
-  const { data: userLevel, isLoading: isLoadingUserLevel } = useSWR<UserLevel>(
-    "/api/lms/levels/",
-    authFetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 600000, // 10 minutes
-    }
-  );
+  const {
+    data: userLevel,
+    isLoading: isLoadingUserLevel,
+    error: userLevelError,
+  } = useSWR<UserLevel>("/api/lms/levels/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
 
-  // Memoized category lookup function
+  const {
+    data: streak,
+    isLoading: isLoadingStreak,
+    error: streakError,
+    mutate,
+  } = useSWR<StreakData>("/api/streaks/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
+
   const getCategoryIdByName = useCallback(
-    (categoryName: string): string | null => {
-      const category = (categories ?? []).find((cat) =>
-        cat.courses.some(
-          (course: { title: string }) => course.title === categoryName
-        )
-      );
-      return category?.id ?? null;
+    (courseTitle: string): string | null => {
+      if (!categories) return null;
+
+      for (const category of categories) {
+        const foundCourse = category.courses.find(
+          (course: { title: string }) => course.title === courseTitle
+        );
+        if (foundCourse) return category.id;
+      }
+      return null;
     },
     [categories]
   );
@@ -183,14 +277,12 @@ export default function Home() {
     () => AuthService.getInstance().getCurrentUser(),
     []
   );
-  const minSwipeDistance = 50;
 
   useEffect(() => {
     const authService = AuthService.getInstance();
     if (!authService.isAuthenticated()) router.push("/");
   }, [router]);
 
-  // Memoized touch handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -217,7 +309,6 @@ export default function Home() {
     []
   );
 
-  // Optimized challenge completion handler
   const handleCompleteChallenge = useCallback(
     async (challengeId: number) => {
       const service = AuthService.getInstance();
@@ -227,17 +318,14 @@ export default function Home() {
           `/api/lms/challenges/${challengeId}/submit_attempt/`
         );
 
-        // Optimistically update challenges
         const updatedChallenges = dailyChallenges.map((challenge) =>
           challenge.id === challengeId
             ? { ...challenge, completed: true }
             : challenge
         );
 
-        // Update cache immediately
         mutateChallenges(updatedChallenges, false);
 
-        // Show notification
         const challenge = dailyChallenges.find((c) => c.id === challengeId);
         setNotificationMessage(
           `Challenge completed! +${challenge?.points_reward} points`
@@ -245,18 +333,25 @@ export default function Home() {
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
 
-        // Refresh user rank
-        mutateUserRank();
+        mutateLeagueStatus();
+        mutateLeaderboard();
       } catch (err) {
         console.error("Error completing challenge:", err);
-        // Revert optimistic update on error
         mutateChallenges();
       }
     },
-    [dailyChallenges, mutateChallenges, mutateUserRank]
+    [dailyChallenges, mutateChallenges, mutateLeagueStatus, mutateLeaderboard]
   );
 
-  // Memoized achievement icon function
+  // Find current user's rank in the leaderboard standings
+  const myRank = useMemo(() => {
+    if (!leagueLeaderboard?.standings || !storedUser?.username) return null;
+    const found = leagueLeaderboard.standings.find(
+      (s) => s.user.name === storedUser.username
+    );
+    return found?.rank ?? null;
+  }, [leagueLeaderboard?.standings, storedUser?.username]);
+
   const getAchievementIcon = useCallback((iconName: string) => {
     switch (iconName) {
       case "lesson-1":
@@ -280,23 +375,51 @@ export default function Home() {
     setExpandedCard((prev) => (prev === cardId ? null : cardId));
   }, []);
 
-  // Memoized streak visualization data
   const streakVisualization = useMemo(() => {
-    const currentStreak = userRankData?.user_info?.stats?.current_streak || 0;
-    return Array.from({ length: 7 }).map((_, idx) => {
-      const isActive = idx < currentStreak % 8;
-      return {
-        isActive,
-        height: isActive ? `${30 + Math.random() * 20}px` : "10px",
-      };
-    });
-  }, [userRankData?.user_info?.stats?.current_streak]);
+    return (
+      <div className="flex justify-between px-4 w-full mt-4">
+        {streak?.dailyActivity
+          .slice(0, 7)
+          .reverse()
+          .map((activity, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <div
+                className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                  activity.status === "complete"
+                    ? "bg-yellow-400"
+                    : "bg-gray-100"
+                }`}
+              >
+                <Zap
+                  className={`w-4 h-4 ${
+                    activity.status === "complete"
+                      ? "text-black"
+                      : "text-gray-400"
+                  }`}
+                />
+              </div>
+              <span className="text-xs text-gray-500 mt-1">{activity.day}</span>
+            </div>
+          ))}
+      </div>
+    );
+  }, [streak]);
+
+  // Calculate progress to next league
+  const nextLeagueProgress = useMemo(() => {
+    if (!leagueStatus?.next_league) return 100;
+    const currentPoints = leagueStatus.current_points;
+    const currentLeagueMin = leagueStatus.current_league.min_xp;
+    const nextLeagueMin = leagueStatus.next_league.min_xp;
+    const totalNeeded = nextLeagueMin - currentLeagueMin;
+    const currentProgress = currentPoints - currentLeagueMin;
+    return Math.min((currentProgress / totalNeeded) * 100, 100);
+  }, [leagueStatus]);
 
   return (
     <>
       <Header />
 
-      {/* Notification */}
       {showNotification && (
         <div className="fixed top-20 right-4 z-50 bg-primary text-primary-foreground px-4 py-3 rounded-lg shadow-md flex items-center gap-2 max-w-xs">
           <Zap className="h-5 w-5" />
@@ -305,18 +428,27 @@ export default function Home() {
       )}
 
       <div className="flex flex-col gap-6 p-4 md:p-6 max-w-7xl mx-auto">
-        {/* User Level Progress Bar */}
-        {!isLoadingUserLevel && userLevel && (
-          <Card className="p-4 md:p-6 rounded-lg bg-card shadow-sm">
+        {/* League Status & User Level Progress Bar */}
+        {!isLoadingLeagueStatus && leagueStatus && (
+          <Card className="p-4 md:p-6 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 shadow-sm border-primary/20">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
-                  {userLevel.level}
+                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                  <Crown className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-xl">
-                    Level-kaaga {userLevel.level}
+                  <h3 className="font-bold text-xl flex items-center gap-2">
+                    {leagueStatus.current_league.name}
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      <Trophy className="h-3 w-3" />#{myRank}
+                    </Badge>
                   </h3>
+                  <p className="text-sm text-muted-foreground">
+                    booskaaga liigaha hadda{" "}
+                  </p>
                 </div>
               </div>
 
@@ -324,175 +456,66 @@ export default function Home() {
                 <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md">
                   <Sparkles className="h-5 w-5" />
                   <span className="font-bold">
-                    {userRankData?.points || 0} Dhibco
+                    {leagueStatus.current_points} Dhibco
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 bg-muted text-muted-foreground px-4 py-2 rounded-md">
                   <Flame className="h-5 w-5" />
                   <span className="font-bold">
-                    {userRankData?.user_info?.stats?.current_streak || 0} Maalin
-                    isu xigxiga
+                    {leagueStatus.streak.current_streak} Maalin isu xigxiga
                   </span>
                 </div>
               </div>
             </div>
+
+            {/* Next League Progress */}
+            {leagueStatus.next_league && (
+              <div className="mt-4 p-4 bg-background/50 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">
+                    inta kaaga dhimman liiga {leagueStatus.next_league.name}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {leagueStatus.next_league.points_needed} dhibco baa loo
+                    baahan yahay
+                  </span>
+                </div>
+                <Progress value={nextLeagueProgress} className="h-3" />
+              </div>
+            )}
           </Card>
         )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: Rank & Leaderboard */}
+          {/* Left Column: League Leaderboard */}
           <div className="space-y-6">
-            {/* User Rank Card */}
-            {/* <Card className="p-6 rounded-lg bg-card shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-lg">Booskaaga</h3>
-                  <Badge variant="outline">
-                    Kaalinta #{userRankData?.rank || "?"}
-                  </Badge>
-                </div>
-                <Trophy className="text-primary h-6 w-6" />
-              </div>
-
-              {isLoadingUserRank ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-16 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : userRankError ? (
-                <div className="text-center py-4 text-destructive">
-                  {userRankError.message || "Failed to load user rank"}
-                </div>
-              ) : userRankData ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
-                        {userRankData.rank}
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Dhibcahaaga
-                        </p>
-                        <p className="font-bold text-foreground text-lg">
-                          {userRankData.points} Dhibco
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline">
-                      Arag kulli <ChevronRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {(expandedCard === "userRank" || !expandedCard) && (
-                    <div>
-                      {userRankData.entries_above.length > 0 && (
-                        <div>
-                          <div className="flex justify-between items-center mb-2">
-                            <p className="text-sm font-medium text-muted-foreground">
-                              Kaalinta kaa horeysa
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 p-0"
-                              onClick={() => toggleCardExpansion("userRank")}
-                            >
-                              <ChevronDown
-                                className={`h-4 w-4 transition-transform duration-300 ${
-                                  expandedCard === "userRank"
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </Button>
-                          </div>
-                          <div className="space-y-2">
-                            {userRankData.entries_above.map((entry, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between p-3 rounded-md bg-background border"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-8 w-8 bg-muted text-muted-foreground">
-                                    <AvatarFallback>
-                                      {getInitials(entry.user__username)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium">
-                                    {entry.user__username}
-                                  </span>
-                                </div>
-                                <span className="font-medium">
-                                  {entry.points} Dhibco
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {userRankData.entries_below.length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-sm font-medium text-muted-foreground mb-2">
-                            Kaalinta kaa hooseysa
-                          </p>
-                          <div className="space-y-2">
-                            {userRankData.entries_below.map((entry, idx) => (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between p-3 rounded-md bg-background border"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-8 w-8 bg-muted text-muted-foreground">
-                                    <AvatarFallback>
-                                      {getInitials(entry.user__username)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium">
-                                    {entry.user__username}
-                                  </span>
-                                </div>
-                                <span className="font-medium">
-                                  {entry.points} Dhibco
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </Card> */}
-
-            {/* Leaderboard Card */}
+            {/* League Leaderboard Card */}
             <Card className="p-6 rounded-lg bg-card shadow-sm">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Award className="h-6 w-6 text-primary" />
+                    <Trophy className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg">Shaxda Tartanka</h3>
+                    <h3 className="font-bold text-lg">
+                      {leagueStatus?.current_league?.name || "League"} Shaxda
+                      tartanka
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Kaalmaha sare
+                      Meeshaad liigaga hadda ka joogtid
                     </p>
                   </div>
                 </div>
                 <Tabs
-                  defaultValue="all_time"
+                  defaultValue="weekly"
                   className="w-full md:w-auto"
                   onValueChange={setLeaderboardPeriod}
                 >
-                  <TabsList className="grid grid-cols-3 w-full md:w-[200px]">
-                    <TabsTrigger value="all_time">Dhamaan</TabsTrigger>
-                    <TabsTrigger value="weekly">Asbuuc</TabsTrigger>
-                    <TabsTrigger value="monthly">Bil</TabsTrigger>
+                  <TabsList className="grid grid-cols-2 w-full md:w-[160px]">
+                    <TabsTrigger value="weekly">asbuucle</TabsTrigger>
+                    <TabsTrigger value="monthly">bille</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -506,35 +529,45 @@ export default function Home() {
               ) : leaderboardError ? (
                 <div className="text-center py-4 text-destructive">
                   {leaderboardError.message || "Failed to load leaderboard"}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => mutateLeaderboard()}
+                    className="ml-2"
+                  >
+                    ku celi
+                  </Button>
                 </div>
-              ) : leaderboardData && leaderboardData.length > 0 ? (
+              ) : leagueLeaderboard?.standings &&
+                leagueLeaderboard.standings.length > 0 ? (
                 <ScrollArea className="h-[320px] pr-4">
                   <div className="space-y-3">
-                    {leaderboardData.slice(0, 10).map((entry, idx) => {
-                      const isCurrent = storedUser?.username === entry.username;
+                    {leagueLeaderboard.standings.map((standing, idx) => {
+                      const isCurrent =
+                        storedUser?.username === standing.user.name;
                       return (
                         <div
-                          key={entry.id}
+                          key={standing.user.id}
                           className={cn(
                             "flex items-center gap-4 p-4 rounded-md transition-all",
                             isCurrent
-                              ? "bg-primary/10 border"
+                              ? "bg-primary/10 border border-primary/20"
                               : "bg-background border"
                           )}
                         >
                           <div
                             className={cn(
                               "flex items-center justify-center w-8 h-8 rounded-full font-bold",
-                              idx === 0
-                                ? "bg-primary/20 text-primary"
-                                : idx === 1
-                                ? "bg-muted text-muted-foreground"
-                                : idx === 2
-                                ? "bg-muted text-muted-foreground"
+                              standing.rank === 1
+                                ? "bg-yellow-500/20 text-yellow-700"
+                                : standing.rank === 2
+                                ? "bg-gray-400/20 text-gray-700"
+                                : standing.rank === 3
+                                ? "bg-orange-500/20 text-orange-700"
                                 : "bg-muted text-muted-foreground"
                             )}
                           >
-                            {idx + 1}
+                            {standing.rank}
                           </div>
                           <Avatar
                             className={cn(
@@ -551,7 +584,7 @@ export default function Home() {
                                   : "text-muted-foreground"
                               }
                             >
-                              {getInitials(entry.username)}
+                              {getInitials(standing.user.name)}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
@@ -561,26 +594,18 @@ export default function Home() {
                                 isCurrent ? "text-primary" : ""
                               )}
                             >
-                              {entry.username}
+                              {standing.user.name}
                               {isCurrent ? " (You)" : ""}
                             </span>
-                            {entry.user_info?.stats && (
+                            {standing.streak > 0 && (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>
-                                  {entry.user_info.stats.completed_lessons}{" "}
-                                  cashar
-                                </span>
-                                {typeof entry.user_info?.stats
-                                  ?.current_streak === "number" &&
-                                  entry.user_info.stats.current_streak > 0 && (
-                                    <Badge
-                                      variant="outline"
-                                      className="flex items-center gap-1 py-0 h-5"
-                                    >
-                                      <Flame className="h-3 w-3" />
-                                      {entry.user_info.stats.current_streak}
-                                    </Badge>
-                                  )}
+                                <Badge
+                                  variant="outline"
+                                  className="flex items-center gap-1 py-0 h-5"
+                                >
+                                  <Flame className="h-3 w-3" />
+                                  {standing.streak}
+                                </Badge>
                               </div>
                             )}
                           </div>
@@ -591,7 +616,7 @@ export default function Home() {
                                 isCurrent ? "text-primary" : ""
                               )}
                             >
-                              {entry.points}
+                              {standing.points}
                             </span>
                             <span className="ml-1 text-xs text-muted-foreground">
                               Dhibco
@@ -604,90 +629,71 @@ export default function Home() {
                 </ScrollArea>
               ) : (
                 <div className="text-center py-4 text-muted-foreground">
-                  wax shax ah lama helin
+                  wax liiga ah kuma jirtid
+                </div>
+              )}
+
+              {/* My Standing */}
+              {leagueLeaderboard?.my_standing && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline">kaalintaada</Badge>
+                      <span className="font-medium">#{myRank}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-bold">
+                        {leagueLeaderboard.my_standing.points} Dhibco
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        <Flame className="h-3 w-3" />
+                        {leagueLeaderboard.my_standing.streak}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               )}
             </Card>
 
-            {/* Daily Challenges */}
+            {/* Streak visualization */}
             <Card className="p-6 rounded-lg bg-card shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Target className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">
-                      Tartanka Maalinlaha ah
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Dhamastir sad abaalmarino u hesho
-                    </p>
-                  </div>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                  <Flame className="h-10 w-10 text-primary" />
                 </div>
-                <Button variant="outline" size="sm">
-                  <Calendar className="h-4 w-4 mr-1" /> Maanta
-                </Button>
+                <div>
+                  <h3 className="font-bold text-lg">Maalmaha isu xigxiga</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl font-bold">
+                      {leagueStatus?.streak?.current_streak ||
+                        streak?.current_streak ||
+                        0}
+                    </span>
+                    <span className="text-muted-foreground">maalmood</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    ugu fiicnaa:{" "}
+                    {leagueStatus?.streak?.max_streak ||
+                      streak?.max_streak ||
+                      0}{" "}
+                    maalmood
+                  </p>
+                </div>
               </div>
 
-              {isLoadingChallenges ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-24 w-full" />
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium">7 berri ugu danbeysay</p>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
                 </div>
-              ) : dailyChallenges && dailyChallenges.length > 0 ? (
-                <div className="space-y-3">
-                  {dailyChallenges.map((challenge) => (
-                    <div
-                      key={challenge.id}
-                      className={cn(
-                        "p-4 rounded-md border transition-all",
-                        challenge.completed ? "bg-primary/10" : "bg-background"
-                      )}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{challenge.title}</h4>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "flex items-center gap-1",
-                            challenge.completed ? "bg-primary/20" : ""
-                          )}
-                        >
-                          {challenge.completed ? (
-                            <>
-                              <CheckCircle2 className="h-3 w-3" /> Dhameeyay
-                            </>
-                          ) : (
-                            <>
-                              <Star className="h-3 w-3" />{" "}
-                              {challenge.points_reward} Dhibco
-                            </>
-                          )}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {challenge.description}
-                      </p>
-                      {!challenge.completed && (
-                        <Button
-                          size="sm"
-                          className="w-full"
-                          onClick={() => handleCompleteChallenge(challenge.id)}
-                        >
-                          Bilow Tartankaan
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+
+                <div className="flex justify-between items-center mt-1">
+                  {streakVisualization}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Target className="h-12 w-12 mx-auto mb-2 text-muted" />
-                  <p>Wax Tartan ah lama helin</p>
-                  <p className="text-sm">Ku soo laabo berri!</p>
-                </div>
-              )}
+              </div>
             </Card>
           </div>
 
@@ -715,6 +721,9 @@ export default function Home() {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                role="region"
+                aria-label="Courses carousel"
+                aria-roledescription="carousel"
               >
                 {isLoadingCourses ? (
                   <div className="space-y-4">
@@ -725,6 +734,18 @@ export default function Home() {
                       <Skeleton className="h-2 w-8" />
                     </div>
                   </div>
+                ) : coursesError ? (
+                  <div className="text-center py-4 text-destructive">
+                    {coursesError.message || "Failed to load courses"}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => mutate()}
+                      className="ml-2"
+                    >
+                      Retry
+                    </Button>
+                  </div>
                 ) : courses.length ? (
                   <div
                     className="flex transition-all duration-300 ease-in-out"
@@ -734,6 +755,9 @@ export default function Home() {
                       <div
                         key={course.id}
                         className="min-w-full flex flex-col items-center"
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label={`Course: ${course.title}`}
                       >
                         <div className="relative w-48 h-48 mb-4">
                           <Image
@@ -747,8 +771,6 @@ export default function Home() {
                             alt={course.title}
                             className="object-contain"
                             loading="lazy"
-                            placeholder="blur"
-                            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj5m4xOLvLKcZTHLl+NU9ADzSdNrBBCJlUAKoUBQOgHQCgD//2Q=="
                           />
                           {course.progress > 75 && (
                             <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
@@ -816,6 +838,7 @@ export default function Home() {
                         currentSlide === idx ? "bg-primary w-8" : "bg-muted"
                       )}
                       aria-label={`Go to slide ${idx + 1}`}
+                      aria-current={currentSlide === idx}
                     />
                   ))}
                 </div>
@@ -835,6 +858,7 @@ export default function Home() {
                         ? "border-primary bg-primary/10"
                         : "border-muted bg-background"
                     )}
+                    aria-label={`View ${course.title}`}
                   >
                     <Image
                       src={
@@ -881,6 +905,18 @@ export default function Home() {
                   <Skeleton className="h-24 w-full" />
                   <Skeleton className="h-24 w-full" />
                 </div>
+              ) : achievementsError ? (
+                <div className="text-center py-4 text-destructive">
+                  {achievementsError.message || "Failed to load achievements"}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => mutate()}
+                    className="ml-2"
+                  >
+                    Retry
+                  </Button>
+                </div>
               ) : achievements && achievements.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {achievements.map((achievement) => (
@@ -918,59 +954,6 @@ export default function Home() {
                   <p className="text-sm">Complete courses to earn badges!</p>
                 </div>
               )}
-            </Card>
-
-            {/* Streak Card */}
-            <Card className="p-6 rounded-lg bg-card shadow-sm">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                  <Flame className="h-10 w-10 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">Maalmaha isu xigxiga</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl font-bold">
-                      {userRankData?.user_info?.stats?.current_streak || 0}
-                    </span>
-                    <span className="text-muted-foreground">maalmood</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    ugu fiicnaa:{" "}
-                    {userRankData?.user_info?.stats?.current_streak || 0}{" "}
-                    maalmood
-                  </p>
-                </div>
-              </div>
-
-              {/* Streak visualization */}
-              <div className="mt-4 pt-4 border-t">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm font-medium">7 berri ugu danbeysay</p>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="flex justify-between items-end mt-2 h-12">
-                  {streakVisualization.map((bar, idx) => (
-                    <div
-                      key={idx}
-                      className={cn(
-                        "w-8 rounded-t-md",
-                        bar.isActive ? "bg-primary" : "bg-muted"
-                      )}
-                      style={{ height: bar.height }}
-                    />
-                  ))}
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  {["S", "A", "I", "T", "A", "KH", "J"].map((day, idx) => (
-                    <span
-                      key={idx}
-                      className="text-xs text-muted-foreground w-8 text-center"
-                    >
-                      {day}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </Card>
           </div>
         </div>

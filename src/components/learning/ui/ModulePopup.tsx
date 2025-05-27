@@ -1,7 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, PlayCircle, RefreshCwIcon } from "lucide-react";
+import {
+  ArrowRight,
+  PlayCircle,
+  RefreshCwIcon,
+  ReplyAll,
+  ReplyIcon,
+} from "lucide-react";
 import { Module } from "@/types/learning";
 import { Button } from "@/components/ui/button";
 
@@ -84,9 +90,9 @@ export default function ModulePopup({
         {isInProgress ? (
           <PlayCircle className="ml-2 w-4 h-4" />
         ) : isCompleted ? (
-          <RefreshCwIcon className="ml-2 w-4 h-4" />
+          <ReplyIcon className="ml-2 w-4 h-4" />
         ) : (
-          <ArrowRight className="ml-2 w-4 h-4" />
+          <PlayCircle className="ml-2 w-4 h-4" />
         )}
       </Button>
     </div>
