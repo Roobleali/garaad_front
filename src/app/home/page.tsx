@@ -60,8 +60,6 @@ interface Achievement {
   earned_at?: string;
 }
 
-
-
 interface UserLevel {
   level: number;
   experience_points: number;
@@ -137,6 +135,42 @@ interface LeagueLeaderboard {
     rank: number;
     points: number;
     streak: number;
+  };
+}
+
+interface GamificationStatus {
+  xp: {
+    total: number;
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+  streak: {
+    current: number;
+    max: number;
+    energy: number;
+    problems_to_next: number;
+  };
+  league: {
+    current: {
+      id: number;
+      name: string;
+      somali_name: string;
+      description: string;
+      min_xp: number;
+      order: number;
+      icon: string | null;
+    };
+    next: {
+      id: number;
+      name: string;
+      somali_name: string;
+      min_xp: number;
+      points_needed: number;
+    };
+  };
+  rank: {
+    weekly: number;
   };
 }
 
@@ -251,6 +285,16 @@ export default function Home() {
     dedupingInterval: 600000,
   });
 
+  const {
+    data: gamificationStatus,
+    isLoading: isLoadingGamification,
+    error: gamificationError,
+    mutate: mutateGamification,
+  } = useSWR<GamificationStatus>("/api/gamification/status", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
+
   const getCategoryIdByName = useCallback(
     (courseTitle: string): string | null => {
       if (!categories) return null;
@@ -338,12 +382,8 @@ export default function Home() {
 
   // Find current user's rank in the leaderboard standings
   const myRank = useMemo(() => {
-    if (!leagueLeaderboard?.standings || !storedUser?.username) return null;
-    const found = leagueLeaderboard.standings.find(
-      (s) => s.user.name === storedUser.username
-    );
-    return found?.rank ?? null;
-  }, [leagueLeaderboard?.standings, storedUser?.username]);
+    return gamificationStatus?.rank?.weekly || null;
+  }, [gamificationStatus?.rank?.weekly]);
 
   const getAchievementIcon = useCallback((iconName: string) => {
     switch (iconName) {
@@ -377,16 +417,18 @@ export default function Home() {
           .map((activity, index) => (
             <div key={index} className="flex flex-col items-center">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center ${activity.status === "complete"
+                className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                  activity.status === "complete"
                     ? "bg-yellow-400"
                     : "bg-gray-100"
-                  }`}
+                }`}
               >
                 <Zap
-                  className={`w-4 h-4 ${activity.status === "complete"
+                  className={`w-4 h-4 ${
+                    activity.status === "complete"
                       ? "text-black"
                       : "text-gray-400"
-                    }`}
+                  }`}
                 />
               </div>
               <span className="text-xs text-gray-500 mt-1">{activity.day}</span>
@@ -420,7 +462,7 @@ export default function Home() {
 
       <div className="flex flex-col gap-6 p-4 md:p-6 max-w-7xl mx-auto">
         {/* League Status & User Level Progress Bar */}
-        {!isLoadingLeagueStatus && leagueStatus && (
+        {!isLoadingGamification && gamificationStatus && (
           <Card className="p-4 md:p-6 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 shadow-sm border-primary/20">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
               <div className="flex items-center gap-4">
@@ -429,16 +471,17 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="font-bold text-xl flex items-center gap-2">
-                    {leagueStatus.current_league.name}
+                    {gamificationStatus.league.current.name}
                     <Badge
                       variant="secondary"
                       className="flex items-center gap-1"
                     >
-                      <Trophy className="h-3 w-3" />#{myRank}
+                      <Trophy className="h-3 w-3" />#
+                      {gamificationStatus.rank.weekly}
                     </Badge>
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    booskaaga liigaha hadda{" "}
+                    {gamificationStatus.league.current.description}
                   </p>
                 </div>
               </div>
@@ -446,31 +489,46 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md">
                   <Sparkles className="h-5 w-5" />
-                  <span className="font-bold">{streak?.xp} Dhibco</span>
+                  <span className="font-bold">
+                    {gamificationStatus.xp.total} Dhibco
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2 bg-muted text-muted-foreground px-4 py-2 rounded-md">
                   <Flame className="h-5 w-5" />
                   <span className="font-bold">
-                    {leagueStatus.streak.current_streak} Maalin isu xigxiga
+                    {gamificationStatus.streak.current} Maalin isu xigxiga
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Next League Progress */}
-            {leagueStatus.next_league && (
+            {gamificationStatus.league.next && (
               <div className="mt-4 p-4 bg-background/50 rounded-lg">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm font-medium">
-                    inta kaaga dhimman liiga {leagueStatus.next_league.name}
+                    inta kaaga dhimman liiga{" "}
+                    {gamificationStatus.league.next.name}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {leagueStatus.next_league.points_needed} dhibco baa loo
-                    baahan yahay
+                    {gamificationStatus.league.next.points_needed} dhibco baa
+                    loo baahan yahay
                   </span>
                 </div>
-                <Progress value={nextLeagueProgress} className="h-3" />
+                <Progress
+                  value={Math.min(
+                    100,
+                    Math.round(
+                      ((gamificationStatus.xp.total -
+                        gamificationStatus.league.current.min_xp) /
+                        (gamificationStatus.league.next.min_xp -
+                          gamificationStatus.league.current.min_xp)) *
+                        100
+                    )
+                  )}
+                  className="h-3"
+                />
               </div>
             )}
           </Card>
@@ -550,10 +608,10 @@ export default function Home() {
                               standing.rank === 1
                                 ? "bg-yellow-500/20 text-yellow-700"
                                 : standing.rank === 2
-                                  ? "bg-gray-400/20 text-gray-700"
-                                  : standing.rank === 3
-                                    ? "bg-orange-500/20 text-orange-700"
-                                    : "bg-muted text-muted-foreground"
+                                ? "bg-gray-400/20 text-gray-700"
+                                : standing.rank === 3
+                                ? "bg-orange-500/20 text-orange-700"
+                                : "bg-muted text-muted-foreground"
                             )}
                           >
                             {standing.rank}
@@ -655,32 +713,70 @@ export default function Home() {
                   <h3 className="font-bold text-lg">Maalmaha isu xigxiga</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-3xl font-bold">
-                      {leagueStatus?.streak?.current_streak ||
-                        streak?.current_streak ||
-                        0}
+                      {gamificationStatus?.streak?.current || 0}
                     </span>
                     <span className="text-muted-foreground">maalmood</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    ugu fiicnaa:{" "}
-                    {leagueStatus?.streak?.max_streak ||
-                      streak?.max_streak ||
-                      0}{" "}
-                    maalmood
+                    ugu fiicnaa: {gamificationStatus?.streak?.max || 0} maalmood
                   </p>
+                </div>
+                <div className="flex items-center gap-2 mt-2 justify-end ml-auto mb-auto">
+                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <span className="text-sm">
+                    Tamarta: {gamificationStatus?.streak?.energy || 0}
+                  </span>
                 </div>
               </div>
 
               <div className="mt-4 pt-4 border-t">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm font-medium">7 berri ugu danbeysay</p>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                </div>
-
-                <div className="flex justify-between items-center mt-1">
-                  {streakVisualization}
+                <div className="grid grid-cols-4 gap-4 text-center">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-lg font-bold">
+                      {gamificationStatus?.xp?.daily || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Dhibcaha Maanta
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-lg font-bold">
+                      {gamificationStatus?.xp?.weekly || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Dhibcaha asbuucaan
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-lg font-bold">
+                      {gamificationStatus?.xp?.monthly || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Dhibcaha bishaan
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <div className="text-lg font-bold">
+                      #{gamificationStatus?.rank?.weekly || 0}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Booskaada asbuucaan
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {streak?.dailyActivity && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm font-medium">7 berri ugu danbeysay</p>
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    {streakVisualization}
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
 
@@ -751,6 +847,7 @@ export default function Home() {
                             src={
                               course.thumbnail ||
                               "/placeholder.svg?height=192&width=192" ||
+                              "/placeholder.svg" ||
                               "/placeholder.svg"
                             }
                             width={192}
@@ -851,6 +948,7 @@ export default function Home() {
                       src={
                         course.thumbnail ||
                         "/placeholder.svg?height=40&width=40" ||
+                        "/placeholder.svg" ||
                         "/placeholder.svg"
                       }
                       width={40}
@@ -937,8 +1035,10 @@ export default function Home() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Medal className="h-12 w-12 mx-auto mb-2 text-muted" />
-                  <p>No achievements yet</p>
-                  <p className="text-sm">Complete courses to earn badges!</p>
+                  <p>Wax abaal marin ah maadan helin</p>
+                  <p className="text-sm">
+                    Dhamee koorso si aad u hesho abaal marino!
+                  </p>
                 </div>
               )}
             </Card>
