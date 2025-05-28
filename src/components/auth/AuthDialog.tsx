@@ -115,7 +115,7 @@ export function AuthDialog() {
           age: 18, // Default age
           onboarding_data: {
             goal: "learn_math", // Default goal
-            learning_approach: "self_paced", // Default learning approach
+            preferred_study_time: "self_paced", // Default preferred study time
             topic: "general_math", // Default topic
             math_level: "beginner", // Default math level
             minutes_per_day: 30, // Default minutes per day

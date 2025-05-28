@@ -98,7 +98,7 @@ export interface SignUpData {
   age: number;
   onboarding_data: {
     goal: string;
-    learning_approach: string;
+    preferred_study_time: string;
     topic: string;
     math_level: string;
     minutes_per_day: number;

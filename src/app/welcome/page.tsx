@@ -86,27 +86,27 @@ const goals = [
 
 const learningApproach = [
   {
-    id: "Aroorti Subaxda inta aan quraacaynayo",
+    id: "morning",
     text: "Aroorti Subaxda inta aan quraacaynayo",
     badge:
       "قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ (الزمر: 9)",
     icon: <Sunrise className="w-5 h-5" />,
   },
   {
-    id: " Waqtiga Nasashasha intaan Khadaynayo.",
+    id: "afternoon",
     text: " Waqtiga Nasashasha intaan Khadaynayo.",
     badge: "وَقُل رَّبِّ زِدْنِي عِلْمًا (طه: 114)",
     icon: <SunDim className="w-5 h-5" />,
   },
   {
-    id: "Habeenki ah ka dib cashada ama Kahor intan seexanin",
+    id: "evening",
     text: "Habeenki ah ka dib cashada ama Kahor intan seexanin",
     badge:
       "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ (المجادلة: 11)",
     icon: <Moon className="w-5 h-5" />,
   },
   {
-    id: "Waqti kale oo maalintayda ah",
+    id: "flexible",
     text: "Waqti kale oo maalintayda ah",
     badge:
       "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنْتُمْ لَا تَعْلَمُونَ (النحل: 43)",
@@ -569,14 +569,12 @@ export default function Page() {
         age: Number.parseInt(userData.age),
         onboarding_data: {
           goal: String(selections[0]).trim(),
-          learning_approach: String(selections[1]).trim(),
+          preferred_study_time: String(selections[1]).trim(),
           topic: String(selections[2]).trim(),
           math_level: String(selections[3]).trim(),
-          topic_levels: topicLevels,
           minutes_per_day: Number.parseInt(String(selections[4]).split(" ")[0]),
         },
       };
-
       //  Redux for signup
       const result = await dispatch(signup(signUpData));
 
@@ -951,19 +949,19 @@ export default function Page() {
                   currentStep === 6
                     ? " text-white"
                     : currentStep === 5
-                    ? userData.email &&
-                      userData.password &&
-                      userData.name &&
-                      userData.age
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                    : currentStep === 3
-                    ? topicLevels[selectedTopic]
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                    : selections[currentStep]
-                    ? " text-white"
-                    : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                      ? userData.email &&
+                        userData.password &&
+                        userData.name &&
+                        userData.age
+                        ? " text-white"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      : currentStep === 3
+                        ? topicLevels[selectedTopic]
+                          ? " text-white"
+                          : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        : selections[currentStep]
+                          ? " text-white"
+                          : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {
