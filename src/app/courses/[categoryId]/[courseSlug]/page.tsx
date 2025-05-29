@@ -12,6 +12,43 @@ import { progressService, UserProgress } from "@/services/progress";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import { useCourse } from "@/hooks/useApi";
+import AuthService from "@/services/auth";
+import useSWR from "swr";
+
+interface EnrollmentProgress {
+  id: number;
+  user: number;
+  course: number;
+  course_title: string;
+  progress_percent: number;
+  enrolled_at: string;
+}
+
+interface DailyActivity {
+  date: string;
+  day: string;
+  status: "complete" | "none";
+  problems_solved: number;
+  lesson_ids: number[];
+  isToday: boolean;
+}
+
+interface StreakData {
+  userId: string;
+  username: string;
+  current_streak: number;
+  max_streak: number;
+  lessons_completed: number;
+  problems_to_next_streak: number;
+  energy: {
+    current: number;
+    max: number;
+    next_update: string;
+  };
+  dailyActivity: DailyActivity[];
+  xp: number;
+  daily_xp: number;
+}
 
 const ModuleZigzag = dynamic(
   () => import("@/components/learning/ui/ModuleZigzag")
@@ -23,6 +60,11 @@ const CourseProgress = dynamic(() =>
   )
 );
 
+const authFetcher = async <T = any,>(url: string): Promise<T> => {
+  const service = AuthService.getInstance();
+  return await service.makeAuthenticatedRequest("get", url);
+};
+
 const defaultCourseImage = "/images/placeholder-course.svg";
 
 export default function CourseDetailPage() {
@@ -33,47 +75,47 @@ export default function CourseDetailPage() {
     error,
   } = useCourse(String(categoryId), String(courseSlug));
 
-  const [progress, setProgress] = useState<UserProgress[]>([]);
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
 
   const handleModuleClick = useCallback((moduleId: number) => {
     setActiveModuleId((prev) => (prev === moduleId ? null : moduleId));
   }, []);
 
-  useEffect(() => {
-    if (!currentCourse) return;
+  const {
+    data: enrollments,
+    isLoading: isLoadingEnrollments,
+    error: enrollementsError,
+  } = useSWR<EnrollmentProgress[]>("/api/lms/enrollments/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
 
-    const fetchProgress = async () => {
-      try {
-        const data = await progressService.getUserProgress();
-        setProgress(data || []);
-      } catch (err) {
-        console.error(
-          err instanceof Error ? err.message : "Error fetching progress"
-        );
-      }
-    };
+  const {
+    data: progress,
+    isLoading: isLoadingProgress,
+    error: progressError,
+  } = useSWR<UserProgress[]>("/api/lms/user-progress/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
 
-    fetchProgress();
-  }, [currentCourse]);
+  const {
+    data: streak,
+    isLoading: isLoadingStreak,
+    error: streakError,
+    mutate,
+  } = useSWR<StreakData>("/api/streaks/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
 
-  const completedPercentage = useMemo(() => {
-    if (!currentCourse || !progress.length) return 0;
-
-    const lessonTitles =
-      currentCourse.modules?.flatMap((mod) =>
-        mod.lessons?.map((l) => l.title)
-      ) || [];
-
-    const completed = progress.filter(
-      (item) =>
-        lessonTitles.includes(item.lesson_title) && item.status === "completed"
+  const enrollmentProgress = useMemo(() => {
+    if (!enrollments) return 0;
+    return (
+      enrollments.find((e) => e.course === currentCourse?.id)
+        ?.progress_percent || 0
     );
-
-    return lessonTitles.length
-      ? (completed.length / lessonTitles.length) * 100
-      : 0;
-  }, [currentCourse, progress]);
+  }, [enrollments, currentCourse]);
 
   if (error) {
     return (
@@ -106,7 +148,7 @@ export default function CourseDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <ProtectedRoute>
-        <div className="max-w-6xl mx-auto p-8 mb-20">
+        <div className="max-w-7xl mx-auto p-8 mb-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Course Info */}
             <aside className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white rounded-xl shadow-md border-gray-200 md:sticky md:top-10">
@@ -126,7 +168,7 @@ export default function CourseDetailPage() {
                 {currentCourse.title}
               </h2>
 
-              <CourseProgress progress={completedPercentage} />
+              <CourseProgress progress={enrollmentProgress} />
 
               <p className="text-sm text-gray-600 mb-6">
                 {currentCourse.description}
@@ -166,6 +208,8 @@ export default function CourseDetailPage() {
                     modules={currentCourse.modules}
                     activeModuleId={activeModuleId}
                     onModuleClick={handleModuleClick}
+                    progress={progress ?? []}
+                    energyKeys={streak?.energy?.current ?? 0}
                   />
                 )}
               </div>

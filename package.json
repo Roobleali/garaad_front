@@ -38,6 +38,7 @@
     "@radix-ui/react-toast": "^1.2.10",
     "@radix-ui/react-toggle-group": "^1.1.7",
     "@radix-ui/react-tooltip": "^1.2.3",
+    "@react-three/fiber": "^9.1.2",
     "@reduxjs/toolkit": "^2.6.1",
     "@rive-app/canvas": "^2.27.0",
     "@rive-app/react-canvas": "^4.18.8",
@@ -84,6 +85,7 @@
     "swr": "^2.3.3",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.176.0",
     "use-sound": "^5.0.0",
     "vaul": "^1.1.2",
     "zod": "^3.24.2"
@@ -100,6 +102,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-katex": "^3.0.4",
+    "@types/three": "^0.176.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "jest": "^29.7.0",

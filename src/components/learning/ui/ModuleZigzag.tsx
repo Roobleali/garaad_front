@@ -12,15 +12,19 @@ interface ModuleZigzagProps {
   modules: Module[];
   activeModuleId: number | null;
   onModuleClick: (moduleId: number) => void;
+  progress: UserProgress[];
+  energyKeys: number;
 }
 
 export default function ModuleZigzag({
   modules,
   activeModuleId,
+  progress,
   onModuleClick,
+  energyKeys,
 }: ModuleZigzagProps) {
   const [zigzagPath, setZigzagPath] = useState<string>("");
-  const [progress, setProgress] = useState<UserProgress[]>([]);
+  // const [progress, setProgress] = useState<UserProgress[]>([]);
   const [completedPath, setCompletedPath] = useState<string>("");
   const [modulePoints, setModulePoints] = useState<
     { x: number; y: number; completed: boolean; inProgress: boolean }[]
@@ -37,23 +41,6 @@ export default function ModuleZigzag({
   }, [modules]);
 
   console.log("+++++++++++++++++MODULES+++++++++++++");
-
-  const fetchProgress = useCallback(async () => {
-    try {
-      const progressData = await progressService.getUserProgress();
-      setProgress(progressData || []);
-    } catch (err) {
-      if (err instanceof Error) {
-        console.error(err.message);
-      } else {
-        console.error("Error fetching progress");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchProgress();
-  }, [fetchProgress]);
 
   const isModuleCompleted = useCallback(
     (lessonTitle: string) => {
@@ -74,6 +61,10 @@ export default function ModuleZigzag({
     },
     [progress]
   );
+
+  const isModuleLocked = useCallback(() => {
+    return energyKeys === 0;
+  }, [energyKeys]);
 
   useEffect(() => {
     const calculateZigzagPath = () => {
@@ -230,6 +221,7 @@ export default function ModuleZigzag({
                     module={module}
                     isInProgress={hasModuleProgress(module.course_id)}
                     isCompleted={isModuleCompleted(module.title)}
+                    isLocked={isModuleLocked()}
                     side={index % 2 === 0 ? "right" : "left"}
                     isFirstModule={module.id === modules[0]?.id}
                     isLastModule={module.id === modules[modules.length - 1].id}
