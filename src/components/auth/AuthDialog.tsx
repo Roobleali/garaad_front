@@ -158,7 +158,7 @@ export function AuthDialog() {
         </DialogHeader>
 
         <div id="auth-description" className="sr-only">
-          Doorashooyinka soo gelista: Google, Facebook, ama email
+          Doorashooyinka soo gelista: Google, Facebook ama email
         </div>
 
         <div className="space-y-4 animate-in fade-in-50 duration-500 delay-200">
