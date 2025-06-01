@@ -10,7 +10,7 @@ function DownloadApp() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                     <div className="relative">
-                        <Image
+                        <img
                             src="/images/app-store.svg"
                             alt="Download on App Store"
                             width={140}
@@ -22,7 +22,7 @@ function DownloadApp() {
                         </span>
                     </div>
                     <div className="relative">
-                        <Image
+                        <img
                             src="/images/google-play.svg"
                             alt="Get it on Google Play"
                             width={140}
