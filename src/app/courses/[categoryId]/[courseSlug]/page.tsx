@@ -1,19 +1,19 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
-import { progressService, UserProgress } from "@/services/progress";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import { useCourse } from "@/hooks/useApi";
 import AuthService from "@/services/auth";
 import useSWR from "swr";
+import { UserProgress } from "@/services/progress";
 
 interface EnrollmentProgress {
   id: number;
@@ -74,12 +74,6 @@ export default function CourseDetailPage() {
     isLoading,
     error,
   } = useCourse(String(categoryId), String(courseSlug));
-
-  const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
-
-  const handleModuleClick = useCallback((moduleId: number) => {
-    setActiveModuleId((prev) => (prev === moduleId ? null : moduleId));
-  }, []);
 
   const {
     data: enrollments,
@@ -206,8 +200,7 @@ export default function CourseDetailPage() {
                 {currentCourse.modules && (
                   <ModuleZigzag
                     modules={currentCourse.modules}
-                    activeModuleId={activeModuleId}
-                    onModuleClick={handleModuleClick}
+                    onModuleClick={() => { }}
                     progress={progress ?? []}
                     energyKeys={streak?.energy?.current ?? 0}
                   />

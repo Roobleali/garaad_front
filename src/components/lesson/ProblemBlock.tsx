@@ -1,5 +1,5 @@
 "use client";
-import React, { memo } from "react";
+import React, { memo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,171 +50,187 @@ const ProblemBlock: React.FC<{
   isCorrect,
   disabledOptions = [],
 }) => {
-  const hasAnswered = answerState.isCorrect !== null;
+    const hasAnswered = answerState.isCorrect !== null;
+    const [imgLoading, setImgLoading] = useState(false);
+    const [imgSrc, setImgSrc] = useState(content?.img);
 
-  const renderOption = (option: string, idx: number) => {
-    const isSelected = selectedOption === option;
-    const isOptionCorrect = hasAnswered && isSelected && isCorrect;
-    const isOptionIncorrect = hasAnswered && isSelected && !isCorrect;
-    const isDisabled =
-      disabledOptions.includes(option) || (hasAnswered && isCorrect);
+    useEffect(() => {
+      if (content?.img) {
+        setImgLoading(true);
+        setImgSrc(content.img);
+      }
+    }, [content?.img]);
 
-    const buttonClass = cn(
-      "w-full p-3 text-sm rounded-xl border-2 relative text-left",
-      !isSelected &&
+    const renderOption = (option: string, idx: number) => {
+      const isSelected = selectedOption === option;
+      const isOptionCorrect = hasAnswered && isSelected && isCorrect;
+      const isOptionIncorrect = hasAnswered && isSelected && !isCorrect;
+      const isDisabled =
+        disabledOptions.includes(option) || (hasAnswered && isCorrect);
+
+      const buttonClass = cn(
+        "w-full p-3 text-sm rounded-xl border-2 relative text-left",
+        !isSelected &&
         !hasAnswered &&
         "border-gray-200 hover:border-primary/50 hover:bg-primary/5",
-      isSelected && !hasAnswered && "border-primary bg-primary/10 shadow-md",
-      isOptionCorrect && "border-green-500 bg-green-50 shadow-md",
-      isOptionIncorrect && "border-gray-300 bg-gray-50 text-gray-400",
-      isDisabled &&
+        isSelected && !hasAnswered && "border-primary bg-primary/10 shadow-md",
+        isOptionCorrect && "border-green-500 bg-green-50 shadow-md",
+        isOptionIncorrect && "border-gray-300 bg-gray-50 text-gray-400",
+        isDisabled &&
         "border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed"
-    );
+      );
 
-    return (
-      <button
-        key={idx}
-        onClick={() => onOptionSelect(option)}
-        disabled={isDisabled}
-        className={buttonClass}
-      >
-        {(isOptionIncorrect || isDisabled) && (
-          <span className="absolute top-2 right-2 text-gray-400">
-            <X className="h-5 w-5" />
-          </span>
-        )}
-        <div className="flex items-center justify-between">
-          <span
-            className={cn(
-              "font-normal",
-              isOptionIncorrect ? "text-gray-400" : "text-gray-800"
-            )}
-          >
-            {content?.content.type === "latex" ? (
-              <Latex>{option}</Latex>
-            ) : (
-              option
-            )}
-          </span>
-          {isOptionCorrect && (
-            <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center">
-              <Check className="h-4 w-4 text-white" />
-            </div>
+      return (
+        <button
+          key={idx}
+          onClick={() => onOptionSelect(option)}
+          disabled={isDisabled}
+          className={buttonClass}
+        >
+          {(isOptionIncorrect || isDisabled) && (
+            <span className="absolute top-2 right-2 text-gray-400">
+              <X className="h-5 w-5" />
+            </span>
           )}
-        </div>
-      </button>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="rounded-full h-12 w-12 border-b-2 border-primary animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (error || !content) {
-    return (
-      <Card className="max-w-3xl mx-auto">
-        <CardContent className="p-6 text-center">
-          <p className="text-red-500">
-            {error || "Problem content could not be loaded"}
-          </p>
-          <Button onClick={onContinue} className="mt-2">
-            SiiWado Qaybta Kale
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      <div className="space-y-8">
-        <Card className="border-none shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-2">
-            {content.content.type === "latex" ? (
-              <>
-                <CardTitle className="text-md font-normal text-gray-600">
-                  <Latex>{content.which}</Latex>
-                </CardTitle>
-                <CardTitle className="text-md font-medium">
-                  <Latex>{content.question}</Latex>
-                </CardTitle>
-              </>
-            ) : (
-              <>
-                <CardTitle className="text-md font-normal text-gray-600">
-                  {content.which}
-                </CardTitle>
-                <CardTitle className="text-md font-medium">
-                  {content.question}
-                </CardTitle>
-              </>
-            )}
-          </CardHeader>
-
-          {content.img && (
-            <CardContent className="flex justify-center py-2">
-              <div className="relative w-full max-w-[500px] h-[250px]">
-                <Image
-                  src={content.img}
-                  alt={content.alt || "lesson image"}
-                  fill
-                  loading="lazy"
-                  className="rounded-xl shadow-lg object-contain bg-white"
-                  sizes="(max-width: 900px) 100vw, (max-width: 1200px) 50vw, 500px"
-                  quality={75}
-                  priority={false}
-                />
-              </div>
-            </CardContent>
-          )}
-
-          {content.question_type === "diagram" && content.diagram_config && (
-            <CardContent className="p-6 grid items-center justify-center text-center">
-              {Array.isArray(content.diagram_config) ? (
-                content.diagram_config.map((cfg, i) => (
-                  <DiagramScale key={i} config={cfg} />
-                ))
-              ) : (
-                <DiagramScale config={content.diagram_config} />
-              )}
-            </CardContent>
-          )}
-
-          <CardContent className="p-4">
-            <div
+          <div className="flex items-center justify-between">
+            <span
               className={cn(
-                "gap-4",
-                content.content?.format === "grid"
-                  ? "grid grid-cols-2"
-                  : "grid grid-cols-1"
+                "font-normal",
+                isOptionIncorrect ? "text-gray-400" : "text-gray-800"
               )}
             >
-              {content.options.map(renderOption)}
-            </div>
-          </CardContent>
+              {content?.content.type === "latex" ? (
+                <Latex>{option}</Latex>
+              ) : (
+                option
+              )}
+            </span>
+            {isOptionCorrect && (
+              <div className="w-7 h-7 bg-green-500 rounded-full flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+            )}
+          </div>
+        </button>
+      );
+    };
 
-          <CardFooter className="pt-2 pb-4 px-6">
-            <div className="w-full space-y-2">
-              {answerState.isCorrect === null && !hasAnswered && (
-                <Button onClick={onCheckAnswer} className="w-full">
-                  Hubi Jawaabta
-                </Button>
-              )}
-              {hasAnswered && (
-                <Button onClick={onContinue} className="w-full">
-                  SiiWado Qaybta Kale
-                </Button>
-              )}
-            </div>
-          </CardFooter>
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center py-20">
+          <div className="rounded-full h-12 w-12 border-b-2 border-primary animate-spin"></div>
+        </div>
+      );
+    }
+
+    if (error || !content) {
+      return (
+        <Card className="max-w-3xl mx-auto">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-500">
+              {error || "Problem content could not be loaded"}
+            </p>
+            <Button onClick={onContinue} className="mt-2">
+              SiiWado Qaybta Kale
+            </Button>
+          </CardContent>
         </Card>
+      );
+    }
+
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="space-y-8">
+          <Card className="border-none shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-2">
+              {content.content.type === "latex" ? (
+                <>
+                  <CardTitle className="text-md font-normal text-gray-600">
+                    <Latex>{content.which}</Latex>
+                  </CardTitle>
+                  <CardTitle className="text-md font-medium">
+                    <Latex>{content.question}</Latex>
+                  </CardTitle>
+                </>
+              ) : (
+                <>
+                  <CardTitle className="text-md font-normal text-gray-600">
+                    {content.which}
+                  </CardTitle>
+                  <CardTitle className="text-md font-medium">
+                    {content.question}
+                  </CardTitle>
+                </>
+              )}
+            </CardHeader>
+
+            {content.img && (
+              <CardContent className="flex justify-center py-2">
+                <div className="relative w-full max-w-[500px] h-[250px]">
+                  {imgLoading && (
+                    <div className="absolute inset-0 w-full h-full bg-gray-200 animate-pulse rounded-xl z-10" />
+                  )}
+                  <Image
+                    key={imgSrc}
+                    src={imgSrc || ""}
+                    alt={content.alt || "lesson image"}
+                    fill
+                    loading="lazy"
+                    className="rounded-xl shadow-lg object-contain bg-white"
+                    sizes="(max-width: 900px) 100vw, (max-width: 1200px) 50vw, 500px"
+                    quality={75}
+                    priority={false}
+                    onLoad={() => setImgLoading(false)}
+                    onError={() => setImgLoading(false)}
+                    style={{ opacity: imgLoading ? 0 : 1, transition: "opacity 0.2s" }}
+                  />
+                </div>
+              </CardContent>
+            )}
+
+            {content.question_type === "diagram" && content.diagram_config && (
+              <CardContent className="p-6 grid items-center justify-center text-center">
+                {Array.isArray(content.diagram_config) ? (
+                  content.diagram_config.map((cfg, i) => (
+                    <DiagramScale key={i} config={cfg} />
+                  ))
+                ) : (
+                  <DiagramScale config={content.diagram_config} />
+                )}
+              </CardContent>
+            )}
+
+            <CardContent className="p-4">
+              <div
+                className={cn(
+                  "gap-4",
+                  content.content?.format === "grid"
+                    ? "grid grid-cols-2"
+                    : "grid grid-cols-1"
+                )}
+              >
+                {content.options.map(renderOption)}
+              </div>
+            </CardContent>
+
+            <CardFooter className="pt-2 pb-4 px-6">
+              <div className="w-full space-y-2">
+                {answerState.isCorrect === null && !hasAnswered && (
+                  <Button onClick={onCheckAnswer} className="w-full">
+                    Hubi Jawaabta
+                  </Button>
+                )}
+                {hasAnswered && (
+                  <Button onClick={onContinue} className="w-full">
+                    SiiWado Qaybta Kale
+                  </Button>
+                )}
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export default memo(ProblemBlock);

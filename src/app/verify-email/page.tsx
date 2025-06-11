@@ -39,6 +39,35 @@ export default function VerifyEmailPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const sendInitialVerificationCode = async () => {
+      if (email) {
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/resend-verification/`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email }),
+            }
+          );
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "Failed to send verification code");
+
+          toast({
+            title: "Number sireed ayaa loo diray",
+            description: "Fadlan hubi email-kaaga koodka",
+          });
+        } catch (err) {
+          console.error("Failed to send initial verification code:", err);
+        }
+      }
+    };
+
+    sendInitialVerificationCode();
+  }, [email, toast]);
+
+  useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
@@ -129,8 +158,6 @@ export default function VerifyEmailPage() {
 
       // Success state
       setIsVerified(true);
-
-
 
       // Redirect after a short delay to show success state
       router.push("/courses");

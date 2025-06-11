@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { TextContent } from "@/types/learning";
 import { Card, CardContent } from "../ui/card";
 import HoverText from "./HoverText";
@@ -40,6 +40,16 @@ const TextBlock: React.FC<{
     );
   }, [content]);
 
+  const [imgLoading, setImgLoading] = useState(false);
+  const [imgSrc, setImgSrc] = useState(content.url);
+
+  useEffect(() => {
+    if (content.url) {
+      setImgLoading(true);
+      setImgSrc(content.url);
+    }
+  }, [content.url]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
       <Card className="w-full max-w-full shadow-lg rounded-2xl border border-gray-100 bg-white">
@@ -71,25 +81,29 @@ const TextBlock: React.FC<{
           {content.url && (
             <div className="flex justify-center w-full">
               <div className="relative w-full max-w-[500px] aspect-[16/7] my-6">
+                {imgLoading && (
+                  <div className="absolute inset-0 w-full h-full bg-gray-200 animate-pulse rounded-lg z-10" />
+                )}
                 <Image
-                  src={content.url}
+                  key={imgSrc}
+                  src={imgSrc || ""}
                   alt={content.alt || "lesson image"}
                   fill
                   objectFit="contain"
-                  // className="rounded-lg shadow-xl border border-gray-200 object-cover bg-white"
-                  // sizes="(max-width: 900px) 90vw, (max-width: 1200px) 50vw, 500px"
+                  onLoad={() => setImgLoading(false)}
+                  onError={() => setImgLoading(false)}
                   priority
+                  style={{ opacity: imgLoading ? 0 : 1, transition: "opacity 0.2s" }}
                 />
               </div>
             </div>
           )}
 
           {additionalTexts.map((text, index) => {
-            // Only render if text is string or string[]
+            // Only render if text is a non-empty string or a string[] with at least one non-empty item
             if (
-              typeof text === "string" ||
-              (Array.isArray(text) &&
-                text.every((item) => typeof item === "string"))
+              (typeof text === "string" && text.trim() !== "") ||
+              (Array.isArray(text) && text.some((item) => typeof item === "string" && (item as string).trim() !== ""))
             ) {
               return (
                 <div
