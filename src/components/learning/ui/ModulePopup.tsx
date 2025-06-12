@@ -57,10 +57,9 @@ export default function ModulePopup({
         left-1/2
         transform
         -translate-y-16
-        ${
-          side === "left" && !isLastModule
-            ? " -translate-x-[70%]"
-            : "-translate-x-[10%]"
+        ${side === "left" && !isLastModule
+          ? " -translate-x-[70%]"
+          : "-translate-x-[10%]"
         }
         ${isFirstModule ? "-translate-x-[50%]" : ""} 
         ${isLastModule ? "-translate-x-[50%]" : ""}
@@ -76,31 +75,31 @@ export default function ModulePopup({
         text-center
       `}
     >
-      {!isLocked ? (
-        <>
-          <h3 className="font-bold mb-2">{module.title}</h3>
-          <p className="text-sm mb-4">{module.description}</p>
+      {/* {!isLocked ? ( */}
+      <>
+        <h3 className="font-bold mb-2">{module.title}</h3>
+        <p className="text-sm mb-4">{module.description}</p>
 
-          <Button
-            onClick={() => handleModuleClick(module.id)}
-            variant="default"
-            className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
-          >
-            {isInProgress
-              ? "Sii Wado Casharka"
-              : isCompleted
+        <Button
+          onClick={() => handleModuleClick(module.id)}
+          variant="default"
+          className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
+        >
+          {isInProgress
+            ? "Sii Wado Casharka"
+            : isCompleted
               ? "Muraajacee Casharka"
               : "Billow Casharka"}
-            {isInProgress ? (
-              <PlayCircle className="ml-2 w-4 h-4" />
-            ) : isCompleted ? (
-              <ReplyIcon className="ml-2 w-4 h-4" />
-            ) : (
-              <PlayCircle className="ml-2 w-4 h-4" />
-            )}
-          </Button>
-        </>
-      ) : (
+          {isInProgress ? (
+            <PlayCircle className="ml-2 w-4 h-4" />
+          ) : isCompleted ? (
+            <ReplyIcon className="ml-2 w-4 h-4" />
+          ) : (
+            <PlayCircle className="ml-2 w-4 h-4" />
+          )}
+        </Button>
+      </>
+      {/* ) : (
         <>
           <h3 className="font-bold mb-2">Tamartii baa kaa dhamaatay</h3>
           <p className="text-sm mb-4">
@@ -114,7 +113,7 @@ export default function ModulePopup({
             Is Diiwaangeli
           </Button>
         </>
-      )}
+      )} */}
     </div>
   );
 }

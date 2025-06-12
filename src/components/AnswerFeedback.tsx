@@ -61,7 +61,6 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
     const handleCloseExplanation = useCallback(() => {
       setShowExplanation(false);
     }, []);
-
     // Memoized feedback text & action
     const { title, message, buttonText, buttonAction } = useMemo(() => {
       if (isCorrect) {
