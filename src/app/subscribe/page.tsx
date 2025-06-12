@@ -46,7 +46,7 @@ export default function SubscribePage() {
     const [plan, setPlan] = useState("annual");
     const [formData, setFormData] = useState({
         accountNo: "",
-        amount: "8",
+        amount: "5",
         description: "Isdiiwaangeli Premium"
     });
 
