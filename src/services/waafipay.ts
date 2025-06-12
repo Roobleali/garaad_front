@@ -35,74 +35,22 @@ export interface PaymentResponse {
 }
 
 class WaafiPayService {
-  private apiKey: string;
-  private storeId: number;
-  private merchantUID: string;
-  private baseURL: string;
-  private sdkVersion = "0.0.2"; // Hardcoded version
-
-  constructor(config: WaafiPayConfig) {
-    this.apiKey = config.apiKey;
-    this.storeId = config.storeId;
-    this.merchantUID = config.merchantUID;
-    this.baseURL =
-      config.environment === "production"
-        ? "https://api.waafipay.net/api/v1"
-        : "https://sandbox.waafipay.net/api/v1";
-  }
-
   async createPayment(params: CreatePaymentParams): Promise<PaymentResponse> {
     try {
-      const response = await axios.post(`${this.baseURL}/payment`, {
-        apiKey: this.apiKey,
-        storeId: this.storeId,
-        merchantUid: this.merchantUID,
-        accountNumber: params.accountNumber,
-        amount: params.amount,
-        description: params.description,
-        referenceId: params.referenceId,
-        paymentMethod: "WALLET",
-        sdkVersion: this.sdkVersion,
-      });
-
+      const response = await axios.post("/api/payment", params);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
-          error.response.data.responseMsg || "Payment processing error"
+          error.response.data.error || "Payment processing error"
         );
       }
-      throw error;
+      throw error instanceof Error
+        ? error
+        : new Error("Unknown error occurred");
     }
-  }
-
-  private handleError(error: unknown): Error {
-    if (axios.isAxiosError(error) && error.response?.data) {
-      const responseCode = error.response.data.responseCode;
-      switch (responseCode) {
-        case "2001":
-          return new Error("Payment successful");
-        case "2002":
-          return new Error("Payment pending");
-        case "2003":
-          return new Error("Payment failed");
-        default:
-          return new Error(
-            error.response.data.responseMsg || "Payment processing error"
-          );
-      }
-    }
-    return error instanceof Error ? error : new Error("Unknown error occurred");
   }
 }
 
 // Create singleton instance
-export const waafipayService = new WaafiPayService({
-  apiKey: process.env.NEXT_PUBLIC_WAAFIPAY_API_KEY || "",
-  storeId: Number(process.env.NEXT_PUBLIC_WAAFIPAY_STORE_ID) || 0,
-  merchantUID: process.env.NEXT_PUBLIC_WAAFIPAY_MERCHANT_UID || "",
-  environment:
-    (process.env.NEXT_PUBLIC_WAAFIPAY_ENVIRONMENT as
-      | "sandbox"
-      | "production") || "sandbox",
-});
+export const waafipayService = new WaafiPayService();
