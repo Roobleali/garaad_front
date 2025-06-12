@@ -45,10 +45,13 @@ This project is licensed under the MIT License.
 For local payments, the application uses WaafiPay. To configure WaafiPay, add the following environment variables to your `.env` file:
 
 ```bash
-# WaafiPay Configuration
-NEXT_PUBLIC_WAAFIPAY_API_KEY=API-669892958AHX # Your WaafiPay API key
-NEXT_PUBLIC_WAAFIPAY_STORE_ID=1000312 # Your WaafiPay Store ID
-NEXT_PUBLIC_WAAFIPAY_MERCHANT_UID=M0912255 # Your WaafiPay Merchant UID
+# WaafiPay Configuration (Server-side)
+WAAFIPAY_API_KEY=API-669892958AHX # Your WaafiPay API key
+WAAFIPAY_STORE_ID=1000312 # Your WaafiPay Store ID
+WAAFIPAY_MERCHANT_UID=M0912255 # Your WaafiPay Merchant UID
+WAAFIPAY_ENVIRONMENT=sandbox # or production
+
+# Client-side configuration (if needed)
 NEXT_PUBLIC_WAAFIPAY_ENVIRONMENT=sandbox # or production
 ```
 
