@@ -70,7 +70,8 @@ export default function SubscribePage() {
         setError(null);
 
         try {
-            const response = await fetch("/api/payment", {
+            // First, process the payment
+            const paymentResponse = await fetch("/api/payment", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -82,20 +83,43 @@ export default function SubscribePage() {
                 }),
             });
 
-            const data = await response.json();
+            const paymentData = await paymentResponse.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || "Bixinta waa guuldareysatay");
+            if (!paymentResponse.ok) {
+                throw new Error(paymentData.message || "Bixinta waa guuldareysatay");
             }
 
-            if (data.success) {
-                // Update Redux user state to is_premium: true
-                if (currentUser) {
-                    dispatch(setUser({ ...currentUser, is_premium: true }));
+            if (paymentData.success) {
+                // If payment is successful, update the user's premium status
+                const successResponse = await fetch("/api/payment/success", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        transactionId: paymentData.data.params.transactionId,
+                        referenceId: paymentData.data.params.referenceId,
+                        state: paymentData.data.params.state,
+                    }),
+                });
+
+                const successData = await successResponse.json();
+
+                if (!successResponse.ok) {
+                    throw new Error(successData.message || "Failed to update premium status");
                 }
-                router.push("/dashboard");
+
+                if (successData.success) {
+                    // Update Redux user state with the new premium status
+                    if (currentUser) {
+                        dispatch(setUser(successData.data.user));
+                    }
+                    router.push("/dashboard");
+                } else {
+                    setError(translateError(successData.message || "Failed to update premium status"));
+                }
             } else {
-                setError(translateError(data.message || "Bixinta waa guuldareysatay"));
+                setError(translateError(paymentData.message || "Bixinta waa guuldareysatay"));
             }
         } catch (err) {
             setError(

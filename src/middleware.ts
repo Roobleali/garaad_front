@@ -1,63 +1,55 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Add paths that should be accessible without premium
-const publicPaths = [
-  "/",
-  "/login",
-  "/signup",
-  "/subscribe",
-  "/api",
-  "/_next",
-  "/static",
-  "/favicon.ico",
-];
-
-// Add paths that require premium access
+// Define paths that require premium access
 const premiumPaths = [
   "/courses",
   "/lessons",
-  "/profile",
-  "/dashboard",
-  "/learning",
+  "/", // Adding home page to premium paths
+];
+
+// Define paths that are always public
+const publicPaths = [
+  "/login",
+  "/register",
+  "/subscribe",
+  "/api/payment",
+  "/api/payment/success",
+  "/api/auth",
+  "/_next",
+  "/favicon.ico",
+  "/logo.png",
 ];
 
 export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+  const { pathname } = request.nextUrl;
 
   // Allow public paths
-  if (publicPaths.some((publicPath) => path.startsWith(publicPath))) {
+  if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  // Get user from cookie
-  const userStr = request.cookies.get("user")?.value;
+  // Check if the path requires premium access
+  const isPremiumPath = premiumPaths.some((path) => pathname.startsWith(path));
 
-  // If no user cookie, redirect to login
-  if (!userStr) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", path);
-    return NextResponse.redirect(loginUrl);
-  }
+  if (isPremiumPath) {
+    try {
+      // Get user from cookie
+      const userCookie = request.cookies.get("user");
+      if (!userCookie) {
+        // Redirect to login if no user cookie
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
 
-  try {
-    const user = JSON.parse(userStr);
-
-    // Check if the path requires premium access
-    const requiresPremium = premiumPaths.some((premiumPath) =>
-      path.startsWith(premiumPath)
-    );
-
-    // If path requires premium and user is not premium, redirect to subscribe
-    if (requiresPremium && !user.is_premium) {
-      const subscribeUrl = new URL("/subscribe", request.url);
-      subscribeUrl.searchParams.set("redirect", path);
-      return NextResponse.redirect(subscribeUrl);
+      const user = JSON.parse(userCookie.value);
+      if (!user.is_premium) {
+        // Redirect to subscribe page if user is not premium
+        return NextResponse.redirect(new URL("/subscribe", request.url));
+      }
+    } catch (error) {
+      // If there's any error parsing the cookie, redirect to login
+      return NextResponse.redirect(new URL("/login", request.url));
     }
-  } catch (error) {
-    console.error("Error parsing user data:", error);
-    // If there's an error parsing user data, redirect to login
-    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();

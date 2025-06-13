@@ -13,6 +13,7 @@ import { useMemo, useCallback } from "react";
 import AuthService from "@/services/auth";
 import useSWR from "swr";
 import NotificationPanel from "./Notifications";
+import Image from "next/image";
 
 interface DailyActivity {
   date: string;
@@ -129,7 +130,7 @@ export function Header() {
             href="/"
             className="text-2xl font-semibold tracking-tight text-black font-[fkGrotesk,Fallback] md:text-3xl md:flex"
           >
-            Garaad
+            <Image src="/logo.png" alt="Garaad" width={120} height={120} />
           </Link>
 
           <nav className="flex items-center gap-6">
@@ -138,8 +139,8 @@ export function Header() {
                 key={href}
                 href={href}
                 className={clsx(
-                  "text-gray-600 hover:text-black transition-all font-medium flex items-center gap-2 py-1",
-                  isLinkActive(href) && "text-primary border-b-2 border-primary"
+                  "text-gray-600 hover:text-black transition-all duration-300 font-medium flex items-center gap-2 py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
+                  isLinkActive(href) && "text-primary after:w-full"
                 )}
               >
                 {/* icon */}
