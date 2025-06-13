@@ -13,6 +13,15 @@ const publicPaths = [
   "/favicon.ico",
 ];
 
+// Add paths that require premium access
+const premiumPaths = [
+  "/courses",
+  "/lessons",
+  "/profile",
+  "/dashboard",
+  "/learning",
+];
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
@@ -23,19 +32,32 @@ export async function middleware(request: NextRequest) {
 
   // Get user from cookie
   const userStr = request.cookies.get("user")?.value;
+
+  // If no user cookie, redirect to login
   if (!userStr) {
-    return NextResponse.next();
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", path);
+    return NextResponse.redirect(loginUrl);
   }
 
   try {
     const user = JSON.parse(userStr);
 
-    // If user is not premium, redirect to subscribe page
-    if (!user.is_premium) {
-      return NextResponse.redirect(new URL("/subscribe", request.url));
+    // Check if the path requires premium access
+    const requiresPremium = premiumPaths.some((premiumPath) =>
+      path.startsWith(premiumPath)
+    );
+
+    // If path requires premium and user is not premium, redirect to subscribe
+    if (requiresPremium && !user.is_premium) {
+      const subscribeUrl = new URL("/subscribe", request.url);
+      subscribeUrl.searchParams.set("redirect", path);
+      return NextResponse.redirect(subscribeUrl);
     }
   } catch (error) {
     console.error("Error parsing user data:", error);
+    // If there's an error parsing user data, redirect to login
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();
