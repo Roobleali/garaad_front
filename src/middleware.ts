@@ -2,14 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Define paths that require premium access
-const premiumPaths = [
-  "/courses",
-  "/lessons",
-  "/", // Adding home page to premium paths
-];
+const premiumPaths = ["/courses", "/lessons"];
 
 // Define paths that are always public
 const publicPaths = [
+  "/", // Home page is public
+  "/welcome",
   "/login",
   "/register",
   "/subscribe",
@@ -29,30 +27,47 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if the path requires premium access
-  const isPremiumPath = premiumPaths.some((path) => pathname.startsWith(path));
+  // Get user from cookie
+  const userCookie = request.cookies.get("user");
+  console.log("User cookie:", userCookie?.value);
 
-  if (isPremiumPath) {
-    try {
-      // Get user from cookie
-      const userCookie = request.cookies.get("user");
-      if (!userCookie) {
-        // Redirect to login if no user cookie
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-
-      const user = JSON.parse(userCookie.value);
-      if (!user.is_premium) {
-        // Redirect to subscribe page if user is not premium
-        return NextResponse.redirect(new URL("/subscribe", request.url));
-      }
-    } catch (error) {
-      // If there's any error parsing the cookie, redirect to login
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  // If no user cookie, redirect to welcome page
+  if (!userCookie) {
+    console.log("No user cookie found, redirecting to welcome");
+    return NextResponse.redirect(new URL("/welcome", request.url));
   }
 
-  return NextResponse.next();
+  try {
+    const user = JSON.parse(userCookie.value);
+    console.log("Parsed user:", user);
+    console.log("Is premium:", user.is_premium);
+
+    // If user is premium, allow access to all pages
+    if (user.is_premium) {
+      console.log("User is premium, allowing access");
+      return NextResponse.next();
+    }
+
+    // Check if the path requires premium access
+    const isPremiumPath = premiumPaths.some((path) =>
+      pathname.startsWith(path)
+    );
+    console.log("Is premium path:", isPremiumPath);
+
+    // If path requires premium and user is not premium, redirect to subscribe
+    if (isPremiumPath) {
+      console.log("User is not premium, redirecting to subscribe");
+      const subscribeUrl = new URL("/subscribe", request.url);
+      subscribeUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(subscribeUrl);
+    }
+
+    // Allow access to non-premium paths
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Error parsing user cookie:", error);
+    return NextResponse.redirect(new URL("/welcome", request.url));
+  }
 }
 
 export const config = {

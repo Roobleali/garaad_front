@@ -112,7 +112,7 @@ interface LoginCredentials {
   password: string;
 }
 
-class AuthService {
+export class AuthService {
   private static instance: AuthService;
   private token: string | null = null;
   private refreshToken: string | null = null;
@@ -121,7 +121,7 @@ class AuthService {
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
   private refreshTimeout: NodeJS.Timeout | null = null;
   private isRefreshing = false;
-  private refreshSubscribers: Array<(token: string) => void> = [];
+  private refreshSubscribers: ((token: string) => void)[] = [];
 
   private constructor() {
     this.loadFromStorage();
@@ -136,16 +136,14 @@ class AuthService {
 
   private loadFromStorage(): void {
     if (typeof window !== "undefined") {
-      // Get token from cookie instead of localStorage
       this.token = this.getCookie("accessToken");
       this.refreshToken = this.getCookie("refreshToken");
       const userStr = this.getCookie("user");
       if (userStr) {
         try {
           this.user = JSON.parse(userStr) as User;
-        } catch (error: unknown) {
-          const authError = error as AuthError;
-          console.error("Failed to parse user from storage:", authError);
+        } catch (error) {
+          console.error("Failed to parse user from storage:", error);
           this.user = null;
         }
       }
@@ -346,22 +344,16 @@ class AuthService {
     return this.getCookie("accessToken");
   }
 
-  public getCurrentUser() {
-    const userStr = this.getCookie("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        return user;
-      } catch (e) {
-        console.error("Error parsing user from cookie:", e);
-        this.clearAuthData(); // Clear invalid data
-        return null;
-      }
-    }
-    return null;
+  public getCurrentUser(): User | null {
+    return this.user;
   }
 
-  public setCurrentUser(user: SignUpResponse["user"]) {
+  public isPremium(): boolean {
+    return !!this.user?.is_premium;
+  }
+
+  public setCurrentUser(user: User): void {
+    this.user = user;
     this.setCookie("user", JSON.stringify(user), 7);
   }
 
@@ -401,13 +393,10 @@ class AuthService {
     }
   }
 
-  public clearAuthData() {
-    // Clear cookies
+  public clearAuthData(): void {
     this.deleteCookie("accessToken");
     this.deleteCookie("refreshToken");
     this.deleteCookie("user");
-
-    // Clear instance variables
     this.token = null;
     this.refreshToken = null;
     this.user = null;

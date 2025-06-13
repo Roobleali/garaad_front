@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Phone, Banknote, Coins } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, selectCurrentUser } from '@/store/features/authSlice';
+import AuthService from "@/services/auth";
 
 const PAYMENT_METHODS = [
     { key: "waafipay", label: "WaafiPay", icon: <Phone className="w-5 h-5" /> },
@@ -63,6 +64,23 @@ export default function SubscribePage() {
         amount: ANNUAL_PRICE,
         description: "Isdiiwaangeli Premium"
     });
+
+    // Check if user is already premium and redirect
+    useEffect(() => {
+        const authService = AuthService.getInstance();
+        if (authService.isPremium()) {
+            router.push("/dashboard");
+        }
+    }, [router]);
+
+    // If user is premium, don't render the subscription form
+    if (AuthService.getInstance().isPremium()) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

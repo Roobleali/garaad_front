@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "@/store/slices/authSlice";
+import AuthService from "@/services/auth";
 
 interface PremiumContentProps {
     children: React.ReactNode;
@@ -11,22 +10,24 @@ interface PremiumContentProps {
 
 export default function PremiumContent({ children }: PremiumContentProps) {
     const router = useRouter();
-    const currentUser = useSelector(selectCurrentUser);
+    const authService = AuthService.getInstance();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!currentUser) {
-            router.push("/login");
+        const user = authService.getCurrentUser();
+
+        if (!user) {
+            router.push("/welcome");
             return;
         }
 
-        if (!currentUser.is_premium) {
+        if (!user.is_premium) {
             router.push("/subscribe");
             return;
         }
 
         setIsLoading(false);
-    }, [currentUser, router]);
+    }, [router]);
 
     if (isLoading) {
         return (

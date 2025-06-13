@@ -60,7 +60,7 @@ const Certificate: React.FC<{
   const today = new Date();
   const certRef = useRef<HTMLDivElement>(null);
 
-  const garaadName = `Garaad ${storedUser.username} ${storedUser.last_name}`;
+  const garaadName = storedUser ? `Garaad ${storedUser.username} ${storedUser.last_name}` : 'Garaad User';
 
   const handleShare = async () => {
     if (!certRef.current) return;
@@ -87,7 +87,7 @@ const Certificate: React.FC<{
         window.alert(
           "Waa lagu guuleystay! La wadaagista si toos ah waa shaqeysay."
         );
-      } catch {}
+      } catch { }
     }
     if (!shared) {
       const link = document.createElement("a");
