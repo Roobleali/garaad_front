@@ -16,9 +16,24 @@ const PAYMENT_METHODS = [
     { key: "points", label: "Dhibcaha", icon: <Coins className="w-5 h-5" /> },
 ];
 
+// Get prices from environment variables
+const MONTHLY_PRICE = process.env.NEXT_PUBLIC_SUBSCRIPTION_MONTHLY_PRICE || "10";
+const ANNUAL_PRICE = process.env.NEXT_PUBLIC_SUBSCRIPTION_ANNUAL_PRICE || "100";
+
 const PLAN_OPTIONS = [
-    { key: "monthly", label: "Bixi Bil kasta", price: 10, note: "$10 / Bil kasta / Xubin" },
-    { key: "annual", label: "Bixi Sanadkiiba", price: 10, note: "$10 / Bil kasta / Xubin", badge: "Keydi 15%" },
+    {
+        key: "monthly",
+        label: "Bixi Bil kasta",
+        price: MONTHLY_PRICE,
+        note: `$${MONTHLY_PRICE} / Bil kasta / Xubin`
+    },
+    {
+        key: "annual",
+        label: "Bixi Sanadkiiba",
+        price: ANNUAL_PRICE,
+        note: `$${ANNUAL_PRICE} / Sanadkiiba / Xubin`,
+        badge: "Keydi 15%"
+    },
 ];
 
 const ERROR_TRANSLATIONS: Record<string, string> = {
@@ -45,7 +60,7 @@ export default function SubscribePage() {
     const [plan, setPlan] = useState("annual");
     const [formData, setFormData] = useState({
         accountNo: "",
-        amount: "10",
+        amount: ANNUAL_PRICE,
         description: "Isdiiwaangeli Premium"
     });
 
@@ -104,7 +119,11 @@ export default function SubscribePage() {
     // Update amount when plan changes
     const handlePlanChange = (key: string) => {
         setPlan(key);
-        setFormData((prev) => ({ ...prev, amount: "10" }));
+        const selectedPlan = PLAN_OPTIONS.find(option => option.key === key);
+        setFormData((prev) => ({
+            ...prev,
+            amount: selectedPlan?.price || MONTHLY_PRICE
+        }));
     };
 
     return (
@@ -221,7 +240,7 @@ export default function SubscribePage() {
                             </div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="font-medium">Wadarta</span>
-                                <span className="font-bold text-xl text-purple-700">${formData.amount} / Bil</span>
+                                <span className="font-bold text-xl text-purple-700">${formData.amount} / {plan === 'monthly' ? 'Bil' : 'Sanad'}</span>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
                                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#a78bfa" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
