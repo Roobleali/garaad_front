@@ -73,7 +73,6 @@ export function Header() {
     data: streakData,
     error,
     isLoading: loading,
-    mutate: refreshStreakData,
   } = useSWR<StreakData>(
     user ? `${process.env.NEXT_PUBLIC_API_URL}/api/streaks/` : null,
     streakFetcher,
@@ -130,10 +129,10 @@ export function Header() {
             href="/"
             className="text-2xl font-semibold tracking-tight text-black font-[fkGrotesk,Fallback] md:text-3xl md:flex"
           >
-            <Image src="/logo.png" alt="Garaad" width={120} height={120} />
+            <Image src="/logo.png" alt="Garaad" width={160} height={48} className="h-16 w-auto md:h-20 md:w-auto transition-all duration-300" />
           </Link>
 
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-10 md:gap-14 lg:gap-16">
             {navLinks.map(({ name, href, icon: Icon }) => (
               <Link
                 key={href}
@@ -144,10 +143,10 @@ export function Header() {
                 )}
               >
                 {/* icon */}
-                <span className="w-4 h-4">
-                  {Icon && <Icon className="w-4 h-4" />}
+                <span className="w-5 h-5">
+                  {Icon && <Icon className="w-5 h-5" />}
                 </span>
-                <span className="hidden md:block">{name}</span>
+                <span className="hidden md:block text-lg">{name}</span>
               </Link>
             ))}
           </nav>
