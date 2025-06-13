@@ -132,21 +132,22 @@ export function Header() {
             <Image src="/logo.png" alt="Garaad" width={160} height={48} className="h-16 w-auto md:h-20 md:w-auto transition-all duration-300" />
           </Link>
 
-          <nav className="flex items-center gap-10 md:gap-14 lg:gap-16">
+          <nav className="flex items-center gap-6 md:gap-8 lg:gap-10 h-full">
             {navLinks.map(({ name, href, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 className={clsx(
-                  "text-gray-600 hover:text-black transition-all duration-300 font-medium flex items-center gap-2 py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
+                  "text-gray-600 hover:text-black transition-all duration-300 font-medium flex items-center gap-1 py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
                   isLinkActive(href) && "text-primary after:w-full"
                 )}
+                style={{ alignItems: 'center', display: 'flex', height: '100%' }}
               >
                 {/* icon */}
-                <span className="w-5 h-5">
-                  {Icon && <Icon className="w-5 h-5" />}
+                <span className="w-4 h-4">
+                  {Icon && <Icon className="w-4 h-4" />}
                 </span>
-                <span className="hidden md:block text-lg">{name}</span>
+                <span className="hidden md:block text-base">{name}</span>
               </Link>
             ))}
           </nav>
