@@ -16,7 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import type { ExplanationText, TextContent } from "@/types/learning";
+import type { ExplanationText, TextContent, DiagramObject, DiagramConfig, ProblemContent } from "@/types/learning";
 import LessonHeader from "@/components/LessonHeader";
 import { AnswerFeedback } from "@/components/AnswerFeedback";
 import type { Course } from "@/types/lms";
@@ -31,26 +31,6 @@ import { useSoundManager } from "@/hooks/use-sound-effects";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import RewardSequence from "@/components/Reward";
-
-// Types and Interfaces
-type Position = "left" | "center" | "right";
-type Orientation = "vertical" | "horizontal" | "none";
-
-interface DiagramObject {
-  type: string;
-  color: string;
-  number: number;
-  position: Position;
-  orientation: Orientation;
-  weight_value?: number;
-}
-
-interface DiagramConfig {
-  diagram_id: number;
-  diagram_type: string;
-  scale_weight: number;
-  objects: DiagramObject[];
-}
 
 interface ProblemData {
   id: number;
@@ -67,31 +47,6 @@ interface ProblemData {
     format?: string;
     type?: string;
   };
-  xp?: number;
-  xp_value?: number;
-}
-
-export interface ProblemContent {
-  id: number;
-  question: string;
-  which: string;
-  options: string[];
-  correct_answer: { id: string; text: string }[];
-  explanation?: string;
-  diagram_config?: DiagramConfig;
-  question_type?:
-  | "code"
-  | "mcq"
-  | "short_input"
-  | "diagram"
-  | "multiple_choice";
-  img?: string;
-  alt?: string;
-  content: {
-    format?: string;
-    type?: string;
-  };
-  points?: number;
   xp?: number;
   xp_value?: number;
 }

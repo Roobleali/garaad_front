@@ -118,19 +118,20 @@ export interface LessonContentBlock {
   options?: Record<string, unknown>;
 }
 
-type Position = "left" | "center" | "right";
-type Orientation = "vertical" | "horizontal" | "none";
-
-interface DiagramObject {
+export interface DiagramObject {
   type: string;
   color: string;
   number: number;
-  position: Position;
-  orientation: Orientation;
+  layout: {
+    rows: number;
+    columns: number;
+    position: "top" | "bottom" | "left" | "right" | "center";
+    alignment: "center" | "left" | "right";
+  };
   weight_value?: number;
 }
 
-interface DiagramConfig {
+export interface DiagramConfig {
   diagram_id: number;
   diagram_type: string;
   scale_weight: number;
@@ -200,7 +201,11 @@ export interface ProblemContent {
     type?: string;
   };
   type?: string;
+  points?: number;
+  xp?: number;
+  xp_value?: number;
 }
+
 export interface Exercise {
   id: number;
   title: string;

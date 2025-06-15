@@ -1,25 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
-
-// Types
-type Position = "left" | "center" | "right";
-type Orientation = "vertical" | "horizontal" | "none";
-
-interface DiagramObject {
-  type: string;
-  color: string;
-  number: number;
-  position: Position;
-  orientation: Orientation;
-  weight_value?: number;
-}
-
-interface DiagramConfig {
-  diagram_id: number;
-  diagram_type: string;
-  scale_weight: number;
-  objects: DiagramObject[];
-}
+import { DiagramObject, DiagramConfig } from "../types/learning";
 
 const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -144,42 +125,75 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
 
         int.draw_function = () => {
           const V2 = dg.V2;
-          // Restore vertical stacking logic for objects
-          const groups: Record<Position, number[]> = config.objects.reduce(
-            (acc, obj, idx) => {
-              acc[obj.position] = acc[obj.position] ?? [];
-              acc[obj.position].push(idx);
-              return acc;
-            },
-            {} as Record<Position, number[]>
-          );
 
-          const spacing = 70;
-          const yBase = 35;
-          const allShapes = config.objects.flatMap((obj, objIdx) => {
-            // find this object's group and its index within that group
-            const group = groups[obj.position];
-            const groupIndex = group.indexOf(objIdx);
-            const groupSize = group.length;
-
-            // center the whole group around X=0
-            const startX = -((groupSize - 1) * spacing) / 2;
-            const xBase = startX + groupIndex * spacing;
-
-            // build the shape once
+          const allShapes = config.objects.flatMap((obj) => {
             const baseShape = makeShape(obj);
+            const shapes: any[] = [];
 
-            // now create its numbered copies with orientation & group offset
-            return Array.from({ length: obj.number }).map((_, i) => {
-              let inst = baseShape;
-              if (obj.orientation === "vertical") {
-                inst = inst.translate(V2(0, i * 50));
-              } else if (obj.orientation === "horizontal") {
-                inst = inst.translate(V2(i * 50, 0));
-              }
-              // finally shift by the computed group offset
-              return inst.translate(V2(xBase, yBase));
-            });
+            // Calculate grid dimensions
+            const totalShapes = obj.number;
+
+            // Reduce spacing between columns and rows
+            const spacing = 54;
+
+            // Calculate grid position based on layout
+            let baseX = 0;
+            let baseY = 35;
+            // Determine position override based on number of objects
+            let position = obj.layout.position;
+            if (Array.isArray(config.objects) && config.objects.length === 1) {
+              position = "center";
+            } else if (Array.isArray(config.objects) && config.objects.length === 2) {
+              position = (config.objects.indexOf(obj) === 0) ? "left" : "right";
+            }
+
+            // Calculate grid position based on layout position
+            switch (position) {
+              case "left":
+                baseX = -100;
+                break;
+              case "right":
+                baseX = 100;
+                break;
+              case "top":
+                baseY = -100;
+                break;
+              case "bottom":
+                baseY = 170;
+                break;
+              case "center":
+              default:
+                baseX = 0;
+                break;
+            }
+
+            // Calculate actual columns and rows used
+            const actualCols = Math.ceil(totalShapes / obj.layout.rows);
+            const groupWidth = (actualCols - 1) * spacing;
+            // const groupHeight = (actualRows - 1) * spacing; // unused
+
+            let groupBaseX = baseX;
+            const groupBaseY = baseY;
+
+            // Alignment for the whole group
+            if (obj.layout.alignment === "center") {
+              groupBaseX = baseX - groupWidth / 2;
+            } else if (obj.layout.alignment === "right") {
+              groupBaseX = baseX - groupWidth;
+            } // left is default (no change)
+
+            // Create grid of shapes
+            for (let i = 0; i < totalShapes; i++) {
+              const row = i % obj.layout.rows;
+              const col = Math.floor(i / obj.layout.rows);
+
+              const x = groupBaseX + (col * spacing);
+              const y = groupBaseY + (row * spacing);
+
+              shapes.push(baseShape.translate(V2(x, y)));
+            }
+
+            return shapes;
           });
 
           draw(
@@ -214,4 +228,4 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
   );
 };
 
-export default DiagramScale;
+export default DiagramScale; 

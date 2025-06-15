@@ -94,8 +94,12 @@ export interface DiagramObject {
   type: string;
   color: string;
   number: number;
-  position: Position;
-  orientation: Orientation;
+  layout: {
+    rows: number;
+    columns: number;
+    position: "top" | "bottom" | "left" | "right" | "center";
+    alignment: "center" | "left" | "right";
+  };
   weight_value?: number;
 }
 
