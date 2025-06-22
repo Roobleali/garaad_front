@@ -5,10 +5,12 @@ import Image from "next/image";
 import { useCategories } from "@/hooks/useApi";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Skeleton } from "@/components/ui/skeleton";
 import PremiumContent from "@/components/PremiumContent";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
 const defaultCourseImage = "/images/placeholder-course.svg";
@@ -56,6 +58,20 @@ interface Course {
 
 export default function CoursesPage() {
   const { categories, isLoading, isError } = useCategories();
+  const searchParams = useSearchParams();
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    if (success === "payment_completed") {
+      setShowSuccessMessage(true);
+      // Auto-hide success message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   if (isError) {
     return (
@@ -77,6 +93,16 @@ export default function CoursesPage() {
       <Header />
       <PremiumContent>
         <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
+          {showSuccessMessage && (
+            <Alert className="mb-6 bg-green-50 border-green-200 text-green-800">
+              <CheckCircle className="h-4 w-4" />
+              <AlertTitle>Payment Successful!</AlertTitle>
+              <AlertDescription>
+                Waad ku mahadsantahay isdiiwaangelinta! Hadda waxaad heli kartaa dhammaan adeegyada Premium-ka.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <h1 className="text-xl md:text-3xl font-bold mb-2">
             Wadooyinka Waxbarashada
           </h1>

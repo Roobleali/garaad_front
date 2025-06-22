@@ -148,9 +148,17 @@ export function AuthDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-[400px] sm:max-w-[450px] md:max-w-[500px] px-6 py-8 rounded-xl shadow-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-700"
+        className="max-w-[400px] sm:max-w-[450px] md:max-w-[500px] px-6 py-8 rounded-xl shadow-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-700
+        transition-all duration-300 ease-out transform-gpu
+        data-[state=open]:opacity-100 data-[state=open]:scale-100 data-[state=closed]:opacity-0 data-[state=closed]:scale-95"
         aria-describedby="auth-description"
       >
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 dark:bg-gray-900/70 rounded-xl">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
             Soo gal
@@ -167,6 +175,7 @@ export function AuthDialog() {
                     type="button"
                     onClick={() => dispatch(setError(null))}
                     className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    disabled={isLoading}
                   >
                     <X size={18} />
                   </button>
@@ -218,6 +227,7 @@ export function AuthDialog() {
                           aria-label={
                             showPassword ? "Hide password" : "Show password"
                           }
+                          disabled={isLoading}
                         >
                           {showPassword ? (
                             <EyeOff size={20} />

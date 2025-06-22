@@ -417,18 +417,16 @@ export default function Home() {
           .map((activity, index) => (
             <div key={index} className="flex flex-col items-center">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                  activity.status === "complete"
-                    ? "bg-yellow-400"
-                    : "bg-gray-100"
-                }`}
+                className={`w-9 h-9 rounded-full flex items-center justify-center ${activity.status === "complete"
+                  ? "bg-yellow-400"
+                  : "bg-gray-100"
+                  }`}
               >
                 <Zap
-                  className={`w-4 h-4 ${
-                    activity.status === "complete"
-                      ? "text-black"
-                      : "text-gray-400"
-                  }`}
+                  className={`w-4 h-4 ${activity.status === "complete"
+                    ? "text-black"
+                    : "text-gray-400"
+                    }`}
                 />
               </div>
               <span className="text-xs text-gray-500 mt-1">{activity.day}</span>
@@ -452,6 +450,21 @@ export default function Home() {
   return (
     <>
       <Header />
+
+      {/* Hero Section */}
+      <section className="relative w-full flex flex-col items-center justify-center min-h-[340px] md:min-h-[420px] bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-400 text-white overflow-hidden mb-10 animate-fade-in">
+        <div className="absolute inset-0 opacity-10 bg-[url('/public/images/math-icon.svg')] bg-no-repeat bg-center bg-contain pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center justify-center py-12 px-4 md:px-0 max-w-2xl mx-auto text-center">
+          <img src="/logo.png" alt="Garaad Logo" className="h-16 w-16 mb-4 rounded-xl shadow-lg bg-white/80" />
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">Baro Xirfadaha Mustaqbalka <span className="text-yellow-300">Garaad</span></h1>
+          <p className="text-lg md:text-2xl font-medium mb-8 text-white/90">Ku baro xisaabta, barnaamijyada, iyo xirfadaha nolosha si casri ah, si fudud, iyo si xiiso leh!</p>
+          <Link href="/courses">
+            <Button size="lg" className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 py-4 text-lg shadow-xl transition-all duration-200">
+              Bilow Barashada
+            </Button>
+          </Link>
+        </div>
+      </section>
 
       {showNotification && (
         <div className="fixed top-20 right-4 z-50 bg-primary text-primary-foreground px-4 py-3 rounded-lg shadow-md flex items-center gap-2 max-w-xs">
@@ -524,7 +537,7 @@ export default function Home() {
                         gamificationStatus.league.current.min_xp) /
                         (gamificationStatus.league.next.min_xp -
                           gamificationStatus.league.current.min_xp)) *
-                        100
+                      100
                     )
                   )}
                   className="h-3"
@@ -608,10 +621,10 @@ export default function Home() {
                               standing.rank === 1
                                 ? "bg-yellow-500/20 text-yellow-700"
                                 : standing.rank === 2
-                                ? "bg-gray-400/20 text-gray-700"
-                                : standing.rank === 3
-                                ? "bg-orange-500/20 text-orange-700"
-                                : "bg-muted text-muted-foreground"
+                                  ? "bg-gray-400/20 text-gray-700"
+                                  : standing.rank === 3
+                                    ? "bg-orange-500/20 text-orange-700"
+                                    : "bg-muted text-muted-foreground"
                             )}
                           >
                             {standing.rank}

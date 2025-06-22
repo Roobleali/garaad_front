@@ -66,9 +66,8 @@ export function CourseCard({
 
   return (
     <div
-      className={`transition-all duration-300 ${
-        isActive ? "scale-105 ring-2 ring-primary ring-offset-2" : ""
-      }`}
+      className={`transition-all duration-300 ${isActive ? "scale-105 ring-2 ring-primary ring-offset-2" : ""
+        }`}
       onClick={onClick}
     >
       <Link href={`/courses/${categoryId}/${course.slug}`}>
