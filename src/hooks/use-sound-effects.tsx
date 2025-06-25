@@ -3,11 +3,9 @@
 
 import { useEffect, useRef, useCallback } from "react";
 
-type SoundKey = "click" | "correct" | "incorrect" | "continue" | "start-lesson";
+type SoundKey = "correct" | "incorrect" | "continue" | "start-lesson";
 
-interface SoundMap {
-  [key: string]: HTMLAudioElement;
-}
+type SoundMap = Record<SoundKey, HTMLAudioElement>;
 
 export function useSoundManager() {
   const soundsRef = useRef<Partial<SoundMap>>({});
@@ -17,7 +15,6 @@ export function useSoundManager() {
 
     // Create and preload
     const soundFiles: Record<SoundKey, string> = {
-      click: "/sounds/toggle-on.mp3",
       correct: "/sounds/correct.mp3",
       incorrect: "/sounds/incorrect.mp3",
       continue: "/sounds/lightweight-choice.mp3",

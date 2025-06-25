@@ -60,14 +60,14 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
           .position(V2(0, -50));
 
         function makeShape(obj: DiagramObject) {
-          const size = 50;
+          const size = 40; // Reduced from 50
           let shape: any;
           switch (obj.type) {
             case "cube": {
               const fill = dg
                 .square(size)
                 .apply(dg.mod.round_corner(8))
-                .fill(obj.color)
+                .fill(obj.background_color || obj.color)
                 .stroke("none");
               const outline = dg
                 .square(size)
@@ -86,7 +86,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
             case "circle": {
               shape = dg
                 .circle(size / 2)
-                .fill(obj.color)
+                .fill(obj.background_color || obj.color)
                 .stroke("none");
               break;
             }
@@ -94,7 +94,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
               shape = dg
                 .regular_polygon(3, size / 1.35)
                 .apply(dg.mod.round_corner(5))
-                .fill(obj.color)
+                .fill(obj.background_color || obj.color)
                 .stroke("#777")
                 .strokewidth(1);
               break;
@@ -102,22 +102,37 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
 
             case "weight": {
               shape = dg
-                .regular_polygon(5, size / 2 + 5)
-                .fill(obj.color || "#ccc")
+                .regular_polygon(5, size / 2) // Reduced from size/2 + 5
+                .fill(obj.background_color || obj.color || "#ccc")
+                .stroke("#333")
+                .strokewidth(2);
+              break;
+            }
+            case "trapezoid_weight": {
+              // Create a trapezoid shape for weights
+              const points = [
+                V2(-size / 2, -size / 3),  // top left
+                V2(size / 2, -size / 3),   // top right
+                V2(size / 3, size / 3),    // bottom right
+                V2(-size / 3, size / 3),   // bottom left
+              ];
+              shape = dg
+                .polygon(points)
+                .fill(obj.background_color || obj.color || "#ccc")
                 .stroke("#333")
                 .strokewidth(2);
               break;
             }
             default: {
-              shape = dg.square(size).fill(obj.color).stroke("none");
+              shape = dg.square(size).fill(obj.background_color || obj.color).stroke("none");
             }
           }
           if (obj.weight_value != null) {
             const txt = dg
               .textvar(String(obj.weight_value))
               .move_origin_text("center-center")
-              .textfill("black")
-              .fontsize(12);
+              .textfill(obj.text_color || "black")
+              .fontsize(10); // Reduced from 12
             shape = dg.diagram_combine(shape, txt);
           }
           return shape;
@@ -125,82 +140,110 @@ const DiagramScale: React.FC<{ config: DiagramConfig }> = ({ config }) => {
 
         int.draw_function = () => {
           const V2 = dg.V2;
+          const spacing = 45; // Base spacing between shapes
+          const groupSpacing = 20; // Spacing between different groups of shapes
 
-          const allShapes = config.objects.flatMap((obj) => {
-            const baseShape = makeShape(obj);
-            const shapes: any[] = [];
+          // Group objects by their position
+          const positionGroups = config.objects.reduce((acc, obj) => {
+            const pos = obj.layout.position;
+            if (!acc[pos]) acc[pos] = [];
+            acc[pos].push(obj);
+            return acc;
+          }, {} as Record<string, DiagramObject[]>);
 
-            // Calculate grid dimensions
-            const totalShapes = obj.number;
+          // Calculate the maximum width needed for each position
+          const positionWidths = Object.entries(positionGroups).reduce((acc, [pos, objects]) => {
+            acc[pos] = objects.reduce((total, obj) => {
+              const cols = Math.ceil(obj.number / obj.layout.rows);
+              return total + (cols * spacing) + (total > 0 ? groupSpacing : 0);
+            }, 0);
+            return acc;
+          }, {} as Record<string, number>);
 
-            // Reduce spacing between columns and rows
-            const spacing = 54;
+          const allShapes = Object.entries(positionGroups).flatMap(([position, objects]) => {
+            let currentX = 0;
 
-            // Calculate grid position based on layout
-            let baseX = 0;
-            let baseY = 35;
-            // Determine position override based on number of objects
-            let position = obj.layout.position;
-            if (Array.isArray(config.objects) && config.objects.length === 1) {
-              position = "center";
-            } else if (Array.isArray(config.objects) && config.objects.length === 2) {
-              position = (config.objects.indexOf(obj) === 0) ? "left" : "right";
-            }
+            return objects.flatMap((obj, objIndex) => {
+              const baseShape = makeShape(obj);
+              const shapes: any[] = [];
 
-            // Calculate grid position based on layout position
-            switch (position) {
-              case "left":
-                baseX = -100;
-                break;
-              case "right":
-                baseX = 100;
-                break;
-              case "top":
-                baseY = -100;
-                break;
-              case "bottom":
-                baseY = 170;
-                break;
-              case "center":
-              default:
-                baseX = 0;
-                break;
-            }
+              // Calculate grid dimensions for this object
+              const totalShapes = obj.number;
+              const actualRows = obj.layout.rows;
+              const actualCols = Math.ceil(totalShapes / actualRows);
+              const objectWidth = (actualCols - 1) * spacing;
 
-            // Calculate actual columns and rows used
-            const actualCols = Math.ceil(totalShapes / obj.layout.rows);
-            const groupWidth = (actualCols - 1) * spacing;
-            // const groupHeight = (actualRows - 1) * spacing; // unused
+              // Calculate base position
+              let baseX = 0;
+              let baseY = 35;
 
-            let groupBaseX = baseX;
-            const groupBaseY = baseY;
+              // Calculate position based on layout
+              switch (position) {
+                case "left":
+                  baseX = -120; // Increased offset for better balance
+                  break;
+                case "right":
+                  baseX = 120; // Increased offset for better balance
+                  break;
+                case "top":
+                  baseY = -100;
+                  break;
+                case "bottom":
+                  baseY = 170;
+                  break;
+                case "center":
+                default:
+                  baseX = 0;
+                  break;
+              }
 
-            // Alignment for the whole group
-            if (obj.layout.alignment === "center") {
-              groupBaseX = baseX - groupWidth / 2;
-            } else if (obj.layout.alignment === "right") {
-              groupBaseX = baseX - groupWidth;
-            } // left is default (no change)
+              // Add spacing between different types of weights
+              if (objIndex > 0) {
+                currentX += groupSpacing;
+              }
 
-            // Create grid of shapes
-            for (let i = 0; i < totalShapes; i++) {
-              const row = i % obj.layout.rows;
-              const col = Math.floor(i / obj.layout.rows);
+              // Adjust baseX based on alignment within position group
+              const totalWidth = positionWidths[position];
+              switch (obj.layout.alignment) {
+                case "center":
+                  // Center the entire group and then position this object within it
+                  baseX = baseX - (totalWidth / 2) + currentX + (objectWidth / 2);
+                  break;
+                case "right":
+                  // Right align the entire group and then position this object within it
+                  baseX = baseX - totalWidth + currentX;
+                  break;
+                case "left":
+                default:
+                  // Left align starting from the base position
+                  baseX = baseX + currentX;
+                  break;
+              }
 
-              const x = groupBaseX + (col * spacing);
-              const y = groupBaseY + (row * spacing);
+              // Create grid of shapes with consistent spacing
+              for (let i = 0; i < totalShapes; i++) {
+                const row = i % actualRows;
+                const col = Math.floor(i / actualRows);
 
-              shapes.push(baseShape.translate(V2(x, y)));
-            }
+                const x = baseX + (col * spacing);
+                const y = baseY + (row * spacing);
 
-            return shapes;
+                shapes.push(baseShape.translate(V2(x, y)));
+              }
+
+              // Update currentX for next object in this position group
+              currentX += objectWidth + (objIndex < objects.length - 1 ? spacing : 0);
+
+              return shapes;
+            });
           });
 
+          // Draw the scale components in the correct order
           draw(
             baseAccent,
-            ...allShapes,
             baseShape,
             pivot,
+            ...allShapes,
             displayBg,
             displayText
           );

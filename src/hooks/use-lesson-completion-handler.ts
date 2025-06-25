@@ -12,7 +12,7 @@ interface LessonCompletionHandlerProps {
   currentBlockIndex: number;
   isCorrect: boolean;
   courseId: string;
-  playSound: (sound: "click" | "correct" | "incorrect" | "continue") => void;
+  playSound: (sound: "correct" | "incorrect" | "continue") => void;
   setShowFeedback: (show: boolean) => void;
   setIsLessonCompleted: (completed: boolean) => void;
   setRewards: (rewards: UserReward[]) => void;

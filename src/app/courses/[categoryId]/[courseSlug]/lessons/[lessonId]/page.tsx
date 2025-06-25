@@ -16,7 +16,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import type { ExplanationText, TextContent, DiagramObject, DiagramConfig, ProblemContent } from "@/types/learning";
+import type { ExplanationText, TextContent, DiagramConfig, ProblemContent } from "@/types/learning";
 import LessonHeader from "@/components/LessonHeader";
 import { AnswerFeedback } from "@/components/AnswerFeedback";
 import type { Course } from "@/types/lms";
@@ -630,9 +630,8 @@ const LessonPage = () => {
             setShowFeedback(false);
             dispatch(resetAnswerState());
             setSelectedOption(String(option));
-            playSound("click");
         },
-        [dispatch, playSound]
+        [dispatch]
     );
 
     const handleContinue = useCallback(async () => {
@@ -652,7 +651,6 @@ const LessonPage = () => {
 
         // Handle completion with animation
         setShowCompletionAnimation(true);
-        playSound("click");
 
         if (currentLesson?.id) {
             try {

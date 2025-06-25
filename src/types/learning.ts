@@ -129,6 +129,8 @@ export interface DiagramObject {
     alignment: "center" | "left" | "right";
   };
   weight_value?: number;
+  text_color?: string;
+  background_color?: string;
 }
 
 export interface DiagramConfig {
