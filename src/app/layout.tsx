@@ -12,7 +12,7 @@ import { Loader } from "lucide-react";
 
 export const metadata: Metadata = {
   title: {
-    default: "Garaad - Barashada Xisaabta iyo Sayniska ee Soomaalida",
+    default: "Garaad - Barashada Luqadaha STEM-ka ",
     template: "%s | Garaad",
   },
   description:
@@ -138,8 +138,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "so_SO",
-    url: "https://garaad.so",
-    title: "Garaad - Barashada Xisaabta iyo Sayniska ee Soomaalida",
+    url: "https://garaad.com",
+    title: "Garaad - Barashada Luqadaha STEM-ka",
     description:
       "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, sayniska, iyo fikradaha cilmi-baarista. Waxaan kuu diyaarisay koorsooyin tayo sare leh oo ku qoran Af-Soomaali.",
     siteName: "Garaad",
@@ -148,13 +148,13 @@ export const metadata: Metadata = {
         url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Garaad - Barashada Xisaabta iyo Sayniska ee Soomaalida",
+        alt: "Garaad - Barashada Luqadaha STEM-ka",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Garaad - Barashada Xisaabta iyo Sayniska ee Soomaalida",
+    title: "Garaad - Barashada Luqadaha STEM-ka",
     description:
       "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, sayniska, iyo fikradaha cilmi-baarista.",
     images: ["/images/twitter-image.jpg"],

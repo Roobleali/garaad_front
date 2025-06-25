@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, STRIPE_PRICE_IDS } from "@/lib/stripe";
+import { jwtDecode } from "jwt-decode";
+
+interface JWTPayload {
+  email: string;
+  sub: string;
+  user_id: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { plan, successUrl, cancelUrl } = await request.json();
+    const { plan, successUrl, cancelUrl, countryCode } = await request.json();
 
     // Validate plan
     if (!plan || !STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS]) {
@@ -13,14 +20,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Get user from session (you'll need to implement this based on your auth system)
-    // const session = await getServerSession();
-    // if (!session?.user) {
-    //   return NextResponse.json(
-    //     { error: 'Unauthorized' },
-    //     { status: 401 }
-    //   );
-    // }
+    // Get user from auth token
+    const authHeader = request.headers.get("Authorization");
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+    let userEmail: string;
+    let userId: string;
+
+    try {
+      const decoded = jwtDecode<JWTPayload>(token);
+      userEmail = decoded.email;
+      userId = decoded.user_id;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid authentication token" },
+        { status: 401 }
+      );
+    }
 
     if (!stripe) {
       return NextResponse.json(
@@ -29,12 +52,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the correct price ID based on location
+    const priceType = countryCode === "SO" ? "SOMALIA" : "INTERNATIONAL";
+    const priceId =
+      STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS][priceType];
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price: STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS],
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -47,11 +75,12 @@ export async function POST(request: NextRequest) {
         `${process.env.NEXT_PUBLIC_BASE_URL}/subscribe?canceled=true`,
       metadata: {
         plan,
-        // userId: session.user.id, // Add user ID when you have auth
+        userId,
+        countryCode,
       },
       allow_promotion_codes: true,
       billing_address_collection: "required",
-      customer_email: "customer@example.com", // Replace with actual user email
+      customer_email: userEmail,
     });
 
     return NextResponse.json({ sessionId: session.id });

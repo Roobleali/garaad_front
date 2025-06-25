@@ -19,7 +19,10 @@ export const getStripe = async () => {
 
 // Price IDs for your subscription plans
 export const STRIPE_PRICE_IDS = {
-  monthly: process.env.STRIPE_MONTHLY_PRICE_ID!,
+  monthly: {
+    SOMALIA: process.env.STRIPE_MONTHLY_PRICE_ID_SOMALIA!,
+    INTERNATIONAL: process.env.STRIPE_MONTHLY_PRICE_ID_INTERNATIONAL!,
+  },
 };
 
 // Webhook events to handle

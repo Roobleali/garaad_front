@@ -4,6 +4,7 @@ import type {
   StripeCardElement,
   PaymentMethod,
 } from "@stripe/stripe-js";
+import AuthService from "@/services/auth";
 
 export class StripeService {
   private static instance: StripeService;
@@ -25,15 +26,24 @@ export class StripeService {
     return this.stripe;
   }
 
-  async createCheckoutSession(plan: "monthly") {
+  async createCheckoutSession(plan: "monthly", countryCode: string) {
     try {
+      const authService = AuthService.getInstance();
+      const token = authService.getToken();
+
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
       const response = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           plan,
+          countryCode,
           successUrl: `${window.location.origin}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/subscribe?canceled=true`,
         }),

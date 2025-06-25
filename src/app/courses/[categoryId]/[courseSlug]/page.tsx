@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
+import { Button } from "@/components/ui/button";
 
 import { useCourse } from "@/hooks/useApi";
 import AuthService from "@/services/auth";
@@ -21,32 +22,6 @@ interface EnrollmentProgress {
     course_title: string;
     progress_percent: number;
     enrolled_at: string;
-}
-
-interface DailyActivity {
-    date: string;
-    day: string;
-    status: "complete" | "none";
-    problems_solved: number;
-    lesson_ids: number[];
-    isToday: boolean;
-}
-
-interface StreakData {
-    userId: string;
-    username: string;
-    current_streak: number;
-    max_streak: number;
-    lessons_completed: number;
-    problems_to_next_streak: number;
-    energy: {
-        current: number;
-        max: number;
-        next_update: string;
-    };
-    dailyActivity: DailyActivity[];
-    xp: number;
-    daily_xp: number;
 }
 
 const ModuleZigzag = dynamic(
@@ -98,12 +73,11 @@ export default function CourseDetailPage() {
     }, [enrollments, currentCourse]);
 
     const handleEnrollClick = () => {
-        const authService = AuthService.getInstance();
-        if (!authService.isAuthenticated()) {
-            router.push('/subscribe?returnUrl=' + encodeURIComponent(window.location.pathname));
-            return;
-        }
-        router.push('/subscribe');
+        router.push('/welcome');
+    };
+
+    const handleModuleClick = (moduleId: number) => {
+        router.push(`/courses/${categoryId}/${courseSlug}/lessons/${moduleId}`);
     };
 
     if (error) {
@@ -184,25 +158,36 @@ export default function CourseDetailPage() {
                                 </span>
                             </div>
                         </div>
+
+                        {enrollmentProgress === 0 && (
+                            <div className="mt-6">
+                                <Button
+                                    onClick={handleEnrollClick}
+                                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                                >
+                                    Isdiiwaangeli
+                                </Button>
+                            </div>
+                        )}
                     </aside>
 
                     {/* Learning Path */}
                     <section className="relative space-y-12">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl font-bold mb-4">Naqshada Barashada</h2>
+                            {enrollmentProgress === 0 && (
+                                <p className="text-gray-600">
+                                    Waxaad arki kartaa naqshada barashada. Si aad u bilowdo casharada, fadlan isdiiwaangeli.
+                                </p>
+                            )}
                         </div>
 
                         <div className="relative flex flex-col items-center gap-12">
                             {currentCourse.modules && (
                                 <ModuleZigzag
                                     modules={currentCourse.modules}
-                                    onModuleClick={() => {
-                                        if (enrollmentProgress === 0) {
-                                            handleEnrollClick();
-                                        }
-                                    }}
+                                    onModuleClick={handleModuleClick}
                                     progress={progress ?? []}
-                                    isPreview={enrollmentProgress === 0}
                                 />
                             )}
                         </div>

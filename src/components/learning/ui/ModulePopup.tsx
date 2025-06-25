@@ -1,15 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import {
-  ArrowRight,
-  PlayCircle,
-  RefreshCwIcon,
-  ReplyAll,
-  ReplyIcon,
-} from "lucide-react";
-import { Module } from "@/types/learning";
 import { Button } from "@/components/ui/button";
+import { PlayCircle, ReplyIcon } from "lucide-react";
+import type { Module } from "@/types/learning";
 
 interface ModulePopupProps {
   module: Module;
@@ -18,7 +12,6 @@ interface ModulePopupProps {
   side: "left" | "right";
   isFirstModule: boolean;
   isLastModule: boolean;
-  isLocked: boolean;
 }
 
 export default function ModulePopup({
@@ -28,20 +21,11 @@ export default function ModulePopup({
   side,
   isFirstModule,
   isLastModule,
-  isLocked,
 }: ModulePopupProps) {
   const params = useParams();
   const router = useRouter();
 
   const handleModuleClick = (moduleId: string | number) => {
-    const storageKey = `lesson_progress_${moduleId}`;
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        blockIndex: 0,
-        timestamp: new Date().toISOString(),
-      })
-    );
     router.push(
       `/courses/${params.categoryId}/${params.courseSlug}/lessons/${moduleId}`
     );
@@ -75,45 +59,31 @@ export default function ModulePopup({
         text-center
       `}
     >
-      {/* {!isLocked ? ( */}
-      <>
-        <h3 className="font-bold mb-2">{module.title}</h3>
-        <p className="text-sm mb-4">{module.description}</p>
+      <h3 className="font-bold mb-2">{module.title}</h3>
+      <p className="text-sm mb-4">{module.description}</p>
 
-        <Button
-          onClick={() => handleModuleClick(module.id)}
-          variant="default"
-          className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
-        >
-          {isInProgress
-            ? "Sii Wado Casharka"
-            : isCompleted
-              ? "Muraajacee Casharka"
-              : "Billow Casharka"}
-          {isInProgress ? (
+      <Button
+        onClick={() => handleModuleClick(module.id)}
+        variant="default"
+        className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
+      >
+        {isInProgress ? (
+          <>
+            Sii Wado Casharka
             <PlayCircle className="ml-2 w-4 h-4" />
-          ) : isCompleted ? (
+          </>
+        ) : isCompleted ? (
+          <>
+            Muraajacee Casharka
             <ReplyIcon className="ml-2 w-4 h-4" />
-          ) : (
+          </>
+        ) : (
+          <>
+            Billow Casharka
             <PlayCircle className="ml-2 w-4 h-4" />
-          )}
-        </Button>
-      </>
-      {/* ) : (
-        <>
-          <h3 className="font-bold mb-2">Tamartii baa kaa dhamaatay</h3>
-          <p className="text-sm mb-4">
-            fadlan ka mid noqo macaameesha heerka sare
-          </p>
-          <Button
-            variant="default"
-            className="w-full bg-foreground text-background hover:bg-foreground/70 rounded-full"
-            onClick={() => router.push("/subscribe")}
-          >
-            Is Diiwaangeli
-          </Button>
-        </>
-      )} */}
+          </>
+        )}
+      </Button>
     </div>
   );
 }

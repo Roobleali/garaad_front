@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCategories } from "@/hooks/useApi";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,10 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PremiumContent from "@/components/PremiumContent";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
-import AuthService from "@/services/auth";
-import { AuthDialog } from "@/components/auth/AuthDialog";
-import { useRouter } from "next/navigation";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
 const defaultCourseImage = "/images/placeholder-course.svg";
@@ -59,31 +56,10 @@ interface Course {
   slug: string;
 }
 
-interface EnrollmentProgress {
-  id: number;
-  user: number;
-  course: number;
-  course_title: string;
-  progress_percent: number;
-  enrolled_at: string;
-}
-
-const authFetcher = async <T,>(url: string): Promise<T> => {
-  const service = AuthService.getInstance();
-  return await service.makeAuthenticatedRequest<T>("get", url);
-};
-
 export default function CoursesPage() {
-  const router = useRouter();
   const { categories, isLoading, isError } = useCategories();
   const searchParams = useSearchParams();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [pendingCourseUrl, setPendingCourseUrl] = useState<string | null>(null);
-
-  const { data: enrollments } = useSWR<EnrollmentProgress[]>("/api/lms/enrollments/", authFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 600000,
-  });
 
   useEffect(() => {
     const success = searchParams.get("success");
@@ -95,26 +71,6 @@ export default function CoursesPage() {
       return () => clearTimeout(timer);
     }
   }, [searchParams]);
-
-  const handleCourseClick = (courseUrl: string) => {
-    const authService = AuthService.getInstance();
-    if (!authService.isAuthenticated()) {
-      setPendingCourseUrl(courseUrl);
-      return;
-    }
-
-    const isEnrolled = enrollments?.some(e => e.course === Number(courseUrl.split('/').pop()));
-    router.push(isEnrolled ? courseUrl : '/subscribe');
-  };
-
-  useEffect(() => {
-    // After successful authentication, redirect to subscribe page
-    const authService = AuthService.getInstance();
-    if (pendingCourseUrl && authService.isAuthenticated()) {
-      router.push('/subscribe');
-      setPendingCourseUrl(null);
-    }
-  }, [pendingCourseUrl, router]);
 
   if (isError) {
     return (
@@ -134,7 +90,6 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      {pendingCourseUrl && <AuthDialog />}
       <PremiumContent>
         <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
           {showSuccessMessage && (
@@ -194,58 +149,65 @@ export default function CoursesPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4 rounded-lg bg-accent">
                       {sortedCourses.map(
                         (course: Course | null, index: number) => {
-                          const courseCard = (
-                            <Card
-                              key={course?.id ?? index}
-                              className={`group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] hover:shadow-lg ${!course?.is_published ? "pointer-events-none opacity-50" : ""
-                                }`}
-                            >
-                              <div className="relative">
-                                {isLoading ? (
-                                  <Skeleton className="h-40 w-full" />
-                                ) : (
-                                  <CourseImage
-                                    src={course?.thumbnail}
-                                    alt={course?.title ?? "Course image"}
-                                  />
-                                )}
-                                {!isLoading && course?.is_new && (
-                                  <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
-                                    NEW
-                                  </span>
-                                )}
-                                {!isLoading && course?.is_published === false && (
-                                  <span className="absolute top-3 right-3 bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm z-20">
-                                    Dhowaan
-                                  </span>
-                                )}
-                              </div>
-                              <div className="p-4 text-center">
-                                {isLoading ? (
-                                  <Skeleton className="h-4 w-32 mx-auto" />
-                                ) : (
-                                  <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
-                                    {course?.title}
-                                  </h3>
-                                )}
-                              </div>
-                            </Card>
-                          );
-
                           if (isLoading || !course?.is_published) {
-                            return courseCard;
+                            return (
+                              <Card
+                                key={course?.id ?? index}
+                                className={`group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] hover:shadow-lg ${!course?.is_published ? "pointer-events-none opacity-50" : ""}`}
+                              >
+                                <div className="relative">
+                                  {isLoading ? (
+                                    <Skeleton className="h-40 w-full" />
+                                  ) : (
+                                    <CourseImage
+                                      src={course?.thumbnail}
+                                      alt={course?.title ?? "Course image"}
+                                    />
+                                  )}
+                                  {!isLoading && course?.is_published === false && (
+                                    <span className="absolute top-3 right-3 bg-gray-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm z-20">
+                                      Dhowaan
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="p-4 text-center">
+                                  {isLoading ? (
+                                    <Skeleton className="h-4 w-32 mx-auto" />
+                                  ) : (
+                                    <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
+                                      {course?.title}
+                                    </h3>
+                                  )}
+                                </div>
+                              </Card>
+                            );
                           }
 
-                          const courseUrl = `/courses/${category.id}/${course.slug}`;
-
                           return (
-                            <div
+                            <Link
                               key={course.id}
-                              onClick={() => handleCourseClick(courseUrl)}
-                              className="cursor-pointer"
+                              href={`/courses/${category.id}/${course.slug}`}
+                              className="block"
                             >
-                              {courseCard}
-                            </div>
+                              <Card className="group overflow-hidden bg-white rounded-3xl border border-[#E5E7EB] hover:shadow-lg">
+                                <div className="relative">
+                                  <CourseImage
+                                    src={course.thumbnail}
+                                    alt={course.title}
+                                  />
+                                  {course.is_new && (
+                                    <span className="absolute top-3 right-3 bg-[#22C55E] text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-sm">
+                                      NEW
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="p-4 text-center">
+                                  <h3 className="font-medium text-base group-hover:text-[#2563EB] transition-colors">
+                                    {course.title}
+                                  </h3>
+                                </div>
+                              </Card>
+                            </Link>
                           );
                         }
                       )}

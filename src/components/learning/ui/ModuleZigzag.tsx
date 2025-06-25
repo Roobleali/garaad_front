@@ -11,14 +11,12 @@ interface ModuleZigzagProps {
   modules: Module[];
   progress: UserProgress[];
   onModuleClick: (moduleId: number) => void;
-  isPreview?: boolean;
 }
 
 export default function ModuleZigzag({
   modules,
   progress,
   onModuleClick,
-  isPreview = false,
 }: ModuleZigzagProps) {
   const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
 
@@ -36,29 +34,19 @@ export default function ModuleZigzag({
 
   const isModuleCompleted = useCallback(
     (lessonTitle: string) => {
-      if (isPreview) return false;
       return progress.some(
         (p) => p.lesson_title === lessonTitle && p.status === "completed"
       );
     },
-    [progress, isPreview]
+    [progress]
   );
 
   const hasModuleProgress = useCallback(
     (moduleId: number) => {
-      if (isPreview) return false;
       return progress.some(p => p.module_id === moduleId && p.status === 'in_progress');
     },
-    [progress, isPreview]
+    [progress]
   );
-
-  const isModuleLocked = useCallback((module: Module, index: number) => {
-    if (isPreview) return index > 0;
-    if (index === 0) return false;
-    const prevModule = uniqueModules[index - 1];
-    return !isModuleCompleted(prevModule.title);
-  }, [uniqueModules, isModuleCompleted, isPreview]);
-
 
   return (
     <div className="relative w-full py-12">
@@ -71,14 +59,12 @@ export default function ModuleZigzag({
         {uniqueModules.map((module, index) => {
           const isCompleted = isModuleCompleted(module.title);
           const inProgress = hasModuleProgress(module.id);
-          const locked = isModuleLocked(module, index);
           const side = index % 2 === 0 ? "left" : "right";
 
           return (
             <div
               key={module.id}
-              className={`w-full flex ${side === "left" ? "justify-start" : "justify-end"
-                }`}
+              className={`w-full flex ${side === "left" ? "justify-start" : "justify-end"}`}
             >
               <div
                 className="relative w-1/2"
@@ -90,7 +76,6 @@ export default function ModuleZigzag({
                 <Popover.Root
                   open={openPopoverId === module.id}
                   onOpenChange={(open) => {
-                    if (locked) return;
                     setOpenPopoverId(open ? module.id : null);
                   }}
                 >
@@ -99,15 +84,13 @@ export default function ModuleZigzag({
                       <ModuleBox
                         module={module}
                         isActive={openPopoverId === module.id}
-                        onClick={() => !locked && onModuleClick(module.id)}
+                        onClick={() => onModuleClick(module.id)}
                         iconType={
                           isCompleted
                             ? "green"
                             : inProgress
                               ? "blue"
-                              : locked
-                                ? "locked"
-                                : "gray"
+                              : "gray"
                         }
                       />
                     </div>
@@ -123,7 +106,6 @@ export default function ModuleZigzag({
                         module={module}
                         isInProgress={inProgress}
                         isCompleted={isCompleted}
-                        isLocked={locked}
                         side={side}
                         isFirstModule={index === 0}
                         isLastModule={index === uniqueModules.length - 1}

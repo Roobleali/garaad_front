@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Phone, Banknote, Coins, CreditCard, Globe, MapPin } from "lucide-react";
+import { Loader2, Phone, CreditCard, Globe, MapPin } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, selectCurrentUser } from '@/store/features/authSlice';
 import AuthService from "@/services/auth";
@@ -16,21 +16,13 @@ import LocationService, { type LocationData } from "@/services/location";
 const PAYMENT_METHODS = [
     { key: "waafipay", label: "WaafiPay", icon: <Phone className="w-5 h-5" /> },
     { key: "stripe", label: "Kaarka", icon: <CreditCard className="w-5 h-5" /> },
-    { key: "bank", label: "Bangiga", icon: <Banknote className="w-5 h-5" /> },
-    { key: "points", label: "Dhibcaha", icon: <Coins className="w-5 h-5" /> },
 ];
 
-// Get prices from environment variables
-const MONTHLY_PRICE = process.env.NEXT_PUBLIC_SUBSCRIPTION_MONTHLY_PRICE || "10";
-
-const PLAN_OPTIONS = [
-    {
-        key: "monthly",
-        label: "Bille",
-        price: MONTHLY_PRICE,
-        note: `$${MONTHLY_PRICE} / Bil kasta / Xubin`
-    },
-];
+// Price configuration based on location
+const PRICES = {
+    SOMALIA: "19",
+    INTERNATIONAL: "49"
+};
 
 const ERROR_TRANSLATIONS: Record<string, string> = {
     "Payment Failed (Receiver is Locked)": "Bixinta waa guuldareysatay (Qofka qaataha waa la xidhay)",
@@ -50,11 +42,30 @@ function translateError(error: string) {
 }
 
 const WALLET_TYPES = [
-    { key: "MWALLET_EVC", label: "EVC Plus" },
-    { key: "MWALLET_ZAAD", label: "ZAAD" },
-    { key: "MWALLET_SAHAL", label: "SAHAL" },
-    { key: "MWALLET_WAAFI", label: "WAAFI" },
-    { key: "MWALLET_BANKACCOUNT", label: "Bank Account" },
+    {
+        key: "MWALLET_EVC",
+        label: "EVC Plus",
+        prefixes: ["+25261", "+25268"],
+        placeholder: "61xxxxxxx or 68xxxxxxx"
+    },
+    {
+        key: "MWALLET_ZAAD",
+        label: "ZAAD",
+        prefixes: ["+25263"],
+        placeholder: "63xxxxxxx"
+    },
+    {
+        key: "MWALLET_SAHAL",
+        label: "SAHAL",
+        prefixes: ["+25290"],
+        placeholder: "90xxxxxxx"
+    },
+    {
+        key: "MWALLET_WAAFI",
+        label: "WAAFI",
+        prefixes: ["+252"],
+        placeholder: "xxxxxxxxx"
+    }
 ];
 
 export default function SubscribePage() {
@@ -64,14 +75,15 @@ export default function SubscribePage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [paymentMethod, setPaymentMethod] = useState("waafipay");
+    const [locationData, setLocationData] = useState<LocationData | null>(null);
+    const [locationLoading, setLocationLoading] = useState(true);
+    const [currentPrice, setCurrentPrice] = useState(PRICES.INTERNATIONAL);
     const [formData, setFormData] = useState({
         accountNo: "",
-        amount: MONTHLY_PRICE,
+        amount: PRICES.INTERNATIONAL,
         description: "Isdiiwaangeli Premium"
     });
     const [walletType, setWalletType] = useState<string>(WALLET_TYPES[0].key);
-    const [locationData, setLocationData] = useState<LocationData | null>(null);
-    const [locationLoading, setLocationLoading] = useState(true);
 
     // Check if user is already premium and redirect
     useEffect(() => {
@@ -81,7 +93,7 @@ export default function SubscribePage() {
         }
     }, [router]);
 
-    // Detect user location and set recommended payment method
+    // Detect user location and set price and recommended payment method
     useEffect(() => {
         const detectLocation = async () => {
             try {
@@ -92,9 +104,19 @@ export default function SubscribePage() {
                     setLocationData(location);
                     const recommendedMethod = locationService.getRecommendedPaymentMethod(location.countryCode);
                     setPaymentMethod(recommendedMethod);
+
+                    // Set price based on location
+                    const price = location.countryCode === 'SO' ? PRICES.SOMALIA : PRICES.INTERNATIONAL;
+                    setCurrentPrice(price);
+                    setFormData(prev => ({
+                        ...prev,
+                        amount: price
+                    }));
                 }
             } catch (error) {
                 console.error('Error detecting location:', error);
+                // Default to international price if location detection fails
+                setCurrentPrice(PRICES.INTERNATIONAL);
             } finally {
                 setLocationLoading(false);
             }
@@ -102,6 +124,16 @@ export default function SubscribePage() {
 
         detectLocation();
     }, []);
+
+    // Create plan options based on current price
+    const PLAN_OPTIONS = [
+        {
+            key: "monthly",
+            label: "Bille",
+            price: currentPrice,
+            note: `$${currentPrice} / Bil kasta / Xubin`
+        },
+    ];
 
     // If user is premium, don't render the subscription form
     if (AuthService.getInstance().isPremium()) {
@@ -121,16 +153,12 @@ export default function SubscribePage() {
             if (paymentMethod === "stripe") {
                 // Handle Stripe payment
                 const stripeService = StripeService.getInstance();
-                await stripeService.createCheckoutSession('monthly');
+                const countryCode = locationData?.countryCode || 'INTERNATIONAL';
+                await stripeService.createCheckoutSession('monthly', countryCode);
             } else if (paymentMethod === "waafipay") {
                 // Handle WaafiPay payment
-                const paymentData: {
-                    amount: string;
-                    description: string;
-                    accountNo?: string;
-                    walletType?: string;
-                } = {
-                    amount: formData.amount,
+                const paymentData = {
+                    amount: currentPrice,
                     description: formData.description,
                     accountNo: formData.accountNo,
                     walletType: walletType,
@@ -197,21 +225,47 @@ export default function SubscribePage() {
                 }
             }
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? translateError(err.message)
-                    : "Bixinta waa guuldareysatay"
-            );
+            setError(translateError(err instanceof Error ? err.message : String(err)));
         } finally {
             setLoading(false);
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
+    // Handle wallet type change and auto-prefix
+    const handleWalletTypeChange = (newWalletType: string) => {
+        setWalletType(newWalletType);
+        // Reset account number when changing wallet type
+        setFormData(prev => ({
             ...prev,
-            [name]: value
+            accountNo: ""
+        }));
+    };
+
+    // Handle account number input
+    const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+
+        // Remove any existing prefixes or non-numeric characters
+        value = value.replace(/[^\d]/g, '');
+
+        const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
+        if (!selectedWallet) return;
+
+        // If input starts with valid prefix numbers, keep them
+        const prefixNumbers = selectedWallet.prefixes[0].replace(/[^\d]/g, '');
+
+        // If number doesn't start with correct prefix, add it
+        if (!value.startsWith(prefixNumbers)) {
+            value = prefixNumbers + value;
+        }
+
+        // Limit total length to prefix + 7 digits
+        const maxLength = prefixNumbers.length + 7;
+        value = value.slice(0, maxLength);
+
+        setFormData(prev => ({
+            ...prev,
+            accountNo: value
         }));
     };
 
@@ -357,7 +411,7 @@ export default function SubscribePage() {
                                                 >
                                                     {isRecommended && (
                                                         <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                                            Lagu talinayay
+                                                            Lagu taliyay
                                                         </div>
                                                     )}
                                                     {method.icon}
@@ -380,24 +434,28 @@ export default function SubscribePage() {
                                                         type="button"
                                                         variant={walletType === w.key ? "default" : "outline"}
                                                         size="sm"
-                                                        onClick={() => setWalletType(w.key)}
+                                                        onClick={() => handleWalletTypeChange(w.key)}
                                                         disabled={loading}
                                                     >
                                                         {w.label}
                                                     </Button>
                                                 ))}
                                             </div>
-                                            <Input
-                                                id="accountNo"
-                                                name="accountNo"
-                                                value={formData.accountNo}
-                                                onChange={handleInputChange}
-                                                placeholder="Lambarka (e.g. 2526xxxxxxx)"
-                                                required
-                                                pattern="[0-9]+"
-                                                title="Fadlan geli lambarka saxda ah"
-                                                className="w-full h-12 text-base bg-white rounded-lg"
-                                            />
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium">
+                                                    Lambarka Mobileka
+                                                </label>
+                                                <Input
+                                                    type="tel"
+                                                    value={formData.accountNo}
+                                                    onChange={handleAccountNumberChange}
+                                                    placeholder={WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
+                                                    className="w-full"
+                                                />
+                                                <p className="text-xs text-gray-500">
+                                                    Tusaale: {WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
 

@@ -256,9 +256,9 @@ export class LocationService {
   ): string {
     switch (method) {
       case "stripe":
-        return `Lagu talinayay ${countryName} - Bixinta kaarka ammaan ah`;
+        return `KU Bixi Credit card / Bank `;
       case "waafipay":
-        return `Lagu talinayay ${countryName} - Bixinta mobile money`;
+        return `Ku Bix EVC / ZAAD / SAHAL`;
       default:
         return "Dooro habka bixinta aad rabto";
     }
