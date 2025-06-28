@@ -6,11 +6,20 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.ctfassets.net",
       },
+      {
+        protocol: "https",
+        hostname: "api.garaad.org",
+      },
+      {
+        protocol: "https",
+        hostname: "ds055uzetaobb.cloudfront.net",
+      },
     ],
     domains: [
       "ds055uzetaobb.cloudfront.net",
       "res.cloudinary.com",
       "assets.grok.com",
+      "api.garaad.org",
     ],
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],

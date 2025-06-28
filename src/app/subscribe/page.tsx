@@ -12,6 +12,7 @@ import { setUser, selectCurrentUser } from '@/store/features/authSlice';
 import AuthService from "@/services/auth";
 import StripeService from "@/services/stripe";
 import LocationService, { type LocationData } from "@/services/location";
+import Logo from "@/components/ui/Logo";
 
 const PAYMENT_METHODS = [
     { key: "waafipay", label: "WaafiPay", icon: <Phone className="w-5 h-5" /> },
@@ -370,7 +371,14 @@ export default function SubscribePage() {
                     <Card className="p-0 overflow-hidden shadow-2xl border border-gray-100 bg-white rounded-3xl">
                         <div className="p-8 md:p-14">
                             <div className="flex flex-col items-center mb-8">
-                                <img src="/logo.png" alt="Garaad Logo" className="h-14 w-auto mb-4 drop-shadow-md rounded-xl" />
+                                <Logo
+                                    width={180}
+                                    height={54}
+                                    className="h-12 w-auto sm:h-14 md:h-16 max-w-[140px] sm:max-w-[160px] md:max-w-[180px] mb-4 drop-shadow-md rounded-xl"
+                                    priority={true}
+                                    loading="eager"
+                                    sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, 180px"
+                                />
                                 <h1 className="text-4xl font-extrabold text-purple-700 mb-2 text-center">Kor u qaad Plus</h1>
                                 <p className="text-gray-500 text-lg text-center">Ku hel blocks, faylal, iyo adeegyo aan xadidnayn.</p>
                             </div>

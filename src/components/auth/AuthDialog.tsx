@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { SignUpData } from "@/types/auth";
 import { EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // Define the form schema
 const formSchema = z.object({
@@ -268,6 +269,19 @@ export function AuthDialog() {
               </Button>
             </form>
           </Form>
+
+          {/* Sign up link */}
+          <div className="text-center pt-4 border-t flex space-x-3 border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Hore umaan isticmaalin Garaad?            </p>
+            <Link
+              href="/welcome"
+              className="text-primary hover:text-primary/80 font-medium text-sm transition-colors duration-200 hover:underline"
+              onClick={() => setIsOpen(false)}
+            >
+              Isdiiwaangeli
+            </Link>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

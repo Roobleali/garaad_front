@@ -39,6 +39,7 @@ import {
   Moon,
   SunDim,
 } from "lucide-react";
+import { useSoundManager } from "@/hooks/use-sound-effects";
 
 // Step titles
 const stepTitles = [
@@ -480,22 +481,23 @@ const learningGoals = [
 ];
 
 export default function Page() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selections, setSelections] = useState<Record<number, number | string>>(
-    {}
-  );
+  const [selections, setSelections] = useState<Record<number, number | string>>({});
   const [selectedTopic, setSelectedTopic] = useState<string>("math");
-  const [topicLevels, setTopicLevels] = useState<Record<string, string>>({});
-  const [error, setError] = useState<string | null>(null);
+  const [topicLevels, setTopicLevels] = useState<Record<string, string>>({
+    math: "beginner",
+    programming: "beginner",
+  });
   const [userData, setUserData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
     age: "",
   });
+  const [error, setError] = useState<string>("");
+  const { playSound } = useSoundManager();
   const steps = [goals, learningApproach, topics, null, learningGoals];
-  const router = useRouter();
   const progress = (currentStep / (steps.length + 2)) * 100;
 
   // Redux hooks
@@ -505,6 +507,9 @@ export default function Page() {
   const { toast } = useToast();
 
   const handleSelect = (value: number | string) => {
+    // Play toggle-on sound when an option is selected
+    playSound("toggle-on");
+
     if (currentStep === 2) {
       // Topic selection step
       setSelectedTopic(value as string);

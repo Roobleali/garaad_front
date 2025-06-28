@@ -13,7 +13,7 @@ import { useMemo, useCallback } from "react";
 import AuthService from "@/services/auth";
 import useSWR from "swr";
 import NotificationPanel from "./Notifications";
-import Image from "next/image";
+import Logo from "./ui/Logo";
 
 interface DailyActivity {
   date: string;
@@ -128,7 +128,7 @@ export function Header() {
             href="/"
             className="text-2xl font-semibold tracking-tight text-black font-[fkGrotesk,Fallback] md:text-3xl md:flex"
           >
-            <Image src="/logo.png" alt="Garaad" width={160} height={48} className="h-16 w-auto md:h-20 md:w-auto transition-all duration-300" />
+            <Logo priority={true} loading="eager" />
           </Link>
 
           <nav className="flex items-center gap-6 md:gap-8 lg:gap-10 h-full">

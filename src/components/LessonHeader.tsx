@@ -9,6 +9,14 @@ interface LessonHeaderProps {
   currentQuestion: number;
   totalQuestions: number;
   coursePath: string;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onPreviousLesson?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onNextLesson?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasPreviousLesson?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasNextLesson?: boolean;
 }
 
 interface DailyActivity {
@@ -41,6 +49,14 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   currentQuestion,
   totalQuestions,
   coursePath,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onPreviousLesson,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onNextLesson,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasPreviousLesson,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  hasNextLesson,
 }) => {
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [loading, setLoading] = useState(false);

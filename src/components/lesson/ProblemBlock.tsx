@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import Latex from "react-latex-next";
 // import { ProblemContent } from "@/types/lms";
 import { ProblemContent } from "@/types/learning";
+import { useSoundManager } from "@/hooks/use-sound-effects";
 
 // Dynamically import the diagram component
 const DiagramScale = dynamic(() => import("../DiagramScale"), {
@@ -60,6 +61,7 @@ const ProblemBlock: React.FC<{
     const hasAnswered = answerState.isCorrect !== null;
     const [imgLoading, setImgLoading] = useState(false);
     const [imgSrc, setImgSrc] = useState(content?.img);
+    const { playSound } = useSoundManager();
 
     useEffect(() => {
       if (content?.img) {
@@ -67,6 +69,12 @@ const ProblemBlock: React.FC<{
         setImgSrc(content.img);
       }
     }, [content?.img]);
+
+    const handleOptionSelect = (option: string) => {
+      // Play toggle-on sound when an option is selected
+      playSound("toggle-on");
+      onOptionSelect(option);
+    };
 
     const renderOption = (option: string, idx: number) => {
       const isSelected = selectedOption === option;
@@ -90,7 +98,7 @@ const ProblemBlock: React.FC<{
       return (
         <button
           key={idx}
-          onClick={() => onOptionSelect(option)}
+          onClick={() => handleOptionSelect(option)}
           disabled={isDisabled}
           className={buttonClass}
         >

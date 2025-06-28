@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/ui/Logo";
 
 export function FooterSection() {
   const navigation = {
@@ -29,7 +30,13 @@ export function FooterSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Logo */}
           <div className="md:col-span-2 lg:col-span-1">
-            <h3 className="text-2xl font-bold">Garaad</h3>
+            <Logo
+              width={160}
+              height={48}
+              className="h-10 w-auto sm:h-12 md:h-14 max-w-[120px] sm:max-w-[140px] md:max-w-[160px] brightness-0 invert"
+              priority={false}
+              loading="lazy"
+            />
           </div>
 
           {/* Navigation Columns */}

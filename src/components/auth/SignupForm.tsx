@@ -9,7 +9,7 @@ import { signUp, selectAuthLoading, selectAuthError, setError } from "@/store/fe
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import type { AppDispatch } from "@/store";
-import type { SignUpData } from "@/types/auth";
+import type { SignUpData, User } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
 interface SignupFormProps {
@@ -105,7 +105,7 @@ export function SignupForm({ onClose }: SignupFormProps) {
         },
       };
 
-      const result = await dispatch(signUp(signupData));
+      const result = await dispatch(signUp(signupData)) as { payload?: { user?: User } };
 
       if (result) {
         toast({

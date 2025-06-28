@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 
-type SoundKey = "correct" | "incorrect" | "continue" | "start-lesson";
+type SoundKey = "correct" | "incorrect" | "continue" | "start-lesson" | "toggle-on";
 
 type SoundMap = Record<SoundKey, HTMLAudioElement>;
 
@@ -19,6 +19,7 @@ export function useSoundManager() {
       incorrect: "/sounds/incorrect.mp3",
       continue: "/sounds/lightweight-choice.mp3",
       "start-lesson": "/sounds/start-lesson.mp3",
+      "toggle-on": "/sounds/toggle-on.mp3",
     };
 
     const map: Partial<SoundMap> = {};

@@ -1,5 +1,6 @@
 import { QuestionExplanation } from "./QuestionExplanation";
 import Image from 'next/image';
+import { useSoundManager } from "@/hooks/use-sound-effects";
 
 interface Option {
     id: string;
@@ -31,6 +32,14 @@ export function QuestionCard({
     onAnswerSelect,
     selectedAnswer,
 }: QuestionCardProps) {
+    const { playSound } = useSoundManager();
+
+    const handleAnswerSelect = (optionId: string) => {
+        // Play toggle-on sound when an option is selected
+        playSound("toggle-on");
+        onAnswerSelect(optionId);
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
             <div className="flex justify-between items-start">
@@ -56,7 +65,7 @@ export function QuestionCard({
                 {question.options.map((option) => (
                     <button
                         key={option.id}
-                        onClick={() => onAnswerSelect(option.id)}
+                        onClick={() => handleAnswerSelect(option.id)}
                         className={`w-full p-4 rounded-lg border transition-colors ${selectedAnswer === option.id
                             ? "border-primary bg-primary/5"
                             : "border-gray-200 hover:border-primary/50"

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import Image from "next/image";
+import { useSoundManager } from "@/hooks/use-sound-effects";
 
 interface ProblemDisplayProps {
     problem: Problem;
@@ -19,6 +20,13 @@ export function ProblemDisplay({
     isSubmitting = false
 }: ProblemDisplayProps) {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+    const { playSound } = useSoundManager();
+
+    const handleOptionSelect = (option: string) => {
+        // Play toggle-on sound when an option is selected
+        playSound("toggle-on");
+        setSelectedAnswer(option);
+    };
 
     return (
         <Card className="p-6">
@@ -42,7 +50,7 @@ export function ProblemDisplay({
                 {problem.options.map((option, index) => (
                     <button
                         key={index}
-                        onClick={() => setSelectedAnswer(option)}
+                        onClick={() => handleOptionSelect(option)}
                         className={`w-full p-4 text-left border rounded-lg transition-colors ${selectedAnswer === option
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-gray-200 hover:border-gray-300'

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import AuthService from "@/services/auth";
 import { useRef } from "react";
 import html2canvas from "html2canvas-pro"; // Updated to support oklch
@@ -45,7 +45,6 @@ const Certificate: React.FC<{
   lessonTitle: string;
   onContinue: () => void;
 }> = ({ lessonTitle, onContinue }) => {
-  const router = useRouter();
   const params = useParams<{
     category: string;
     courseSlug: string;
@@ -130,7 +129,9 @@ const Certificate: React.FC<{
             alt="Garaad Logo"
             width={48}
             height={48}
-            className="rounded-full border-2 border-primary bg-white shadow"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-primary bg-white shadow object-contain"
+            priority={true}
+            loading="eager"
           />
         </div>
         <div className="flex flex-col items-center gap-2 relative z-10">
