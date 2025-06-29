@@ -77,7 +77,15 @@ export default function CourseDetailPage() {
     };
 
     const handleModuleClick = (moduleId: number) => {
-        router.push(`/courses/${categoryId}/${courseSlug}/lessons/${moduleId}`);
+        // Check if the module is completed to determine if it's in review mode
+        const courseModule = currentCourse?.modules.find(m => m.id === moduleId);
+        const isModuleCompleted = courseModule && progress?.some(
+            (p) => p.module_id === moduleId && p.status === "completed"
+        );
+
+        // Add review parameter if the module is completed
+        const reviewParam = isModuleCompleted ? '?review=true' : '';
+        router.push(`/courses/${categoryId}/${courseSlug}/lessons/${moduleId}${reviewParam}`);
     };
 
     if (error) {

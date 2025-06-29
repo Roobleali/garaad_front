@@ -3,7 +3,7 @@
 import type React from "react";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import type { RootState, AppDispatch } from "@/store";
 import { fetchLesson, resetAnswerState } from "@/store/features/learningSlice";
@@ -317,6 +317,7 @@ const LessonCompletionAnimation = ({
 const LessonPage = () => {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const dispatch = useDispatch<AppDispatch>();
     const { toast } = useToast();
     const { answerState, currentLesson } = useSelector(
@@ -359,6 +360,24 @@ const LessonPage = () => {
     // In the LessonPage component, add state for lesson navigation
     const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(0);
     const [courseLessons, setCourseLessons] = useState<Lesson[]>([]);
+
+    // Check if lesson is in review mode
+    const isReviewMode = useMemo(() => {
+        // Check URL parameter first
+        const reviewParam = searchParams.get('review');
+        if (reviewParam === 'true') return true;
+
+        // Check if lesson is completed (fallback method)
+        if (currentLesson?.id) {
+            try {
+                const completed = JSON.parse(localStorage.getItem("completedLessons") || "[]");
+                return completed.includes(currentLesson.id);
+            } catch {
+                return false;
+            }
+        }
+        return false;
+    }, [searchParams, currentLesson?.id]);
 
     // SWR hooks for data fetching
     const { data: courses } = useSWR<Course[]>(
@@ -586,8 +605,17 @@ const LessonPage = () => {
     useEffect(() => {
         if (currentLesson?.id) {
             const storageKey = `lesson_progress_${currentLesson.id}`;
-            const savedProgress = localStorage.getItem(storageKey);
 
+            // If in review mode, start from the beginning
+            if (isReviewMode) {
+                setCurrentBlockIndex(0);
+                // Clear any saved progress for this lesson
+                localStorage.removeItem(storageKey);
+                return;
+            }
+
+            // Otherwise, load saved progress
+            const savedProgress = localStorage.getItem(storageKey);
             if (savedProgress) {
                 try {
                     const { blockIndex } = JSON.parse(savedProgress);
@@ -603,7 +631,7 @@ const LessonPage = () => {
                 }
             }
         }
-    }, [currentLesson?.id, sortedBlocks]);
+    }, [currentLesson?.id, sortedBlocks, isReviewMode]);
 
     useEffect(() => {
         if (currentLesson?.id && currentBlockIndex >= 0) {
@@ -1047,6 +1075,18 @@ const LessonPage = () => {
 
             <main className="pt-20 pb-32 mt-4">
                 <div className="container mx-auto transition-all duration-300">
+                    {/* Review Mode Indicator */}
+                    {isReviewMode && (
+                        <div className="max-w-2xl mx-auto px-4 mb-4">
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-green-700 text-sm font-medium">
+                                    Muraajacee - Casharkan waa la dhammeeyay, waxaad ku celcelaysaa
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     {currentBlock}
                 </div>
             </main>
