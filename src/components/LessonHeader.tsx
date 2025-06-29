@@ -9,14 +9,8 @@ interface LessonHeaderProps {
   currentQuestion: number;
   totalQuestions: number;
   coursePath: string;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onPreviousLesson?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onNextLesson?: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasPreviousLesson?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasNextLesson?: boolean;
+  onDotClick?: (index: number) => void;
+  completedLessons?: number[];
 }
 
 interface DailyActivity {
@@ -49,21 +43,15 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   currentQuestion,
   totalQuestions,
   coursePath,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onPreviousLesson,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onNextLesson,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasPreviousLesson,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  hasNextLesson,
+  onDotClick,
+  completedLessons = [],
 }) => {
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
-  const activeDotRef = useRef<HTMLDivElement>(null);
+  const activeDotRef = useRef<HTMLButtonElement>(null);
   // const { streak, isLoading, isError } = useUserStreak();
 
   const fetchStreakData = async () => {
@@ -109,6 +97,16 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
       });
     }
   }, [currentQuestion]);
+
+  const handleDotClick = (index: number) => {
+    if (onDotClick) {
+      onDotClick(index);
+    }
+  };
+
+  const isLessonCompleted = (index: number) => {
+    return completedLessons.includes(index);
+  };
 
   const progress = (currentQuestion / totalQuestions) * 100;
 
@@ -156,16 +154,25 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             {Array.from({ length: totalQuestions }).map((_, idx) => {
-              const isActive = idx === currentQuestion;
+              const isActive = idx === currentQuestion - 1;
+              const isCompleted = isLessonCompleted(idx);
+              const isClickable = idx <= currentQuestion || isCompleted;
+
               return (
-                <div
+                <button
                   key={idx}
                   ref={isActive ? activeDotRef : null}
+                  onClick={() => handleDotClick(idx)}
+                  disabled={!isClickable}
                   className={`
-                  flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 snap-center
-                  ${idx < currentQuestion ? "bg-primary" : "bg-gray-200"}
-                  ${isActive ? "scale-200" : "scale-100"}
-                `}
+                    flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 snap-center
+                    ${isCompleted ? "bg-green-500" : idx < currentQuestion - 1 ? "bg-primary" : "bg-gray-200"}
+                    ${isActive ? "scale-150 ring-2 ring-primary ring-offset-2" : "scale-100"}
+                    ${isClickable ? "cursor-pointer hover:scale-110 hover:ring-2 hover:ring-primary/50" : "cursor-not-allowed opacity-50"}
+                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
+                  `}
+                  aria-label={`Go to lesson ${idx + 1}`}
+                  title={`Lesson ${idx + 1}${isCompleted ? " (Completed)" : ""}`}
                 />
               );
             })}

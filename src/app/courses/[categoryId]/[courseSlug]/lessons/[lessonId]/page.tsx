@@ -935,8 +935,8 @@ const LessonPage = () => {
     }, [renderCurrentBlock]);
 
     const totalQuestions = useMemo(() => {
-        return sortedBlocks.length;
-    }, [sortedBlocks]);
+        return courseLessons.length || 1; // Use number of lessons in course, fallback to 1
+    }, [courseLessons.length]);
 
     // Add this after other useEffect hooks
     useEffect(() => {
@@ -965,18 +965,24 @@ const LessonPage = () => {
         fetchCourseLessons();
     }, [courseIdFromSlug, params.lessonId]);
 
-    // Add navigation handlers
-    const handlePreviousLesson = () => {
-        if (currentLessonIndex > 0) {
-            const previousLesson = courseLessons[currentLessonIndex - 1];
-            router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${previousLesson.id}`);
+    // Add dot navigation handler
+    const handleDotClick = (index: number) => {
+        if (index < courseLessons.length) {
+            const targetLesson = courseLessons[index];
+            router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${targetLesson.id}`);
         }
     };
 
-    const handleNextLesson = () => {
-        if (currentLessonIndex < courseLessons.length - 1) {
-            const nextLesson = courseLessons[currentLessonIndex + 1];
-            router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${nextLesson.id}`);
+    // Get completed lessons from localStorage
+    const getCompletedLessons = () => {
+        try {
+            const completed = JSON.parse(localStorage.getItem("completedLessons") || "[]");
+            return courseLessons
+                .map((lesson, index) => completed.includes(lesson.id) ? index : -1)
+                .filter(index => index !== -1);
+        } catch (err) {
+            console.error("Error parsing completed lessons:", err);
+            return [];
         }
     };
 
@@ -1032,13 +1038,11 @@ const LessonPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
             <LessonHeader
-                currentQuestion={currentBlockIndex + 1}
+                currentQuestion={currentLessonIndex + 1}
                 totalQuestions={totalQuestions}
                 coursePath={coursePath}
-                onPreviousLesson={handlePreviousLesson}
-                onNextLesson={handleNextLesson}
-                hasPreviousLesson={currentLessonIndex > 0}
-                hasNextLesson={currentLessonIndex < courseLessons.length - 1}
+                onDotClick={handleDotClick}
+                completedLessons={getCompletedLessons()}
             />
 
             <main className="pt-20 pb-32 mt-4">

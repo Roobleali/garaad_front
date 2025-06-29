@@ -207,9 +207,7 @@ export default function CoursesPage() {
                                     <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                                       {course?.title}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                                      {course?.description}
-                                    </p>
+
                                     {(course?.lesson_count && course.lesson_count > 0) || (course?.estimatedHours && course.estimatedHours > 0) ? (
                                       <div className="flex items-center justify-between">
                                         {course?.lesson_count && course.lesson_count > 0 && (
@@ -260,12 +258,10 @@ export default function CoursesPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                                    <h3 className="font-semibold text-md mb-2 line-clamp-2">
                                       {course?.title}
                                     </h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                                      {course?.description}
-                                    </p>
+
                                     {(course?.lesson_count && course.lesson_count > 0) || (course?.estimatedHours && course.estimatedHours > 0) ? (
                                       <div className="flex items-center justify-between">
                                         {course?.lesson_count && course.lesson_count > 0 && (
