@@ -218,15 +218,30 @@ const ProblemBlock: React.FC<{
               </CardContent>
             )}
 
-            {content.question_type === "diagram" && content.diagram_config && (
-              <CardContent className="p-6 grid items-center justify-center text-center">
-                {Array.isArray(content.diagram_config) ? (
-                  content.diagram_config.map((cfg, i) => (
-                    <DiagramScale key={i} config={cfg} />
-                  ))
-                ) : (
-                  <DiagramScale config={content.diagram_config} />
-                )}
+            {content.question_type === "diagram" && (content.diagram_config || content.diagrams) && (
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center items-center">
+                  {content.diagrams ? (
+                    // Handle new diagrams array format
+                    content.diagrams.map((cfg, i) => (
+                      <div key={cfg.diagram_id || i} className="flex-shrink-0">
+                        <DiagramScale config={cfg} />
+                      </div>
+                    ))
+                  ) : Array.isArray(content.diagram_config) ? (
+                    // Handle existing diagram_config array format
+                    content.diagram_config.map((cfg, i) => (
+                      <div key={cfg.diagram_id || i} className="flex-shrink-0">
+                        <DiagramScale config={cfg} />
+                      </div>
+                    ))
+                  ) : content.diagram_config ? (
+                    // Handle existing single diagram_config format
+                    <div className="flex-shrink-0">
+                      <DiagramScale config={content.diagram_config} />
+                    </div>
+                  ) : null}
+                </div>
               </CardContent>
             )}
 

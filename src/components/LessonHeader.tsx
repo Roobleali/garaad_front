@@ -54,6 +54,8 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   const activeDotRef = useRef<HTMLButtonElement>(null);
   // const { streak, isLoading, isError } = useUserStreak();
 
+
+
   const fetchStreakData = async () => {
     setLoading(true);
     setError(null);
@@ -156,7 +158,8 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
             {Array.from({ length: totalQuestions }).map((_, idx) => {
               const isActive = idx === currentQuestion - 1;
               const isCompleted = isLessonCompleted(idx);
-              const isClickable = idx <= currentQuestion || isCompleted;
+              // Allow clicking on any lesson up to and including the current one, or any completed lesson
+              const isClickable = idx < currentQuestion || isCompleted;
 
               return (
                 <button
@@ -166,9 +169,19 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
                   disabled={!isClickable}
                   className={`
                     flex-shrink-0 w-3 h-3 rounded-full transition-all duration-300 snap-center
-                    ${isCompleted ? "bg-green-500" : idx < currentQuestion - 1 ? "bg-primary" : "bg-gray-200"}
-                    ${isActive ? "scale-150 ring-2 ring-primary ring-offset-2" : "scale-100"}
-                    ${isClickable ? "cursor-pointer hover:scale-110 hover:ring-2 hover:ring-primary/50" : "cursor-not-allowed opacity-50"}
+                    ${isCompleted
+                      ? "bg-green-500"
+                      : idx < currentQuestion - 1
+                        ? "bg-primary"
+                        : idx === currentQuestion - 1
+                          ? "bg-blue-500"
+                          : "bg-gray-200"
+                    }
+                    ${isActive ? "scale-150 ring-2 ring-blue-400 ring-offset-2" : "scale-100"}
+                    ${isClickable
+                      ? "cursor-pointer hover:scale-110 hover:ring-2 hover:ring-primary/50"
+                      : "cursor-not-allowed opacity-50"
+                    }
                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                   `}
                   aria-label={`Go to lesson ${idx + 1}`}

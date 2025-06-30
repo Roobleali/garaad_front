@@ -40,6 +40,7 @@ interface ProblemData {
     correct_answer: { text: string }[];
     explanation?: string;
     diagram_config?: DiagramConfig;
+    diagrams?: DiagramConfig[];
     question_type: string;
     img?: string;
     alt?: string;
@@ -564,6 +565,7 @@ const LessonPage = () => {
                 alt: pd.alt,
                 explanation: pd.explanation || "No explanation available",
                 diagram_config: pd.diagram_config,
+                diagrams: pd.diagrams,
                 question_type: ["code", "mcq", "short_input", "diagram"].includes(
                     pd.question_type
                 )
@@ -995,7 +997,7 @@ const LessonPage = () => {
 
     // Add dot navigation handler
     const handleDotClick = (index: number) => {
-        if (index < courseLessons.length) {
+        if (index < courseLessons.length && courseLessons[index]) {
             const targetLesson = courseLessons[index];
             router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${targetLesson.id}`);
         }
@@ -1005,9 +1007,12 @@ const LessonPage = () => {
     const getCompletedLessons = () => {
         try {
             const completed = JSON.parse(localStorage.getItem("completedLessons") || "[]");
-            return courseLessons
+
+            const completedIndices = courseLessons
                 .map((lesson, index) => completed.includes(lesson.id) ? index : -1)
                 .filter(index => index !== -1);
+
+            return completedIndices;
         } catch (err) {
             console.error("Error parsing completed lessons:", err);
             return [];

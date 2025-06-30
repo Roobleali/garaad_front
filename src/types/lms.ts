@@ -140,6 +140,7 @@ export interface ProblemResponse {
   correct_answer: { text: string }[];
   explanation?: string;
   diagram_config?: DiagramConfig;
+  diagrams?: DiagramConfig[];
   question_type: string;
   img?: string;
   alt?: string;
