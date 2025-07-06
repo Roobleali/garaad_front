@@ -9,6 +9,7 @@ import { AlertCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import { useCourse } from "@/hooks/useApi";
 import AuthService from "@/services/auth";
@@ -90,25 +91,29 @@ export default function CourseDetailPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-white">
-                <div className="max-w-7xl mx-auto p-8">
-                    <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Error</AlertTitle>
-                        <AlertDescription>{String(error)}</AlertDescription>
-                    </Alert>
+            <ProtectedRoute requirePremium={true}>
+                <div className="min-h-screen bg-white">
+                    <div className="max-w-7xl mx-auto p-8">
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{String(error)}</AlertDescription>
+                        </Alert>
+                    </div>
                 </div>
-            </div>
+            </ProtectedRoute>
         );
     }
 
     if (isLoading || !currentCourse) {
         return (
-            <div className="min-h-screen bg-white">
-                <div className="max-w-7xl mx-auto p-8">
-                    <Skeleton className="h-12 w-3/4" />
+            <ProtectedRoute requirePremium={true}>
+                <div className="min-h-screen bg-white">
+                    <div className="max-w-7xl mx-auto p-8">
+                        <Skeleton className="h-12 w-3/4" />
+                    </div>
                 </div>
-            </div>
+            </ProtectedRoute>
         );
     }
 
@@ -116,92 +121,94 @@ export default function CourseDetailPage() {
         currentCourse.modules?.flatMap((m) => m.lessons).length || 0;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
-            <div className="max-w-7xl mx-auto p-8 mb-20">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    {/* Course Info */}
-                    <aside className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white rounded-xl shadow-md border-gray-200 md:sticky md:top-10">
-                        <div className="flex mb-6 border-border border-2 px-4 py-2 rounded-md w-fit">
-                            <div className="relative w-16 h-16">
-                                <Image
-                                    src={currentCourse.thumbnail || defaultCourseImage}
-                                    alt={currentCourse.title}
-                                    fill
-                                    className="object-contain"
-                                    priority
-                                />
+        <ProtectedRoute requirePremium={true}>
+            <div className="min-h-screen bg-gray-50">
+                <Header />
+                <div className="max-w-7xl mx-auto p-8 mb-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        {/* Course Info */}
+                        <aside className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white rounded-xl shadow-md border-gray-200 md:sticky md:top-10">
+                            <div className="flex mb-6 border-border border-2 px-4 py-2 rounded-md w-fit">
+                                <div className="relative w-16 h-16">
+                                    <Image
+                                        src={currentCourse.thumbnail || defaultCourseImage}
+                                        alt={currentCourse.title}
+                                        fill
+                                        className="object-contain"
+                                        priority
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                            {currentCourse.title}
-                        </h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                                {currentCourse.title}
+                            </h2>
 
-                        {enrollmentProgress > 0 && (
-                            <CourseProgress progress={enrollmentProgress} />
-                        )}
+                            {enrollmentProgress > 0 && (
+                                <CourseProgress progress={enrollmentProgress} />
+                            )}
 
-                        <p className="text-sm text-gray-600 mb-6">
-                            {currentCourse.description}
-                        </p>
+                            <p className="text-sm text-gray-600 mb-6">
+                                {currentCourse.description}
+                            </p>
 
-                        <div className="flex justify-start gap-6 text-sm text-gray-700">
-                            <div className="flex items-center gap-1">
-                                <span>📘</span>
-                                <span>{totalLessons} casharo</span>
+                            <div className="flex justify-start gap-6 text-sm text-gray-700">
+                                <div className="flex items-center gap-1">
+                                    <span>📘</span>
+                                    <span>{totalLessons} casharo</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <span>🧩</span>
+                                    <span>
+                                        {currentCourse?.modules
+                                            .map(
+                                                (mod) =>
+                                                    (mod?.lessons ?? []).filter(
+                                                        (lesson) => lesson?.problem
+                                                    ).length
+                                            )
+                                            .reduce((acc, curr) => acc + curr, 0) ?? 0}{" "}
+                                        waydiimo
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                                <span>🧩</span>
-                                <span>
-                                    {currentCourse?.modules
-                                        .map(
-                                            (mod) =>
-                                                (mod?.lessons ?? []).filter(
-                                                    (lesson) => lesson?.problem
-                                                ).length
-                                        )
-                                        .reduce((acc, curr) => acc + curr, 0) ?? 0}{" "}
-                                    waydiimo
-                                </span>
-                            </div>
-                        </div>
 
-                        {enrollmentProgress === 0 && (
-                            <div className="mt-6">
-                                <Button
-                                    onClick={handleEnrollClick}
-                                    className="w-full bg-primary hover:bg-primary/90 text-white"
-                                >
-                                    Isdiiwaangeli
-                                </Button>
-                            </div>
-                        )}
-                    </aside>
-
-                    {/* Learning Path */}
-                    <section className="relative space-y-12">
-                        <div className="text-center mb-12">
-                            <h2 className="text-3xl font-bold mb-4">Naqshada Barashada</h2>
                             {enrollmentProgress === 0 && (
-                                <p className="text-gray-600">
-                                    Waxaad arki kartaa naqshada barashada. Si aad u bilowdo casharada, fadlan isdiiwaangeli.
-                                </p>
+                                <div className="mt-6">
+                                    <Button
+                                        onClick={handleEnrollClick}
+                                        className="w-full bg-primary hover:bg-primary/90 text-white"
+                                    >
+                                        Isdiiwaangeli
+                                    </Button>
+                                </div>
                             )}
-                        </div>
+                        </aside>
 
-                        <div className="relative flex flex-col items-center gap-12">
-                            {currentCourse.modules && (
-                                <ModuleZigzag
-                                    modules={currentCourse.modules}
-                                    onModuleClick={handleModuleClick}
-                                    progress={progress ?? []}
-                                />
-                            )}
-                        </div>
-                    </section>
+                        {/* Learning Path */}
+                        <section className="relative space-y-12">
+                            <div className="text-center mb-12">
+                                <h2 className="text-3xl font-bold mb-4">Naqshada Barashada</h2>
+                                {enrollmentProgress === 0 && (
+                                    <p className="text-gray-600">
+                                        Waxaad arki kartaa naqshada barashada. Si aad u bilowdo casharada, fadlan isdiiwaangeli.
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="relative flex flex-col items-center gap-12">
+                                {currentCourse.modules && (
+                                    <ModuleZigzag
+                                        modules={currentCourse.modules}
+                                        onModuleClick={handleModuleClick}
+                                        progress={progress ?? []}
+                                    />
+                                )}
+                            </div>
+                        </section>
+                    </div>
                 </div>
             </div>
-        </div>
+        </ProtectedRoute>
     );
 }

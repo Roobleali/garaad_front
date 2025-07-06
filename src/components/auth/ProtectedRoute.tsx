@@ -1,34 +1,77 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
-import { AuthDialog } from "./AuthDialog";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
+import AuthService from "@/services/auth";
+import { Loader } from "lucide-react";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    requirePremium?: boolean;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { user } = useAuth();
+export function ProtectedRoute({ children, requirePremium = false }: ProtectedRouteProps) {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
-    if (!user) {
+    // Get user from Redux store
+    const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+    useEffect(() => {
+        const checkAuth = () => {
+            const authService = AuthService.getInstance();
+
+            // Check if user is authenticated
+            if (!isAuthenticated && !authService.isAuthenticated()) {
+                router.push('/welcome');
+                return;
+            }
+
+            // Get current user from auth service or Redux
+            const currentUser = user || authService.getCurrentUser();
+
+            if (!currentUser) {
+                router.push('/welcome');
+                return;
+            }
+
+            // If premium is required, check premium status
+            if (requirePremium && !currentUser.is_premium) {
+                router.push('/subscribe');
+                return;
+            }
+
+            // User is authorized
+            setIsAuthorized(true);
+            setIsLoading(false);
+        };
+
+        // Small delay to allow Redux to hydrate
+        const timer = setTimeout(checkAuth, 100);
+
+        return () => clearTimeout(timer);
+    }, [isAuthenticated, user, requirePremium, router]);
+
+    // Show loading while checking authentication
+    if (isLoading) {
         return (
-            <div className="relative">
-                {/* Blurred content preview */}
-                <div className="blur-sm pointer-events-none">
-                    {children}
-                </div>
-
-                {/* Login overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm">
-                    <div className="text-center p-8 rounded-2xl bg-white shadow-xl max-w-md mx-4">
-                        <h2 className="text-2xl font-semibold mb-4">Fadlan gal si aad u hesho koorsooyinka</h2>
-                        <p className="text-gray-600 mb-6">Waxaad u baahan tahay inaad gasho si aad u hesho koorsooyinka</p>
-                        <AuthDialog />
-                    </div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center space-y-4">
+                    <Loader className="h-12 w-12 text-primary animate-spin" />
+                    <p className="text-gray-600 text-lg">Xaqiijinaya...</p>
                 </div>
             </div>
         );
     }
 
+    // Show nothing if not authorized (redirect is in progress)
+    if (!isAuthorized) {
+        return null;
+    }
+
+    // Render children if authorized
     return <>{children}</>;
 } 

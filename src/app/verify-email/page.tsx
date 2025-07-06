@@ -67,8 +67,8 @@ export default function VerifyEmailPage() {
                 localStorage.removeItem('user');
               }
 
-              // Redirect to appropriate page
-              router.push("/courses");
+              // Redirect to subscribe page - all users must subscribe before accessing courses
+              router.push("/subscribe");
               return;
             }
             throw new Error(data.error || data.detail || "Failed to send verification code");
@@ -190,8 +190,8 @@ export default function VerifyEmailPage() {
         localStorage.removeItem('user');
       }
 
-      // Redirect after a short delay to show success state
-      router.push("/courses");
+      // Redirect to subscribe page - all users must subscribe before accessing courses
+      router.push("/subscribe");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred";
@@ -244,8 +244,8 @@ export default function VerifyEmailPage() {
             localStorage.removeItem('user');
           }
 
-          // Redirect to appropriate page
-          router.push("/courses");
+          // Redirect to subscribe page - all users must subscribe before accessing courses
+          router.push("/subscribe");
           return;
         }
         throw new Error(data.error || data.detail || "Failed to resend code");

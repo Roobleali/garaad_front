@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define paths that require premium access (only lesson starting, not viewing)
-const premiumPaths = ["/lessons"];
+// Define paths that require premium access
+const premiumPaths = ["/courses", "/lessons"];
 
 // Define paths that are always public
 const publicPaths = [
@@ -11,7 +11,7 @@ const publicPaths = [
   "/login",
   "/register",
   "/subscribe",
-  "/courses", // Allow course viewing for all users
+  "/verify-email",
   "/api/payment",
   "/api/payment/success",
   "/api/auth",

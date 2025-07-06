@@ -1,6 +1,7 @@
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { User } from "@/types/auth";
+import { validateEmail } from "@/lib/email-validation";
 
 export interface SignUpData {
   email: string;
@@ -177,6 +178,12 @@ export class AuthService {
   public async signUp(data: SignUpData): Promise<SignUpResponse> {
     try {
       console.log("Signing up with data:", data);
+
+      // Validate email before sending to server
+      const emailValidation = validateEmail(data.email);
+      if (!emailValidation.isValid) {
+        throw new Error(emailValidation.error || "Fadlan geli email sax ah");
+      }
 
       const response = await axios.post<SignUpResponse>(
         `${this.baseURL}/api/auth/signup/`,

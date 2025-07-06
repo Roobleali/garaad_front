@@ -37,10 +37,14 @@ import type { SignUpData } from "@/types/auth";
 import { EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { validateEmail } from "@/lib/email-validation";
 
-// Define the form schema
+// Define the form schema with enhanced email validation
 const formSchema = z.object({
-  email: z.string().email("Fadlan geli email sax ah"),
+  email: z.string().refine((email) => {
+    const validation = validateEmail(email);
+    return validation.isValid;
+  }, "Fadlan geli email sax ah"),
   password: z
     .string()
     .min(6, "Number sir ah waa inuu ahaadaa ugu yaraan 6 xaraf"),
@@ -144,15 +148,11 @@ export function AuthDialog() {
         if (result?.user) {
           // Check if the user's email is already verified
           if (result.user.is_email_verified) {
-            // User is already verified, redirect to appropriate page
+            // User is already verified, but must still subscribe to access courses
             setIsOpen(false);
-            if (result.user.is_premium) {
-              router.push('/courses');
-            } else {
-              router.push('/subscribe');
-            }
+            router.push('/subscribe');
           } else {
-            // User needs email verification
+            // User needs email verification first
             setIsOpen(false);
             router.push(`/verify-email?email=${values.email}`);
           }

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import type { AppDispatch } from "@/store";
 import type { SignUpData } from "@/types/auth";
 import { cn } from "@/lib/utils";
+import { validateEmail } from "@/lib/email-validation";
 
 interface SignupFormProps {
   onClose?: () => void;
@@ -57,10 +58,10 @@ export function SignupForm({ onClose }: SignupFormProps) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Fadlan geli emailkaaga';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Fadlan geli email sax ah';
+    // Enhanced email validation
+    const emailValidation = validateEmail(formData.email);
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.error || 'Fadlan geli email sax ah';
     }
 
     if (!formData.password.trim()) {
@@ -112,34 +113,25 @@ export function SignupForm({ onClose }: SignupFormProps) {
       if (result && !authError) {
         // Check if the user's email is already verified
         if (result.user?.is_email_verified) {
-          // User is already verified, redirect to appropriate page
+          // User is already verified, but must still subscribe to access courses
           toast({
             variant: "default",
             title: "Waad mahadsantahay!",
-            description: "Emailkaaga horey ayaa la xaqiijiyay. Waxaad hadda isticmaali kartaa adeegga.",
+            description: "Emailkaaga la xaqiijiyay. Hadda ku biir adeegga Premium-ka si aad u hesho dhammaan casharrada.",
           });
 
-          // Redirect based on premium status
-          if (result.user?.is_premium) {
-            router.push('/courses');
-          } else {
-            router.push('/subscribe');
-          }
+          // All users must subscribe before accessing courses
+          router.push('/subscribe');
         } else {
-          // User needs email verification
+          // User needs email verification first
           toast({
             variant: "default",
             title: "Waad mahadsantahay!",
             description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
           });
 
-          // Get the user from the result payload
-          const user = result.user;
-          if (user?.is_premium) {
-            router.push('/courses');
-          } else {
-            router.push('/subscribe');
-          }
+          // After email verification, user will be redirected to subscribe page
+          router.push(`/verify-email?email=${result.user?.email || formData.email}`);
         }
         onClose?.();
       }

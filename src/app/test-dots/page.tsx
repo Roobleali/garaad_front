@@ -125,6 +125,62 @@ export default function TestDotsPage() {
         alert(`Error message that should be displayed: "${errorMessage}"`);
     };
 
+    // Test email validation
+    const testEmailValidation = () => {
+        const testEmails = [
+            "test@gmail.com", // Valid
+            "user@tempmail.org", // Fake domain
+            "fake@example.com", // Suspicious
+            "123@gmail.com", // Suspicious pattern
+            "test123@hotmail.com", // Suspicious pattern
+            "john.doe@yahoo.com", // Valid
+            "admin@company.com", // Suspicious
+            "user@10minutemail.com", // Disposable
+            "normal.user@outlook.com", // Valid
+            "throwaway@mailinator.com", // Disposable
+            "abc@xyz.com", // Too short
+            "realuser@icloud.com", // Valid
+        ];
+
+        console.log('Testing email validation:');
+        testEmails.forEach(email => {
+            // We'll import the validation function dynamically
+            import('@/lib/email-validation').then(({ validateEmail }) => {
+                const result = validateEmail(email);
+                console.log(`${email}: ${result.isValid ? 'VALID' : 'INVALID'} - ${result.error || 'OK'} (${result.reason || 'N/A'})`);
+            });
+        });
+
+        alert("Check console for email validation test results");
+    };
+
+    // Test premium subscription flow
+    const testPremiumFlow = () => {
+        // Test different user scenarios
+        const testUsers = [
+            { email: "user@example.com", is_premium: false, description: "Non-premium user" },
+            { email: "premium@example.com", is_premium: true, description: "Premium user" },
+            { email: "verified@example.com", is_email_verified: true, is_premium: false, description: "Verified but not premium" },
+            { email: "complete@example.com", is_email_verified: true, is_premium: true, description: "Verified and premium" },
+        ];
+
+        console.log('Testing premium subscription flow:');
+        testUsers.forEach(user => {
+            console.log(`\n${user.description}:`);
+            console.log(`- Email: ${user.email}`);
+            console.log(`- Verified: ${user.is_email_verified || false}`);
+            console.log(`- Premium: ${user.is_premium}`);
+
+            if (user.is_premium) {
+                console.log('→ Should be able to access courses');
+            } else {
+                console.log('→ Should be redirected to subscribe page');
+            }
+        });
+
+        alert("Check console for premium flow test results");
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
             <LessonHeader
@@ -214,6 +270,18 @@ export default function TestDotsPage() {
                                     className="px-3 py-1 bg-orange-500 text-white rounded text-sm"
                                 >
                                     Test Welcome Page Error
+                                </button>
+                                <button
+                                    onClick={testEmailValidation}
+                                    className="px-3 py-1 bg-cyan-500 text-white rounded text-sm"
+                                >
+                                    Test Email Validation
+                                </button>
+                                <button
+                                    onClick={testPremiumFlow}
+                                    className="px-3 py-1 bg-pink-500 text-white rounded text-sm"
+                                >
+                                    Test Premium Flow
                                 </button>
                             </div>
                             <p className="text-xs text-yellow-700 mt-2">

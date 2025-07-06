@@ -10,13 +10,13 @@ import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectAuthError,
-  selectIsLoading,
   setError as setAuthError,
   setUser,
 } from "@/store/features/authSlice";
 import AuthService from "@/services/auth";
 import { useToast } from "@/hooks/use-toast";
 import type { AppDispatch } from "@/store";
+import { validateEmail } from "@/lib/email-validation";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -500,13 +500,13 @@ export default function Page() {
     referralCode: "",
   });
   const [actualError, setActualError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { playSound } = useSoundManager();
   const steps = [goals, learningApproach, topics, null, learningGoals];
   const progress = (currentStep / (steps.length + 2)) * 100;
 
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
-  const isLoading = useSelector(selectIsLoading);
   const authError = useSelector(selectAuthError);
   const { toast } = useToast();
 
@@ -647,8 +647,9 @@ export default function Page() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Clear any existing errors
+    // Clear any existing errors and set loading state
     setActualError("");
+    setIsLoading(true);
     dispatch(setAuthError(null));
 
     try {
@@ -660,6 +661,13 @@ export default function Page() {
         !userData.age.trim()
       ) {
         setActualError("Fadlan buuxi dhammaan xogta");
+        return;
+      }
+
+      // Enhanced email validation
+      const emailValidation = validateEmail(userData.email);
+      if (!emailValidation.isValid) {
+        setActualError(emailValidation.error || "Fadlan geli email sax ah");
         return;
       }
 
@@ -706,11 +714,11 @@ export default function Page() {
       if (result) {
         // Check if the user's email is already verified
         if (result.user?.is_email_verified) {
-          // User is already verified, redirect to appropriate page
+          // User is already verified, but must still subscribe to access courses
           toast({
             variant: "default",
             title: "Waad mahadsantahay!",
-            description: "Emailkaaga horey ayaa la xaqiijiyay. Waxaad hadda isticmaali kartaa adeegga.",
+            description: "Emailkaaga la xaqiijiyay. Hadda ku biir adeegga Premium-ka si aad u hesho dhammaan casharrada.",
           });
 
           // Clear localStorage data since user is already verified
@@ -723,12 +731,8 @@ export default function Page() {
             localStorage.removeItem('user');
           }
 
-          // Redirect based on premium status
-          if (result.user?.is_premium) {
-            router.push('/courses');
-          } else {
-            router.push('/subscribe');
-          }
+          // All users must subscribe before accessing courses
+          router.push('/subscribe');
         } else {
           // User needs email verification
           toast({
@@ -752,6 +756,9 @@ export default function Page() {
       } else {
         setActualError("Wax khalad ah ayaa dhacay. Fadlan mar kale isku day.");
       }
+    } finally {
+      // Always set loading to false when done
+      setIsLoading(false);
     }
   };
 
@@ -789,6 +796,7 @@ export default function Page() {
       referralCode: "",
     });
     setActualError("");
+    setIsLoading(false);
   };
 
   return (
