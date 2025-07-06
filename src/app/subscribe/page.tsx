@@ -13,6 +13,8 @@ import AuthService from "@/services/auth";
 import StripeService from "@/services/stripe";
 import LocationService, { type LocationData } from "@/services/location";
 import Logo from "@/components/ui/Logo";
+import OrderService from "@/services/orders";
+import { useWaafiPayConfig } from "@/config/waafipay";
 
 const PAYMENT_METHODS = [
     { key: "waafipay", label: "WaafiPay", icon: <Phone className="w-5 h-5" /> },
@@ -42,37 +44,12 @@ function translateError(error: string) {
     return error;
 }
 
-const WALLET_TYPES = [
-    {
-        key: "MWALLET_EVC",
-        label: "EVC Plus",
-        prefixes: ["+25261", "+25268"],
-        placeholder: "61xxxxxxx or 68xxxxxxx"
-    },
-    {
-        key: "MWALLET_ZAAD",
-        label: "ZAAD",
-        prefixes: ["+25263"],
-        placeholder: "63xxxxxxx"
-    },
-    {
-        key: "MWALLET_SAHAL",
-        label: "SAHAL",
-        prefixes: ["+25290"],
-        placeholder: "90xxxxxxx"
-    },
-    {
-        key: "MWALLET_WAAFI",
-        label: "WAAFI",
-        prefixes: ["+252"],
-        placeholder: "xxxxxxxxx"
-    }
-];
-
 export default function SubscribePage() {
     const router = useRouter();
     const dispatch = useDispatch();
     const currentUser = useSelector(selectCurrentUser);
+    const { getWalletTypes } = useWaafiPayConfig();
+    const WALLET_TYPES = getWalletTypes();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [paymentMethod, setPaymentMethod] = useState("waafipay");
@@ -84,7 +61,9 @@ export default function SubscribePage() {
         amount: PRICES.INTERNATIONAL,
         description: "Isdiiwaangeli Premium"
     });
-    const [walletType, setWalletType] = useState<string>(WALLET_TYPES[0].key);
+    const [walletType, setWalletType] = useState<string>(WALLET_TYPES[0]?.key || "MWALLET_EVC");
+
+
 
     // Check if user is already premium and redirect
     useEffect(() => {
@@ -151,18 +130,56 @@ export default function SubscribePage() {
         setError(null);
 
         try {
+            const orderService = OrderService.getInstance();
+
             if (paymentMethod === "stripe") {
-                // Handle Stripe payment
+                // First create order for Stripe payment
+                const orderRequest = {
+                    subscription_type: "monthly" as const,
+                    payment_method: "stripe" as const,
+                    currency: "USD" as const,
+                };
+
+                const orderResponse = await orderService.createSubscriptionOrder(orderRequest);
+
+                if (!orderResponse.success) {
+                    throw new Error(orderResponse.message || "Failed to create order");
+                }
+
+                // Handle Stripe payment with order reference
                 const stripeService = StripeService.getInstance();
                 const countryCode = locationData?.countryCode || 'INTERNATIONAL';
                 await stripeService.createCheckoutSession('monthly', countryCode);
             } else if (paymentMethod === "waafipay") {
-                // Handle WaafiPay payment
+                // First create order for WaafiPay payment
+                const orderRequest = {
+                    subscription_type: "monthly" as const,
+                    payment_method: "waafi" as const,
+                    currency: locationData?.countryCode === 'SO' ? "USD" as const : "USD" as const,
+                };
+
+                const orderResponse = await orderService.createSubscriptionOrder(orderRequest);
+
+                if (!orderResponse.success) {
+                    throw new Error(orderResponse.message || "Failed to create order");
+                }
+
+                const order = orderResponse.data;
+
+                // Handle WaafiPay payment with order reference
+                const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
+                const defaultPrefix = selectedWallet?.prefixes[0] || "+252";
+                const prefixNumbers = defaultPrefix.replace(/[^\d]/g, '');
+                const fullPhoneNumber = prefixNumbers + (formData.accountNo || "");
+
                 const paymentData = {
-                    amount: currentPrice,
-                    description: formData.description,
-                    accountNo: formData.accountNo,
+                    amount: parseFloat(order.total_amount),
+                    description: order.description,
+                    accountNo: fullPhoneNumber,
                     walletType: walletType,
+                    // Add order reference for tracking
+                    referenceId: order.order_number,
+                    invoiceId: `INV-${order.id}`,
                 };
 
                 // Process the payment
@@ -198,6 +215,7 @@ export default function SubscribePage() {
                             transactionId: paymentResult.data.params.transactionId,
                             referenceId: paymentResult.data.params.referenceId,
                             state: paymentResult.data.params.state,
+                            orderId: order.id,
                         }),
                     });
 
@@ -212,7 +230,7 @@ export default function SubscribePage() {
                         if (currentUser) {
                             dispatch(setUser(successData.data.user));
                         }
-                        router.push("/courses");
+                        router.push("/courses?order=" + order.id);
                     } else {
                         setError(translateError(successData.message || "Failed to update premium status"));
                     }
@@ -242,32 +260,53 @@ export default function SubscribePage() {
         }));
     };
 
-    // Handle account number input
+    // Handle account number input with proper prefix handling
     const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
-
-        // Remove any existing prefixes or non-numeric characters
-        value = value.replace(/[^\d]/g, '');
 
         const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
         if (!selectedWallet) return;
 
-        // If input starts with valid prefix numbers, keep them
-        const prefixNumbers = selectedWallet.prefixes[0].replace(/[^\d]/g, '');
+        const defaultPrefix = selectedWallet.prefixes[0]; // e.g., "+25261"
+        const prefixNumbers = defaultPrefix.replace(/[^\d]/g, ''); // e.g., "25261"
 
-        // If number doesn't start with correct prefix, add it
-        if (!value.startsWith(prefixNumbers)) {
-            value = prefixNumbers + value;
+        // If the input is empty or just contains the prefix, clear the stored value
+        if (!value || value === defaultPrefix) {
+            setFormData(prev => ({
+                ...prev,
+                accountNo: ""
+            }));
+            return;
         }
 
-        // Limit total length to prefix + 7 digits
-        const maxLength = prefixNumbers.length + 7;
-        value = value.slice(0, maxLength);
+        // If value starts with the full prefix (+25261), extract only the additional numbers
+        if (value.startsWith(defaultPrefix)) {
+            const additionalNumbers = value.slice(defaultPrefix.length).replace(/[^\d]/g, '');
+            // Store only the additional numbers (the part after prefix)
+            // Limit to 7 additional digits
+            setFormData(prev => ({
+                ...prev,
+                accountNo: additionalNumbers.slice(0, 7)
+            }));
+            return;
+        }
 
-        setFormData(prev => ({
-            ...prev,
-            accountNo: value
-        }));
+        // If somehow the prefix was removed, try to extract meaningful digits
+        const allDigits = value.replace(/[^\d]/g, '');
+        if (allDigits.startsWith(prefixNumbers)) {
+            // Extract additional numbers after the prefix
+            const additionalNumbers = allDigits.slice(prefixNumbers.length);
+            setFormData(prev => ({
+                ...prev,
+                accountNo: additionalNumbers.slice(0, 7)
+            }));
+        } else {
+            // Store the digits as additional numbers (assume user is typing without prefix)
+            setFormData(prev => ({
+                ...prev,
+                accountNo: allDigits.slice(0, 7)
+            }));
+        }
     };
 
     const getLocationAlert = () => {
@@ -435,7 +474,7 @@ export default function SubscribePage() {
                                     {/* WaafiPay Form */}
                                     {paymentMethod === "waafipay" && (
                                         <div className="space-y-4">
-                                            <div className="flex gap-2 mb-2">
+                                            <div className="flex gap-2 mb-2 flex-wrap">
                                                 {WALLET_TYPES.map((w) => (
                                                     <Button
                                                         key={w.key}
@@ -453,13 +492,22 @@ export default function SubscribePage() {
                                                 <label className="block text-sm font-medium">
                                                     Lambarka Mobileka
                                                 </label>
-                                                <Input
-                                                    type="tel"
-                                                    value={formData.accountNo}
-                                                    onChange={handleAccountNumberChange}
-                                                    placeholder={WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
-                                                    className="w-full"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type="tel"
+                                                        value={(() => {
+                                                            const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
+                                                            const defaultPrefix = selectedWallet?.prefixes[0] || "+252";
+
+                                                            // Always show prefix + additional numbers
+                                                            // formData.accountNo now only contains the additional numbers
+                                                            return defaultPrefix + (formData.accountNo || "");
+                                                        })()}
+                                                        onChange={handleAccountNumberChange}
+                                                        placeholder={WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
+                                                        className="w-full"
+                                                    />
+                                                </div>
                                                 <p className="text-xs text-gray-500">
                                                     Tusaale: {WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
                                                 </p>
