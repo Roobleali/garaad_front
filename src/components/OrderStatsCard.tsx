@@ -11,7 +11,6 @@ import {
     ShoppingBag,
     Clock,
     CheckCircle,
-    XCircle,
     CreditCard,
     Calendar,
     Loader2,
@@ -267,7 +266,7 @@ export function OrderStatsCard({ className }: OrderStatsCardProps) {
                                     </div>
                                     <div className="text-right">
                                         <div className="font-medium text-sm">
-                                            {formatCurrency(order.total_amount, order.currency)}
+                                            {formatCurrency(order.total_amount)}
                                         </div>
                                         <Badge
                                             variant="outline"
