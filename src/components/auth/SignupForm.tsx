@@ -12,7 +12,6 @@ import type { AppDispatch } from "@/store";
 import type { SignUpData } from "@/types/auth";
 import { cn } from "@/lib/utils";
 import { validateEmail } from "@/lib/email-validation";
-import AuthService from "@/services/auth";
 
 interface SignupFormProps {
   onClose?: () => void;
@@ -107,39 +106,7 @@ export function SignupForm({ onClose }: SignupFormProps) {
         },
       };
 
-      // Check if user already exists
-      const userExists = await AuthService.getInstance().checkUserExists(formData.email);
-
-      if (userExists.exists) {
-        // User already exists, handle different scenarios
-        if (!userExists.is_email_verified) {
-          // User exists but email is not verified
-          toast({
-            variant: "destructive",
-            title: "Isticmaalaha ayaa horey u jira",
-            description: "Emailkaagu horey ayuu u jiraa laakiin ma xaqiijin. Fadlan xaqiiji emailkaaga.",
-          });
-
-          // Redirect to email verification page
-          router.push(`/verify-email?email=${formData.email}`);
-          onClose?.();
-          return;
-        } else {
-          // User exists and email is verified, suggest login
-          toast({
-            variant: "destructive",
-            title: "Isticmaalaha ayaa horey u jira",
-            description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Fadlan soo gal.",
-          });
-
-          // Could redirect to login or show login form
-          // For now just close and user can click login
-          onClose?.();
-          return;
-        }
-      }
-
-      // User doesn't exist, proceed with normal signup
+      // Attempt signup - the backend will handle existing user scenarios
       const result = await dispatch(signUp(signupData)).unwrap();
 
       // Only redirect if signup was successful and no auth error
@@ -170,6 +137,23 @@ export function SignupForm({ onClose }: SignupFormProps) {
       }
     } catch (error) {
       console.error("Signup error:", error);
+      // Handle specific case where user already exists
+      if (error instanceof Error && error.message.includes("horey ayaa loo diiwaangeliyay")) {
+        // User already exists - suggest they should verify email or login
+        toast({
+          variant: "destructive",
+          title: "Isticmaalaha ayaa horey u jira",
+          description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Haddii aadan xaqiijin emailkaaga, fadlan aad xaqiiji. Haddii kale soo gal.",
+          action: (
+            <button
+              onClick={() => router.push(`/verify-email?email=${formData.email}`)}
+              className="bg-white text-black px-3 py-1 rounded text-sm"
+            >
+              Xaqiiji Email
+            </button>
+          ),
+        });
+      }
       // Error will be handled by the useEffect that watches authError
     }
   };

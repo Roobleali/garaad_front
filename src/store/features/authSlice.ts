@@ -91,6 +91,7 @@ export const signUp = createAsyncThunk(
         setUser({
           ...response.user,
           is_premium: response.user.is_premium || false, // Use existing value or default to false
+          is_email_verified: response.user.is_email_verified || false,
           referral_code: response.user.referral_code,
           referral_points: response.user.referral_points,
           referral_count: response.user.referral_count,
@@ -132,6 +133,7 @@ export const login = createAsyncThunk(
         const userData = {
           ...response.user,
           is_premium: response.user.is_premium || false,
+          is_email_verified: response.user.is_email_verified || false,
         };
 
         dispatch(setUser(userData));

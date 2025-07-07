@@ -677,47 +677,7 @@ export default function Page() {
         return;
       }
 
-      // Check if user already exists
-      const userExists = await AuthService.getInstance().checkUserExists(userData.email);
-
-      if (userExists.exists) {
-        // User already exists, handle different scenarios
-        if (!userExists.is_email_verified) {
-          // User exists but email is not verified
-          toast({
-            variant: "destructive",
-            title: "Isticmaalaha ayaa horey u jira",
-            description: "Emailkaagu horey ayuu u jiraa laakiin ma xaqiijin. Fadlan xaqiiji emailkaaga.",
-          });
-
-          // Redirect to email verification page
-          router.push(`/verify-email?email=${userData.email}`);
-          return;
-        } else {
-          // User exists and email is verified, suggest login
-          toast({
-            variant: "destructive",
-            title: "Isticmaalaha ayaa horey u jira",
-            description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Fadlan soo gal.",
-          });
-
-          // Clear local storage and redirect to login
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('welcome_user_data');
-            localStorage.removeItem('welcome_selections');
-            localStorage.removeItem('welcome_current_step');
-            localStorage.removeItem('welcome_topic_levels');
-            localStorage.removeItem('welcome_selected_topic');
-            localStorage.removeItem('user');
-          }
-
-          // Redirect to home page where user can log in
-          router.push('/');
-          return;
-        }
-      }
-
-      // User doesn't exist, proceed with normal signup
+      // Attempt signup - the backend will handle existing user scenarios
       // Format the request body
       const signUpData = {
         email: userData.email.trim(),
@@ -790,6 +750,30 @@ export default function Page() {
       }
     } catch (error: unknown) {
       console.log("Submission failed:", error);
+
+      // Handle specific case where user already exists
+      if (error instanceof Error && error.message.includes("horey ayaa loo diiwaangeliyay")) {
+        // User already exists - suggest they should verify email or login
+        toast({
+          variant: "destructive",
+          title: "Isticmaalaha ayaa horey u jira",
+          description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Haddii aadan xaqiijin emailkaaga, fadlan aad xaqiiji. Haddii kale soo gal.",
+        });
+
+        // Clear local storage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('welcome_user_data');
+          localStorage.removeItem('welcome_selections');
+          localStorage.removeItem('welcome_current_step');
+          localStorage.removeItem('welcome_topic_levels');
+          localStorage.removeItem('welcome_selected_topic');
+          localStorage.removeItem('user');
+        }
+
+        // Redirect to email verification page as default action
+        router.push(`/verify-email?email=${userData.email}`);
+        return;
+      }
 
       // Use the error message from the thrown error (already processed by auth service)
       if (error instanceof Error) {

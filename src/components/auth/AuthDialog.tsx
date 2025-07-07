@@ -38,7 +38,6 @@ import { EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { validateEmail } from "@/lib/email-validation";
-import AuthService from "@/services/auth";
 
 // Define the form schema with enhanced email validation
 const formSchema = z.object({
@@ -122,6 +121,22 @@ export function AuthDialog() {
         ).unwrap();
 
         if (response?.user) {
+          // Check if the user's email is verified
+          if (!response.user.is_email_verified) {
+            // User logged in but email is not verified
+            toast({
+              variant: "destructive",
+              title: "Emailkaaga ma xaqiijin",
+              description: "Si aad u isticmaasho adeegga, fadlan xaqiiji emailkaaga marka hore.",
+            });
+
+            // Redirect to email verification page
+            setIsOpen(false);
+            router.push(`/verify-email?email=${values.email}`);
+            return;
+          }
+
+          // Email is verified, proceed with normal login flow
           setIsOpen(false);
           if (response.user.is_premium) {
             router.push('/courses');
