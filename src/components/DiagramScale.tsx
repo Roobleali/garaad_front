@@ -29,6 +29,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
           const baseSize = isMultiple ? 28 : 36; // Slightly smaller cubes to fit more
           const size = baseSize;
           let shape: any;
+
           switch (obj.type) {
             case "cube": {
               const fill = dg
@@ -58,8 +59,9 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
               break;
             }
             case "triangle": {
+              const triangleSize = size / 1.35;
               shape = dg
-                .regular_polygon(3, size / 1.35)
+                .regular_polygon(3, triangleSize)
                 .apply(dg.mod.round_corner(5))
                 .fill(obj.color)
                 .stroke("#777")
@@ -105,6 +107,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
               .fontsize(fontSize);
             shape = dg.diagram_combine(shape, txt);
           }
+
           return shape;
         }
 
@@ -124,6 +127,8 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
           const baseSpacing = Math.max(isMultiple ? 40 : 50, (isMultiple ? 200 : 280) / Math.max(totalObjects, 1));
           const spacing = baseSpacing * scale * responsiveScale;
           const groupSpacing = (isMultiple ? 20 : 25) * scale * responsiveScale; // More spacing between different groups of shapes
+          // Reduce groupSpacing for tighter grouping between types
+          const reducedGroupSpacing = (isMultiple ? 8 : 12) * scale * responsiveScale;
           // Increased minimum spacing to ensure safe space between individual objects
           const sameTypeSpacing = Math.max(isMultiple ? 35 : 45, (isMultiple ? 160 : 220) / Math.max(totalObjects, 1)) * scale * responsiveScale;
 
@@ -135,14 +140,14 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
 
           if (isPlatform) {
             // Platform layout exactly like the attached image
-            const platformWidth = isMultiple ? 140 : 180;
+            const platformWidth = isMultiple ? 200 : 260;
             const platformHeight = isMultiple ? 12 : 16;
             const platformOffset = isMultiple ? 180 : 240;
 
-            // Positions - from top to bottom
-            const platformY = isMultiple ? 50 : 60;          // Platforms at top
+            // Positions - flipped: fulcrum at top, platforms at bottom
+            const fulcrumY = isMultiple ? 15 : 20;            // Fulcrum at very top
             const beamY = isMultiple ? 120 : 140;             // Beam in middle  
-            const fulcrumY = isMultiple ? 170 : 200;          // Fulcrum at bottom
+            const platformY = isMultiple ? 170 : 200;         // Platforms at bottom
 
             // Horizontal beam in the middle
             const beamWidth = platformOffset * 2.2;
@@ -172,35 +177,65 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
               .strokewidth(1)
               .position(V2(platformOffset, platformY));
 
-            // Support chains connecting platforms to beam
-            const chainHeight = beamY - platformY - platformHeight / 2;
+            // Support chains connecting platforms to beam (platforms now below beam)
+            const chainHeight = platformY - beamY - platformHeight / 2;
             const leftChain = dg
-              .rectangle(3, chainHeight)
-              .fill("#666666")
-              .position(V2(-platformOffset, platformY + platformHeight / 2 + chainHeight / 2));
+              .rectangle(isMultiple ? 4 : 6, chainHeight)
+              .fill("#555555")
+              .stroke("#333333")
+              .strokewidth(1)
+              .position(V2(-platformOffset, beamY + beamHeight / 2 + chainHeight / 2));
 
             const rightChain = dg
-              .rectangle(3, chainHeight)
-              .fill("#666666")
-              .position(V2(platformOffset, platformY + platformHeight / 2 + chainHeight / 2));
+              .rectangle(isMultiple ? 4 : 6, chainHeight)
+              .fill("#555555")
+              .stroke("#333333")
+              .strokewidth(1)
+              .position(V2(platformOffset, beamY + beamHeight / 2 + chainHeight / 2));
 
-            // Central fulcrum (triangle pointing up at the bottom)
+            // Central fulcrum (triangle pointing down at the top)
             const fulcrum = dg
-              .regular_polygon(3, isMultiple ? 16 : 20)
+              .regular_polygon(3, isMultiple ? 24 : 32)
               .fill("#777777")
               .stroke("#555555")
               .strokewidth(1)
-              .rotate(0) // Point up
+              .rotate(Math.PI) // Point down
               .position(V2(0, fulcrumY));
 
-            // Fulcrum base/support
+            // Fulcrum base/support (above the fulcrum)
             const fulcrumBase = dg
-              .rectangle(isMultiple ? 40 : 50, isMultiple ? 8 : 10)
+              .rectangle(isMultiple ? 60 : 80, isMultiple ? 12 : 16)
               .apply(dg.mod.round_corner(3))
               .fill("#666666")
-              .position(V2(0, fulcrumY + (isMultiple ? 20 : 25)));
+              .position(V2(0, fulcrumY - (isMultiple ? 28 : 36)));
 
-            baseElements = [fulcrumBase, beam, leftChain, rightChain, leftPlatform, rightPlatform, fulcrum];
+            // Add connection points for better visibility
+            const connectionRadius = isMultiple ? 2 : 3;
+
+            // Left connection points
+            const leftBeamConnection = dg
+              .circle(connectionRadius)
+              .fill("#333333")
+              .position(V2(-platformOffset, beamY + beamHeight / 2));
+
+            const leftPlatformConnection = dg
+              .circle(connectionRadius)
+              .fill("#333333")
+              .position(V2(-platformOffset, platformY - platformHeight / 2));
+
+            // Right connection points
+            const rightBeamConnection = dg
+              .circle(connectionRadius)
+              .fill("#333333")
+              .position(V2(platformOffset, beamY + beamHeight / 2));
+
+            const rightPlatformConnection = dg
+              .circle(connectionRadius)
+              .fill("#333333")
+              .position(V2(platformOffset, platformY - platformHeight / 2));
+
+            baseElements = [fulcrumBase, beam, leftChain, rightChain, leftPlatform, rightPlatform, fulcrum,
+              leftBeamConnection, leftPlatformConnection, rightBeamConnection, rightPlatformConnection];
           } else {
             // Original scale layout - adjusted for vertical centering
             const scaleBaseY = isMultiple ? 15 : 20; // Match platform beam position
@@ -272,7 +307,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
             let positionStartX = 0;
 
             // Calculate platform constraints for boundary checking - match new platform layout
-            const platformWidth = isMultiple ? 140 : 180;
+            const platformWidth = isMultiple ? 200 : 260;
             const platformConstraints = {
               left: { min: -platformWidth / 2, max: platformWidth / 2 },
               right: { min: -platformWidth / 2, max: platformWidth / 2 },
@@ -342,7 +377,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
 
               // Add spacing between type groups - much more generous spacing for safe space
               if (typeGroupEntries.length > 1) {
-                totalWidthNeeded += (typeGroupEntries.length - 1) * (groupSpacing * 2);
+                totalWidthNeeded += (typeGroupEntries.length - 1) * (reducedGroupSpacing * 2);
               }
 
               // Calculate starting position to center all objects on the platform
@@ -361,73 +396,196 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
               objects.forEach((obj) => {
                 const baseShape = makeShape(obj, isPlatform);
                 const totalShapes = obj.number;
-                let actualCols;
 
-                // Calculate columns based on orientation
-                if (obj.orientation === "vertical") {
-                  actualCols = 1;
-                } else if (obj.orientation === "horizontal") {
-                  actualCols = totalShapes;
-                } else {
-                  // For "none" orientation, arrange in a square-like pattern
-                  actualCols = Math.ceil(Math.sqrt(totalShapes));
+                // Special handling for trapezoid_weight not on platform
+                if (
+                  obj.type === "trapezoid_weight" &&
+                  (!['left', 'right', 'center'].includes(obj.position))
+                ) {
+                  // Render reference weights at a fixed Y below the platform
+                  const refY = (isMultiple ? 210 : 260); // visually below platform
+                  const refX = currentTypeX; // keep X logic as before
+                  for (let i = 0; i < totalShapes; i++) {
+                    typeGroupShapes.push(baseShape.translate(V2(refX, refY)));
+                  }
+                  return; // skip normal arrangement
                 }
-
-                // Calculate object width including spacing between same-type objects with safe space
-                const objectWidth = actualCols > 1 ?
-                  (actualCols - 1) * sameTypeSpacing + (isMultiple ? 40 : 55) :
-                  (isMultiple ? 40 : 55);
-
-                let baseX = currentTypeX;
-                let baseY;
 
                 if (isPlatform) {
-                  // Place objects on top of the platform (matching the attached image)
-                  const platformY = isMultiple ? 50 : 60;
+                  // Custom platform positioning system with enhanced design
+                  const platformY = isMultiple ? 170 : 200;
                   const platformHeight = isMultiple ? 12 : 16;
-                  // Calculate platform top surface
-                  const platformTop = platformY - platformHeight / 2;
-                  // Position objects directly on top of the platform
-                  baseY = platformTop - (isMultiple ? 25 : 35);
+                  const platformTopSurface = platformY - platformHeight / 2;
 
-                  // Center this object group within the allocated type group width  
-                  baseX = currentTypeX + Math.max(0, (typeGroupWidth - objectWidth) / 2);
+                  // Custom arrangement patterns based on object count and type
+                  let arrangement: { x: number; y: number }[] = [];
+
+                  if (totalShapes === 1) {
+                    // Single object - center it
+                    arrangement = [{ x: 0, y: 0 }];
+                  } else if (totalShapes === 2) {
+                    // Two objects - side by side with optimal spacing
+                    const gap = obj.type === "trapezoid_weight" ?
+                      (isMultiple ? 25 : 35) : (isMultiple ? 35 : 45);
+                    arrangement = [
+                      { x: -gap / 2, y: 0 },
+                      { x: gap / 2, y: 0 }
+                    ];
+                  } else if (totalShapes === 3) {
+                    // Three objects - two on the bottom, one centered above
+                    const gap = obj.type === "trapezoid_weight" ?
+                      (isMultiple ? 25 : 32) : (isMultiple ? 32 : 42);
+                    const verticalGap = isMultiple ? 35 : 45;
+                    arrangement = [
+                      { x: -gap / 2, y: 0 }, // left bottom
+                      { x: gap / 2, y: 0 },  // right bottom
+                      { x: 0, y: -verticalGap } // top center
+                    ];
+                  } else if (totalShapes === 4) {
+                    // Four objects - 2x2 grid or line based on orientation
+                    const gap = obj.type === "trapezoid_weight" ?
+                      (isMultiple ? 22 : 30) : (isMultiple ? 30 : 40);
+                    const verticalGap = isMultiple ? 35 : 45;
+                    if (obj.orientation === "horizontal") {
+                      arrangement = [
+                        { x: -gap * 1.5, y: 0 },
+                        { x: -gap / 2, y: 0 },
+                        { x: gap / 2, y: 0 },
+                        { x: gap * 1.5, y: 0 }
+                      ];
+                    } else {
+                      arrangement = [
+                        { x: -gap / 2, y: 0 },
+                        { x: gap / 2, y: 0 },
+                        { x: -gap / 2, y: -verticalGap },
+                        { x: gap / 2, y: -verticalGap }
+                      ];
+                    }
+                  } else if (totalShapes === 5) {
+                    // Five objects - pyramid formation
+                    const gap = obj.type === "trapezoid_weight" ?
+                      (isMultiple ? 20 : 28) : (isMultiple ? 28 : 38);
+                    const verticalGap = isMultiple ? 32 : 42;
+                    if (obj.orientation === "horizontal") {
+                      arrangement = [
+                        { x: -gap * 2, y: 0 },
+                        { x: -gap, y: 0 },
+                        { x: 0, y: 0 },
+                        { x: gap, y: 0 },
+                        { x: gap * 2, y: 0 }
+                      ];
+                    } else {
+                      arrangement = [
+                        { x: -gap, y: 0 },
+                        { x: 0, y: 0 },
+                        { x: gap, y: 0 },
+                        { x: -gap / 2, y: -verticalGap },
+                        { x: gap / 2, y: -verticalGap }
+                      ];
+                    }
+                  } else {
+                    // For 6+ objects, use optimized grid layout
+                    const gap = obj.type === "trapezoid_weight" ?
+                      (isMultiple ? 18 : 25) : (isMultiple ? 25 : 35);
+                    const verticalGap = isMultiple ? 30 : 40;
+                    let cols;
+
+                    if (obj.orientation === "horizontal") {
+                      cols = totalShapes;
+                    } else if (obj.orientation === "vertical") {
+                      cols = 1;
+                    } else {
+                      // Optimize for platform width
+                      cols = Math.min(Math.ceil(Math.sqrt(totalShapes)), 4);
+                    }
+
+                    const totalWidth = (cols - 1) * gap;
+
+                    for (let i = 0; i < totalShapes; i++) {
+                      const row = Math.floor(i / cols);
+                      const col = i % cols;
+                      arrangement.push({
+                        x: col * gap - totalWidth / 2,
+                        y: -(row * verticalGap)
+                      });
+                    }
+                  }
+
+                  // Calculate base position for this object group
+                  // Find the maximum Y offset in the arrangement (i.e., the lowest row)
+                  const minYOffset = Math.min(...arrangement.map(pos => pos.y));
+                  // Place the lowest row at the platform top
+                  const baseY = platformTopSurface - (isMultiple ? 20 : -30) - minYOffset;
+
+                  // Center the arrangement on the platform
+                  let baseX;
+                  if (isPlatform) {
+                    // Platform type: use platform-specific positioning
+                    const platformOffset = isMultiple ? 180 : 240; // Match the platform layout
+                    if (position === "left") {
+                      baseX = -platformOffset; // Center on left platform
+                    } else if (position === "right") {
+                      baseX = platformOffset; // Center on right platform
+                    } else {
+                      baseX = 0; // Center on middle
+                    }
+                  } else {
+                    // Scale type: use the original positioning from positionStartX and currentTypeX
+                    baseX = currentTypeX;
+                  }
+
+                  // Create shapes with custom arrangement
+                  arrangement.forEach((pos, i) => {
+                    if (i < totalShapes) {
+                      const finalX = baseX + pos.x;
+                      const finalY = baseY + pos.y;
+                      typeGroupShapes.push(baseShape.translate(V2(finalX, finalY)));
+                    }
+                  });
+
                 } else {
-                  baseY = isMultiple ? 35 : 50;
-                  // For non-platform, keep objects within scale bounds
-                  const scaleWidth = isMultiple ? 380 : 500; // Updated to match longer scale width
+                  // Non-platform logic remains the same
+                  let actualCols;
+                  if (obj.orientation === "vertical") {
+                    actualCols = 1;
+                  } else if (obj.orientation === "horizontal") {
+                    actualCols = totalShapes;
+                  } else {
+                    actualCols = Math.ceil(Math.sqrt(totalShapes));
+                  }
+
+                  const objectWidth = actualCols > 1 ?
+                    (actualCols - 1) * sameTypeSpacing + (isMultiple ? 40 : 55) :
+                    (isMultiple ? 40 : 55);
+
+                  const baseY = isMultiple ? 35 : 50;
+                  const scaleWidth = isMultiple ? 380 : 500;
                   const scaleLeftBound = -scaleWidth / 2;
                   const scaleRightBound = scaleWidth / 2;
-                  baseX = Math.max(scaleLeftBound, Math.min(scaleRightBound - objectWidth, currentTypeX - objectWidth / 2));
-                }
+                  const baseX = Math.max(scaleLeftBound, Math.min(scaleRightBound - objectWidth, currentTypeX - objectWidth / 2));
 
-                // Create grid of shapes with consistent spacing
-                for (let i = 0; i < totalShapes; i++) {
-                  let row, col;
-                  if (obj.orientation === "vertical") {
-                    row = i;
-                    col = 0;
-                  } else if (obj.orientation === "horizontal") {
-                    row = 0;
-                    col = i;
-                  } else {
-                    row = Math.floor(i / actualCols);
-                    col = i % actualCols;
+                  for (let i = 0; i < totalShapes; i++) {
+                    let row, col;
+                    if (obj.orientation === "vertical") {
+                      row = i;
+                      col = 0;
+                    } else if (obj.orientation === "horizontal") {
+                      row = 0;
+                      col = i;
+                    } else {
+                      row = Math.floor(i / actualCols);
+                      col = i % actualCols;
+                    }
+                    const x = baseX + (col * sameTypeSpacing);
+                    const y = baseY + (row * sameTypeSpacing);
+                    typeGroupShapes.push(baseShape.translate(V2(x, y)));
                   }
-                  const x = baseX + (col * sameTypeSpacing);
-
-                  // For platforms, stack objects upward from the platform surface (sitting on top)
-                  const y = isPlatform ?
-                    baseY - (row * sameTypeSpacing) :
-                    baseY + (row * sameTypeSpacing);
-
-                  typeGroupShapes.push(baseShape.translate(V2(x, y)));
                 }
               });
 
               // Update currentTypeX for next type group with safe spacing
               if (isPlatform) {
-                currentTypeX += typeGroupWidth + (groupSpacing * 2);
+                currentTypeX += typeGroupWidth + (reducedGroupSpacing * 2);
               } else {
                 currentTypeX += spacing + (groupSpacing * 1.5);
               }

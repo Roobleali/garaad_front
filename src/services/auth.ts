@@ -3,10 +3,6 @@ import { jwtDecode } from "jwt-decode";
 import { User } from "@/types/auth";
 import { validateEmail } from "@/lib/email-validation";
 
-// Import Redux store and actions
-import { store } from "@/store";
-import { setUser } from "@/store/features/authSlice";
-
 export interface SignUpData {
   email: string;
   password: string;
@@ -317,8 +313,18 @@ export class AuthService {
     this.user = user;
     this.setCookie("user", JSON.stringify(user), 7);
 
-    // Update Redux store
-    store.dispatch(setUser(user));
+    // Update Redux store with dynamic import to avoid circular dependency
+    this.updateReduxStore(user);
+  }
+
+  private async updateReduxStore(user: User): Promise<void> {
+    try {
+      const { store } = await import("@/store");
+      const { setUser } = await import("@/store/features/authSlice");
+      store.dispatch(setUser(user));
+    } catch (error) {
+      console.warn("Failed to update Redux store:", error);
+    }
   }
 
   // Add method to update email verification status
