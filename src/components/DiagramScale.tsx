@@ -26,7 +26,7 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
         const V2 = dg.V2;
 
         function makeShape(obj: DiagramObject, isPlatformDiagram: boolean = false) {
-          const baseSize = isMultiple ? 28 : 36; // Slightly smaller cubes to fit more
+          const baseSize = isMultiple ? 36 : 48; // Increased from 28/36 to 36/48
           const size = baseSize;
           let shape: any;
 
@@ -98,8 +98,8 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
 
           // Always show weight values for all types in platform diagrams if present
           if ((isPlatformDiagram || !isPlatformDiagram) && obj.weight_value != null && obj.weight_value !== undefined) {
-            const baseFontSize = obj.type === "trapezoid_weight" ? 16 : 12;
-            const fontSize = isMultiple ? baseFontSize * 0.8 : baseFontSize;
+            const baseFontSize = obj.type === "trapezoid_weight" ? 18 : 15; // Increased from 16/12 to 18/15
+            const fontSize = isMultiple ? baseFontSize * 0.9 : baseFontSize; // Changed from 0.8 to 0.9
             const txt = dg
               .textvar(String(obj.weight_value))
               .move_origin_text("center-center")
@@ -113,24 +113,24 @@ const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = 
 
         int.draw_function = () => {
           const V2 = dg.V2;
-          // Scale down elements when multiple diagrams are present
-          const scale = isMultiple ? 0.7 : 1.0;
+          // Scale down elements when multiple diagrams are present - adjusted for larger items
+          const scale = isMultiple ? 0.8 : 1.0; // Increased from 0.7 to 0.8
 
           // Calculate total objects to determine optimal spacing
           const totalObjects = config.objects.reduce((sum, obj) => sum + obj.number, 0);
 
           // Check if we need even tighter spacing for many objects (responsive adjustment)
           const isCrowded = totalObjects > 5;
-          const responsiveScale = isCrowded ? 0.8 : 1.0;
+          const responsiveScale = isCrowded ? 0.85 : 1.0; // Increased from 0.8 to 0.85
 
-          // Dynamic spacing based on number of objects - ensuring safe space between objects
-          const baseSpacing = Math.max(isMultiple ? 40 : 50, (isMultiple ? 200 : 280) / Math.max(totalObjects, 1));
+          // Dynamic spacing based on number of objects - adjusted for larger items
+          const baseSpacing = Math.max(isMultiple ? 48 : 60, (isMultiple ? 240 : 320) / Math.max(totalObjects, 1)); // Increased spacing
           const spacing = baseSpacing * scale * responsiveScale;
-          const groupSpacing = (isMultiple ? 20 : 25) * scale * responsiveScale; // More spacing between different groups of shapes
+          const groupSpacing = (isMultiple ? 25 : 30) * scale * responsiveScale; // Increased group spacing
           // Reduce groupSpacing for tighter grouping between types
-          const reducedGroupSpacing = (isMultiple ? 8 : 12) * scale * responsiveScale;
+          const reducedGroupSpacing = (isMultiple ? 12 : 16) * scale * responsiveScale; // Increased reduced spacing
           // Increased minimum spacing to ensure safe space between individual objects
-          const sameTypeSpacing = Math.max(isMultiple ? 35 : 45, (isMultiple ? 160 : 220) / Math.max(totalObjects, 1)) * scale * responsiveScale;
+          const sameTypeSpacing = Math.max(isMultiple ? 42 : 55, (isMultiple ? 200 : 280) / Math.max(totalObjects, 1)) * scale * responsiveScale; // Increased same type spacing
 
           // Check if this is a platform diagram
           const isPlatform = config.diagram_type === "platform";
