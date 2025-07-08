@@ -5,9 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import type { User } from "@/types/auth";
 import AuthService from "@/services/auth";
 import { progressService, type UserProgress } from "@/services/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -27,10 +26,18 @@ import {
   BookOpen,
   Mail,
   CheckCircle2,
-  Clock,
+  Users,
+  Share2,
+  Copy,
+  TrendingUp,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { motion, AnimatePresence } from "framer-motion";
+import { getMediaUrl } from "@/lib/utils";
+import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
+import { useDispatch } from "react-redux";
+import { setUser } from "@/store/features/authSlice";
+import { useToast } from "@/hooks/use-toast";
 
 // Extend User type to include required fields
 interface ExtendedUser extends User {
@@ -56,202 +63,10 @@ interface ReferralList {
   referred_users: ReferralUser[];
 }
 
-function AnimatedCounter({ value, className }: { value: number; className?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    const start = 0;
-    const duration = 800;
-    const step = (timestamp: number, startTime: number) => {
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setDisplay(Math.floor(start + (value - start) * progress));
-      if (progress < 1) {
-        requestAnimationFrame((t) => step(t, startTime));
-      }
-    };
-    requestAnimationFrame((t) => step(t, t));
-  }, [value]);
-  return <span ref={ref} className={className}>{display}</span>;
-}
 
-function ProgressRing({ percent, size = 64, stroke = 6, color = "#6366f1" }: { percent: number; size?: number; stroke?: number; color?: string }) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-  return (
-    <svg width={size} height={size} className="block">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke="#e5e7eb"
-        strokeWidth={stroke}
-        fill="none"
-      />
-      <motion.circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke={color}
-        strokeWidth={stroke}
-        fill="none"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        initial={{ strokeDashoffset: circumference }}
-        animate={{ strokeDashoffset: offset }}
-        transition={{ duration: 1 }}
-      />
-    </svg>
-  );
-}
-
-function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`backdrop-blur-md bg-white/30 dark:bg-gray-900/30 border border-white/20 dark:border-gray-800/40 shadow-xl rounded-3xl ${className}`}>{children}</div>
-  );
-}
-
-function ReferralDashboard({ stats, referrals }: { stats: ReferralStats | null; referrals: ReferralList | null }) {
-  const [copied, setCopied] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleCopy = () => {
-    if (stats?.referral_code) {
-      navigator.clipboard.writeText(stats.referral_code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
-  };
-
-  const handleShare = () => {
-    if (stats?.referral_code) {
-      const shareUrl = `${window.location.origin}/welcome?ref=${stats.referral_code}`;
-      navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
-  };
-
-  const handleGenerateCode = async () => {
-    setIsGenerating(true);
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || window.location.origin;
-      const token = AuthService.getInstance().getToken();
-
-      if (!token) {
-        console.error('Token lama helin ee koodka la wareejiyo la sameeyo');
-        return;
-      }
-
-      const response = await fetch(`${apiBase}/api/auth/generate-referral-code/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.status === 401) {
-        console.log('[Referral Debug] 401 Unauthorized - redirecting to login');
-        // Use AuthService for proper logout
-        AuthService.getInstance().logout();
-        return;
-      }
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('[Referral Debug] Generated referral code:', data);
-        // Update the stats state instead of refreshing the page
-        if (data.referral_code) {
-          // Update the parent component's state by calling a callback
-          // For now, we'll trigger a re-fetch of referral data
-          window.dispatchEvent(new CustomEvent('referralCodeGenerated'));
-        }
-      } else {
-        console.error('Ku guuldaraystay in la sameeyo koodka la wareejiyo:', response.status);
-      }
-    } catch (error) {
-      console.error('Qalad ayaa dhacay marka la sameeyay koodka la wareejiyo:', error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const hasReferralCode = stats?.referral_code && stats.referral_code.trim() !== '';
-
-  return (
-    <div className="bg-white/80 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <div className="text-gray-500 text-sm">Koodka La Wareejiyo</div>
-          <div className="flex items-center space-x-2 mt-1">
-            {hasReferralCode ? (
-              <>
-                <span className="font-mono text-lg bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded border border-gray-200 dark:border-gray-700">
-                  {stats?.referral_code}
-                </span>
-                <button
-                  onClick={handleCopy}
-                  className="text-blue-600 hover:text-blue-800 transition font-semibold px-2 py-1 rounded border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-950"
-                >
-                  {copied ? 'La koobiyey!' : 'Koobi'}
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-400 italic">Wali koodka la wareejiyo ma jiro</span>
-                <button
-                  onClick={handleGenerateCode}
-                  disabled={isGenerating}
-                  className="bg-blue-600 text-white px-3 py-1 rounded font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {isGenerating ? 'La sameeyo...' : 'Samee Kood'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        {hasReferralCode && (
-          <button
-            onClick={handleShare}
-            className="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700 transition"
-          >
-            {copied ? 'La koobiyey!' : 'Wadaag Linkiga'}
-          </button>
-        )}
-      </div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold text-purple-600">{stats?.referral_points ?? 0}</span>
-          <div className="text-xs text-gray-500">Dhibcaha</div>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-2xl font-bold text-blue-600">{stats?.referral_count ?? 0}</span>
-          <div className="text-xs text-gray-500">La Wareejiyo</div>
-        </div>
-      </div>
-      <div>
-        <div className="text-gray-600 mb-2 font-semibold">Asxaabta aad u wareejiyey:</div>
-        <ul className="divide-y divide-gray-200 dark:divide-gray-800">
-          {referrals && referrals.referred_users && referrals.referred_users.length > 0 ? referrals.referred_users.map((user) => (
-            <li key={user.id} className="py-2 flex justify-between items-center text-sm">
-              <span>{user.first_name} {user.last_name}</span>
-              <span className="text-xs text-gray-400">{new Date(user.created_at).toLocaleDateString()}</span>
-            </li>
-          )) : (
-            <li className="py-2 text-gray-400">
-              {hasReferralCode ? 'Wali la wareejiyo ma jiro. Wadaag koodkaaga si aad u bilowdo inaad hesho dhibcaha!' : 'Samee kood la wareejiyo si aad u bilowdo inaad hesho dhibcaha!'}
-            </li>
-          )}
-        </ul>
-      </div>
-    </div>
-  );
-}
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<ExtendedUser | null>(null);
+  const [user, setUserState] = useState<ExtendedUser | null>(null);
   const [progress, setProgress] = useState<UserProgress[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -259,6 +74,10 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState<Partial<ExtendedUser>>({});
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [referralList, setReferralList] = useState<ReferralList | null>(null);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -270,7 +89,7 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/user/update", {
+      const response = await fetch("https://api.garaad.org/api/auth/upload-profile-picture/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
@@ -280,7 +99,7 @@ export default function ProfilePage() {
         throw new Error("Ku guuldaraystay in la cusboonaysiiyo profile-ka");
 
       const updated = await response.json();
-      setUser(updated);
+      setUserState(updated);
       setShowEditModal(false);
     } catch (err) {
       console.error(err);
@@ -294,7 +113,7 @@ export default function ProfilePage() {
     try {
       const storedUser = AuthService.getInstance().getCurrentUser();
       if (storedUser) {
-        setUser(storedUser as ExtendedUser);
+        setUserState(storedUser as ExtendedUser);
         setEditForm({
           first_name: storedUser.first_name,
           last_name: storedUser.last_name,
@@ -327,61 +146,67 @@ export default function ProfilePage() {
     fetchProgress();
   }, [user]);
 
+  // Fetch referral data
   useEffect(() => {
-    // Debug: print all localStorage keys/values and cookies
-    console.log('[Referral Debug] localStorage:', { ...localStorage });
-    console.log('[Referral Debug] document.cookie:', document.cookie);
-
     function getToken() {
       const authService = AuthService.getInstance();
-      const token = authService.getToken();
-      if (token) {
-        console.log('[Referral Debug] Found token via AuthService:', token.substring(0, 20) + '...');
-        return token;
-      }
-      console.log('[Referral Debug] No token found via AuthService.');
-      return null;
+      return authService.getToken();
     }
 
-    // Fetch all referral info from /referrals/
     const fetchReferral = async () => {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || window.location.origin;
       const token = getToken();
-      if (!token) {
-        setError("Ma galin. Fadlan gal si aad u aragto macluumaadka la wareejiyo.");
-        return;
-      }
+      if (!token) return;
+
       try {
-        const res = await fetch(`${apiBase}/api/auth/referrals/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.status === 401) {
-          console.log('[Referral Debug] 401 Unauthorized - redirecting to login');
-          // Use AuthService for proper logout
-          AuthService.getInstance().logout();
-          return;
+        const [statsResponse, listResponse] = await Promise.all([
+          fetch('https://api.garaad.org/api/auth/referral-stats/', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch('https://api.garaad.org/api/auth/referral-list/', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (statsResponse.ok && listResponse.ok) {
+          const [statsData, listData] = await Promise.all([
+            statsResponse.json(),
+            listResponse.json(),
+          ]);
+
+          setReferralStats(statsData);
+          setReferralList(listData);
         }
-        if (!res.ok) {
-          throw new Error(`Ku guuldaraystay in la soo raro xogta la wareejiyo: ${res.status}`);
-        }
-        const data = await res.json();
-        console.log('[Referral Debug] /referrals/ response:', data);
-        setReferralStats({
-          referral_code: data.referral_code,
-          referral_points: data.referral_points,
-          referral_count: data.referral_count,
-        });
-        setReferralList({ referred_users: data.referred_users || [] });
-      } catch (err: unknown) {
-        console.error('[Referral Debug] fetch error:', err);
-        setError('Ku guuldaraystay in la soo raro xogta la wareejiyo. Fadlan hubi isku xirkaaga ama la xiriirka taageerada.');
+      } catch (error) {
+        console.error("Failed to fetch referral data:", error);
       }
     };
 
     // Listen for referral code generation events
     const handleReferralCodeGenerated = () => {
-      console.log('[Referral Debug] Referral code generated, re-fetching data...');
-      fetchReferral();
+      const token = getToken();
+      if (!token) return;
+
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+
+      fetch(`${apiBase}/api/auth/generate-referral-code/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.referral_code && referralStats) {
+            setReferralStats({
+              ...referralStats,
+              referral_code: data.referral_code,
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to generate referral code:", error);
+        });
     };
 
     window.addEventListener('referralCodeGenerated', handleReferralCodeGenerated);
@@ -393,6 +218,77 @@ export default function ProfilePage() {
       window.removeEventListener('referralCodeGenerated', handleReferralCodeGenerated);
     };
   }, []);
+
+  // Handle profile picture update
+  const handleProfilePictureUpdate = async (file: File) => {
+    try {
+      setIsUploadingPicture(true);
+      const formData = new FormData();
+      formData.append('profile_picture', file);
+
+      const response = await fetch('https://api.garaad.org/api/auth/upload-profile-picture/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${AuthService.getInstance().getToken()}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Profile picture update failed:', response.status, errorText);
+        throw new Error(`Failed to update profile picture: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Profile picture update response:', data);
+
+      // Update the user profile in Redux store
+      if (data.user) {
+        dispatch(setUser(data.user));
+        // Also update local state
+        setUserState(data.user as ExtendedUser);
+      } else if (data.profile_picture && user) {
+        // If the response only contains the profile picture URL, update the user object
+        const updatedUser = { ...user, profile_picture: data.profile_picture };
+        dispatch(setUser(updatedUser));
+        setUserState(updatedUser);
+      }
+
+      // Show success message
+      toast({
+        title: "Sawirka profile-ka waa la cusboonaysiiyay!",
+        description: "Sawirkaaga cusub waa la muujin doonaa.",
+      });
+    } catch (error) {
+      console.error('Failed to update profile picture:', error);
+      toast({
+        title: "Cillad ayaa dhacday",
+        description: error instanceof Error ? error.message : "Fadlan isku day mar kale.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingPicture(false);
+    }
+  };
+
+  // Profile picture delete handler  
+  const handleDeleteProfilePicture = async () => {
+    if (!confirm('Ma hubtaa inaad tirtirto sawirka profile-ka?')) return;
+
+    setIsUploadingPicture(true);
+    setError(null);
+
+    try {
+      const authService = AuthService.getInstance();
+      const updatedUser = await authService.deleteProfilePicture();
+      setUserState(updatedUser as ExtendedUser);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Sawirka lama tirtiri karin');
+    } finally {
+      setIsUploadingPicture(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -437,189 +333,482 @@ export default function ProfilePage() {
     progressItems && lessonsCompleted
       ? Math.round((lessonsCompleted / progressItems) * 100)
       : 0;
-  console.log(referralStats);
-  console.log(referralList);
+  console.log(AvatarImage);
   return (
     <>
       <Header />
-      <div className="min-h-screen relative bg-gradient-to-br from-blue-400/40 via-white/60 to-purple-400/40 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 overflow-x-hidden">
-        {/* Animated background particles or gradient */}
-        <motion.div
-          className="absolute inset-0 z-0 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          {/* Adiga can add a canvas or SVG for animated particles here */}
-        </motion.div>
-        <div className="container max-w-4xl mx-auto px-4 py-6 sm:py-10 relative z-10">
-          {/* Modern Profile Header with glassmorphism and animated avatar ring */}
-          <div className="relative flex flex-col items-center justify-center mb-8 sm:mb-10">
-            <GlassCard className="absolute inset-0 h-48 sm:h-56 -z-10"> </GlassCard>
-            <div className="flex flex-col items-center gap-3 sm:gap-4">
-              <motion.div
-                className="relative group"
-                initial={{ scale: 0.9, boxShadow: "0 0 0 0 rgba(99,102,241,0.4)" }}
-                animate={{ scale: 1, boxShadow: "0 0 32px 0 rgba(99,102,241,0.25)" }}
-                transition={{ duration: 1, type: "spring" }}
-              >
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500/40 to-purple-500/40 blur-xl animate-pulse" />
-                <Avatar className="h-24 w-24 sm:h-32 sm:w-32 md:h-36 md:w-36 border-4 border-white/60 dark:border-gray-900/60 shadow-2xl transition-transform group-hover:scale-105 relative z-10">
-                  <AvatarFallback className="text-2xl sm:text-3xl md:text-5xl bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold">
-                    {user.first_name[0]}
-                    {user.last_name[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-green-500 rounded-full p-1 sm:p-2 shadow-lg border-2 sm:border-4 border-white/60 dark:border-gray-900/60 animate-pulse" />
-              </motion.div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white text-center drop-shadow-lg px-4">
-                {user.first_name} {user.last_name}
-              </h1>
-              <div className="flex flex-col sm:flex-row items-center gap-2 text-gray-500 dark:text-gray-300 text-sm sm:text-lg px-4">
-                <span className="font-mono bg-white/40 dark:bg-gray-800/40 px-2 py-1 rounded shadow-inner text-center">@{user.username}</span>
-                <span className="hidden sm:inline">·</span>
-                <span className="flex items-center gap-1 text-center"><Mail className="h-3 w-3 sm:h-4 sm:w-4" />{user.email}</span>
-              </div>
-            </div>
-            {/* Quick Stats Card with animated counters and progress ring */}
-            <div className="mt-6 sm:mt-10 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-center items-center">
-              <GlassCard className="flex flex-col items-center p-4 sm:p-6">
-                <div className="mb-2"><ProgressRing percent={completedPercentage} size={48} stroke={4} /></div>
-                <AnimatedCounter value={completedPercentage} className="text-xl sm:text-2xl font-bold text-blue-600" />
-                <span className="text-xs text-gray-500 text-center">Horumarinta</span>
-              </GlassCard>
-              <GlassCard className="flex flex-col items-center p-4 sm:p-6">
-                <BookOpen className="h-5 w-5 sm:h-7 sm:w-7 text-blue-500 mb-2" />
-                <AnimatedCounter value={lessonsCompleted} className="text-xl sm:text-2xl font-bold text-gray-900" />
-                <span className="text-xs text-gray-500 text-center">Casharka</span>
-              </GlassCard>
-              {referralStats && (
-                <GlassCard className="flex flex-col items-center p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
-                  <UserIcon className="h-5 w-5 sm:h-7 sm:w-7 text-purple-500 mb-2" />
-                  <AnimatedCounter value={referralStats.referral_points ?? 0} className="text-xl sm:text-2xl font-bold text-purple-600" />
-                  <span className="text-xs text-gray-500 text-center">Dhibcaha La Wareejiyo</span>
-                </GlassCard>
-              )}
-            </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Cover Photo Section */}
+        <div className="relative h-48 sm:h-64 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
+          <div className="absolute inset-0 bg-black/20" />
+          {/* Cover photo overlay pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 bg-white/5" />
           </div>
+        </div>
 
-          {/* Main Content - Floating Glass Tabs */}
-          <Tabs defaultValue="progress" className="w-full">
-            <TabsList className="mb-6 sm:mb-8 flex justify-center gap-1 sm:gap-2 bg-white/40 dark:bg-gray-900/40 shadow-lg rounded-full p-1 max-w-lg mx-auto backdrop-blur-md">
-              <TabsTrigger
-                value="progress"
-                className="flex-1 rounded-full px-3 sm:px-6 py-2 text-sm sm:text-lg font-semibold transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-gray-700 dark:data-[state=inactive]:text-gray-200"
-              >
-                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Horumarinta
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="flex-1 rounded-full px-3 sm:px-6 py-2 text-sm sm:text-lg font-semibold transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-gray-700 dark:data-[state=inactive]:text-gray-200"
-              >
-                <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> Dejinta
-              </TabsTrigger>
-            </TabsList>
+        {/* Main Content Container */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* Progress Tab */}
-            <TabsContent value="progress" className="space-y-6 sm:space-y-8">
-              <GlassCard className="p-4 sm:p-6 md:p-8">
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-center justify-between mb-6 sm:mb-8">
-                  <div className="flex-1 w-full">
-                    <h2 className="text-xl sm:text-2xl font-bold mb-2 text-gray-900 dark:text-white">Horumarintaada</h2>
-                    <Progress value={completedPercentage} className="h-3 sm:h-4 rounded-full bg-gray-200 dark:bg-gray-800" />
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-blue-600 dark:text-blue-400">{completedPercentage}%</span>
-                    <span className="text-xs sm:text-sm text-gray-500">La dhameeyey</span>
-                  </div>
+            {/* Left Sidebar - Profile Info */}
+            <div className="lg:col-span-3">
+              {/* Profile Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+                {/* Profile Picture */}
+                <div className="relative pt-12 pb-6 px-6 text-center">
+                  <motion.div
+                    className="relative inline-block"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <AuthenticatedAvatar
+                      src={getMediaUrl(user.profile_picture, 'profile_pics')}
+                      alt={`${user.first_name} ${user.last_name}`}
+                      fallback={`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+                      size="xl"
+                      className="h-24 w-24 sm:h-28 sm:w-28 border-4 border-white dark:border-gray-700 shadow-xl mx-auto"
+                      editable={true}
+                      onImageUpdate={handleProfilePictureUpdate}
+                      isUpdating={isUploadingPicture}
+                    />
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                    />
+
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white mt-4">
+                      {user.first_name} {user.last_name}
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">@{user.username}</p>
+                    <p className="text-blue-600 dark:text-blue-400 font-medium mt-1">Arday Garaad</p>
+                  </motion.div>
                 </div>
-                <div className="space-y-3 sm:space-y-4">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Casharka</h3>
-                  <div className="grid gap-3 sm:gap-4">
-                    {progress && progress.length > 0 ? progress.map((item, index) => (
-                      <motion.div
-                        key={item.id}
-                        className="flex items-center justify-between bg-white/60 dark:bg-gray-900/60 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition backdrop-blur-md"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.04 }}
-                      >
-                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0 ${item.status === "completed" ? "bg-green-500" : "bg-gray-300 dark:bg-gray-700"}`}>
-                            {index + 1}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">{item.lesson_title}</h4>
-                            <p className="text-xs text-gray-500">Casharka #{index + 1}</p>
-                          </div>
-                        </div>
-                        <Badge
-                          variant={item.status === "completed" ? "default" : "secondary"}
-                          className={`rounded-full px-2 sm:px-4 py-1 text-xs font-semibold flex-shrink-0 ${item.status === "completed" ? "bg-green-500 text-white" : "bg-yellow-400 text-gray-900"}`}
-                        >
-                          {item.status === "completed" ? (
-                            <><CheckCircle2 className="h-3 w-3 mr-1" /> La dhameeyey</>
-                          ) : (
-                            <><Clock className="h-3 w-3 mr-1" /> Socda</>
-                          )}
-                        </Badge>
-                      </motion.div>
-                    )) : (
-                      <div className="text-center text-gray-400 py-6 sm:py-8">Wali cashar ma jiro.</div>
+
+                {/* Contact Info */}
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                      <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                      <span className="truncate">{user.email}</span>
+                    </div>
+                    {user.is_email_verified && (
+                      <div className="flex items-center text-sm text-green-600">
+                        <CheckCircle2 className="h-4 w-4 mr-3" />
+                        <span>Email la xaqiijiyey</span>
+                      </div>
                     )}
                   </div>
                 </div>
-              </GlassCard>
-            </TabsContent>
 
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-8">
+                {/* Quick Stats */}
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">{lessonsCompleted}</div>
+                      <div className="text-xs text-gray-500">Casharka</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">{completedPercentage}%</div>
+                      <div className="text-xs text-gray-500">Horumarinta</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="p-6 border-t border-gray-100 dark:border-gray-700">
+                  <Button
+                    onClick={() => setShowEditModal(true)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Cusboonaysii Profile-ka
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="lg:col-span-6">
+              {/* Error Display */}
               {error && (
-                <div className="bg-red-50 text-red-700 border border-red-200 rounded-lg p-4 text-center font-semibold">
-                  {error}
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+                  <p className="font-medium">{error}</p>
                 </div>
               )}
-              <ReferralDashboard stats={referralStats} referrals={referralList} />
-            </TabsContent>
-          </Tabs>
 
-          {/* Edit Modal */}
-          <AnimatePresence>
-            {showEditModal && (
-              <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-                <DialogContent className="sm:max-w-md rounded-2xl bg-white dark:bg-gray-900 shadow-2xl">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">Cusboonaysii Profile-ka</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit}>
-                    <div className="grid gap-6 py-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="first_name" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Koowaad</Label>
-                        <Input id="first_name" name="first_name" value={editForm.first_name || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magacaaga koowaad" />
+              {/* Progress Overview Card - Clean & Simple */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center">
+                    <div className="bg-blue-600 text-white rounded-lg p-2 mr-3">
+                      <TrendingUp className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        Horumarintaada
+                      </h2>
+                      <p className="text-sm text-gray-500">Sidee ayaad u socodaa</p>
+                    </div>
+                  </div>
+                  <div className="bg-blue-600 text-white rounded-lg px-3 py-1">
+                    <span className="font-medium text-sm">
+                      {completedPercentage}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Simple Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Casharrada</span>
+                    <span className="text-sm text-gray-500">{lessonsCompleted} ee {progressItems}</span>
+                  </div>
+                  <Progress value={completedPercentage} className="h-2 bg-gray-200" />
+                </div>
+
+                {/* Simple Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-semibold text-blue-600">{lessonsCompleted}</div>
+                    <div className="text-xs text-gray-500">Dhameeyey</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-semibold text-gray-600">{progressItems - lessonsCompleted}</div>
+                    <div className="text-xs text-gray-500">Haray</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-semibold text-gray-400">{Math.floor(completedPercentage / 10)}</div>
+                    <div className="text-xs text-gray-500">Sharaf</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lessons Progress */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2 text-blue-500" />
+                  Casharka oo dhan
+                </h3>
+
+                <div className="space-y-3">
+                  {progress && progress.length > 0 ? progress.map((item, index) => (
+                    <motion.div
+                      key={item.id}
+                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${item.status === "completed" ? "bg-green-500" : "bg-gray-400"
+                          }`}>
+                          {item.status === "completed" ? (
+                            <CheckCircle2 className="h-5 w-5" />
+                          ) : (
+                            index + 1
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-white">{item.lesson_title}</h4>
+                          <p className="text-sm text-gray-500">Casharka #{index + 1}</p>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="last_name" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Dambe</Label>
-                        <Input id="last_name" name="last_name" value={editForm.last_name || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magacaaga dambe" />
+                      <Badge
+                        variant={item.status === "completed" ? "default" : "secondary"}
+                        className={`${item.status === "completed"
+                          ? "bg-green-500 text-white"
+                          : "bg-yellow-400 text-gray-900"
+                          }`}
+                      >
+                        {item.status === "completed" ? "La dhameeyey" : "Socda"}
+                      </Badge>
+                    </motion.div>
+                  )) : (
+                    <div className="text-center text-gray-400 py-8">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                      <p>Wali cashar ma jiro.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="lg:col-span-3">
+              {/* Simple Achievement Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                <div className="text-center">
+                  <div className="bg-blue-600 text-white rounded-lg p-3 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <Trophy className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                    {completedPercentage}% la dhameeyey
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Sii wad waxbarashadaada
+                  </p>
+                </div>
+              </div>
+
+              {/* Simple Referral Section */}
+              {referralStats && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                  {/* Clean Header */}
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center">
+                      <div className="bg-blue-600 text-white rounded-lg p-2 mr-3">
+                        <Users className="h-5 w-5" />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Isticmaalaha</Label>
-                        <Input id="username" name="username" value={editForm.username || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magaca isticmaalaha" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-200">Iimaylka</Label>
-                        <Input id="email" name="email" type="email" value={editForm.email || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli iimaylkaaga" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          Asxaabtada caan garee
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Wadaag oo dhibco hel
+                        </p>
                       </div>
                     </div>
-                    <DialogFooter className="gap-3">
-                      <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="rounded-full">Jooji</Button>
-                      <Button type="submit" className="rounded-full bg-blue-600 text-white hover:bg-blue-700">Kaydi Isbedelada</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            )}
-          </AnimatePresence>
+                  </div>
+
+                  <div className="p-6">
+                    {/* Simple Stats */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-semibold text-blue-600">
+                          {referralStats.referral_points ?? 0}
+                        </div>
+                        <div className="text-sm text-gray-500">Dhibcaha</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-semibold text-gray-600">
+                          {referralStats.referral_count ?? 0}
+                        </div>
+                        <div className="text-sm text-gray-500">Asxaab</div>
+                      </div>
+                    </div>
+
+                    {/* Simple Referral Code */}
+                    {referralStats.referral_code && (
+                      <div className="mb-6">
+                        <div className="text-center mb-3">
+                          <h4 className="font-medium text-gray-900 dark:text-white">
+                            Koodkaaga
+                          </h4>
+                        </div>
+
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                          <div className="text-center">
+                            <div className="text-xl font-mono font-semibold text-gray-900 dark:text-white mb-3">
+                              {referralStats.referral_code}
+                            </div>
+
+                            <div className="flex gap-2 justify-center">
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(referralStats.referral_code);
+                                  alert('Koodka waa la koobbiyeeyey!');
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors"
+                              >
+                                <Copy className="h-4 w-4" />
+                                Koobiyee
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  const shareText = `Ku biir Garaad - platform-ka waxbarashada! Isticmaal koodkeyga: ${referralStats.referral_code}`;
+                                  if (navigator.share) {
+                                    navigator.share({ text: shareText });
+                                  } else {
+                                    navigator.clipboard.writeText(shareText);
+                                    alert('Qoraalka waa la koobbiyeeyey!');
+                                  }
+                                }}
+                                className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors"
+                              >
+                                <Share2 className="h-4 w-4" />
+                                Wadaag
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Simple Instructions */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                        Sidee loo shaqeeyo?
+                      </h4>
+                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                        <div className="flex items-start">
+                          <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mr-2 mt-0.5 flex-shrink-0">1</span>
+                          <span>Wadaag koodkaaga asxaabtada</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mr-2 mt-0.5 flex-shrink-0">2</span>
+                          <span>Markay ku biiraan, dhibco hesho</span>
+                        </div>
+                        <div className="flex items-start">
+                          <span className="bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mr-2 mt-0.5 flex-shrink-0">3</span>
+                          <span>Isticmaal dhibcaha hadiyado cusub</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Simple Friends List */}
+              {referralList && referralList.referred_users && referralList.referred_users.length > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Asxaabtaada ({referralList.referred_users.length})
+                  </h3>
+
+                  <div className="space-y-3">
+                    {referralList.referred_users.slice(0, 3).map((referredUser) => (
+                      <div key={referredUser.id} className="flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-sm bg-blue-600 text-white font-medium">
+                            {referredUser.first_name[0]}{referredUser.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="ml-3 flex-1">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {referredUser.first_name} {referredUser.last_name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(referredUser.created_at).toLocaleDateString('so-SO', {
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {referralList.referred_users.length > 3 && (
+                      <div className="text-center pt-2">
+                        <div className="text-sm text-gray-500">
+                          +{referralList.referred_users.length - 3} asxaab kale
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Generate Referral Code Section */}
+              {referralStats && !referralStats.referral_code && (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 mb-6">
+                  <div className="text-center">
+                    <div className="bg-blue-600 text-white rounded-lg p-3 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      Samee kood la wareejiyo
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Samee kood si aad u wareejiso asxaabtada
+                    </p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const authService = AuthService.getInstance();
+                          const token = authService.getToken();
+                          if (!token) {
+                            alert("Fadlan mar kale gal");
+                            return;
+                          }
+
+                          const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+                          const response = await fetch(`${apiBase}/api/auth/generate-referral-code/`, {
+                            method: "POST",
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                              "Content-Type": "application/json",
+                            },
+                          });
+
+                          if (!response.ok) {
+                            throw new Error("Ku guuldaraystay");
+                          }
+
+                          // Refresh the data
+                          window.dispatchEvent(new CustomEvent("referralCodeGenerated"));
+                          alert("Koodka waa la sameeyey!");
+                        } catch {
+                          alert("Ku guuldaraystay. Fadlan mar kale isku day.");
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 py-2 text-sm font-medium transition-colors"
+                    >
+                      Samee Kood
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Motivational Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                <div className="text-center">
+                  <div className="bg-blue-600 text-white rounded-lg p-3 w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    Sii wad!
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Cashar kasta oo aad dhameeyso waa guul cusub
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Edit Modal - keeping the existing modal */}
+        <AnimatePresence>
+          {showEditModal && (
+            <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+              <DialogContent className="sm:max-w-md rounded-2xl bg-white dark:bg-gray-900 shadow-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">Cusboonaysii Profile-ka</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit}>
+                  <div className="grid gap-6 py-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="first_name" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Koowaad</Label>
+                      <Input id="first_name" name="first_name" value={editForm.first_name || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magacaaga koowaad" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Dambe</Label>
+                      <Input id="last_name" name="last_name" value={editForm.last_name || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magacaaga dambe" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-200">Magaca Isticmaalaha</Label>
+                      <Input id="username" name="username" value={editForm.username || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli magaca isticmaalaha" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-200">Iimaylka</Label>
+                      <Input id="email" name="email" type="email" value={editForm.email || ""} onChange={handleInputChange} className="rounded-lg bg-gray-50 dark:bg-gray-800" placeholder="Geli iimaylkaaga" />
+                    </div>
+                  </div>
+                  <DialogFooter className="gap-3">
+                    <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="rounded-full">Jooji</Button>
+                    <Button type="submit" className="rounded-full bg-blue-600 text-white hover:bg-blue-700">Kaydi Isbedelada</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

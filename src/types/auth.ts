@@ -10,6 +10,7 @@ export interface User {
   is_superuser: boolean;
   last_login: string;
   avatar_url?: string;
+  profile_picture?: string;
   bio?: string;
   is_premium: boolean;
   is_email_verified?: boolean;

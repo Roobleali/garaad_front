@@ -5,6 +5,7 @@ import storage from "redux-persist/lib/storage";
 import { combineReducers } from "redux";
 import coursesReducer from "./features/coursesSlice";
 import learningReducer from "./features/learningSlice";
+import communityReducer from "./features/communitySlice";
 
 // Configure persistence for auth reducer
 const authPersistConfig = {
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   courses: coursesReducer,
   learning: learningReducer,
+  community: communityReducer,
 
   // Add other reducers here as needed
 });

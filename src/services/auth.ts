@@ -128,12 +128,32 @@ export class AuthService {
     const date = new Date();
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     const expires = `expires=${date.toUTCString()}`;
-    document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Strict; Secure`;
+
+    // Check if we're in development (localhost) or production
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (isLocalhost) {
+      // For localhost: no Secure flag, use Lax for SameSite
+      document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Lax`;
+    } else {
+      // For production: use Secure and Strict
+      document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Strict; Secure`;
+    }
   }
 
   private deleteCookie(name: string): void {
     if (typeof document === "undefined") return;
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict; Secure`;
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (isLocalhost) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+    } else {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict; Secure`;
+    }
   }
 
   private getAuthHeaders() {
@@ -680,10 +700,81 @@ export class AuthService {
     this.token = data.access;
     this.refreshToken = data.refresh;
     this.user = data.user;
+
     if (typeof window !== "undefined") {
       this.setCookie("accessToken", data.access, 1);
       this.setCookie("refreshToken", data.refresh, 7);
       this.setCookie("user", JSON.stringify(data.user), 7);
+    }
+  }
+
+  // Add profile picture upload method
+  public async uploadProfilePicture(file: File): Promise<User> {
+    const token = await this.ensureValidToken();
+    if (!token) {
+      throw new Error("Lacag la'aan: Fadlan ku soo gal mar kale");
+    }
+
+    const formData = new FormData();
+    formData.append("profile_picture", file);
+
+    try {
+      const response = await axios.post<{ user: User; message: string }>(
+        `${this.baseURL}/api/auth/upload-profile-picture/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type, let browser set it for FormData
+          },
+        }
+      );
+
+      // Update stored user data
+      const updatedUser = response.data.user;
+      this.user = updatedUser;
+      this.setCookie("user", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error: any) {
+      console.error("Profile picture upload failed:", error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error("Sawirka lama soo gelin karin");
+    }
+  }
+
+  // Add profile picture delete method
+  public async deleteProfilePicture(): Promise<User> {
+    const token = await this.ensureValidToken();
+    if (!token) {
+      throw new Error("Lacag la'aan: Fadlan ku soo gal mar kale");
+    }
+
+    try {
+      const response = await axios.delete<{ user: User; message: string }>(
+        `${this.baseURL}/api/auth/delete-profile-picture/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Update stored user data
+      const updatedUser = response.data.user;
+      this.user = updatedUser;
+      this.setCookie("user", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error: any) {
+      console.error("Profile picture delete failed:", error);
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error("Sawirka lama tirtiri karin");
     }
   }
 }
