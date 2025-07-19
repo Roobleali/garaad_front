@@ -74,7 +74,7 @@ function HeroSection() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   return (
-    <div className="relative bg-gradient-to-b from-primary/5 to-background overflow-hidden">
+    <div className="relative bg-white overflow-hidden">
       <div className="absolute inset-0 animate-fade-in">
         <div className="absolute top-10 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl opacity-50" />
         <div className="absolute bottom-10 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl opacity-50" />
@@ -147,7 +147,7 @@ export default function Home() {
   return (
     <>
       <HomepageSEO />
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="min-h-screen bg-white">
         <Header />
         <main>
           <div className="relative">

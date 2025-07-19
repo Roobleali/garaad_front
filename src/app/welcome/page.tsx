@@ -830,7 +830,7 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-slate-50 to-white px-2 py-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-2 py-6">
       <Card className="w-full max-w-2xl shadow-lg border-0 overflow-hidden px-0">
         <CardContent className="p-0">
           {/* Progress bar */}

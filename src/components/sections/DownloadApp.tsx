@@ -1,6 +1,6 @@
 function DownloadApp() {
     return (
-        <section className="py-16 bg-gradient-to-b from-primary/5 to-background pb-24">
+        <section className="py-16 bg-white pb-24">
             <div className="container mx-auto px-4 text-center">
                 <h2 className="text-4xl font-bold mb-8">Lasoo Deg applicationka-ka</h2>
                 <p className="text-xl text-gray-600 mb-12">

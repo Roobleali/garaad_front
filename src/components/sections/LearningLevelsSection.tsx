@@ -55,7 +55,7 @@ const courseLevels = [
 
 export function LearningLevelsSection() {
   return (
-    <section className="py-4 md:mt-4 bg-gradient-to-b from-white to-primary/5 relative overflow-hidden">
+    <section className="py-4 md:mt-4 bg-white relative overflow-hidden">
       {/* Add decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2" />

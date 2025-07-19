@@ -2,7 +2,7 @@ import { Timeline } from "./Timeline";
 
 export function LearnAnimation() {
   return (
-    <div className="relative mt-8 mb-4 bg-gradient-to-b from-white to-primary/5">
+    <div className="relative mt-8 mb-4 bg-white">
       <div
         className="absolute inset-0 opacity-5"
         style={{

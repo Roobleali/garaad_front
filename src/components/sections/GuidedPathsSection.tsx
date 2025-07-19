@@ -105,7 +105,7 @@ export function GuidedPathsSection() {
   const [angle, setAngle] = useState(300);
 
   return (
-    <section className="py-8 sm:py-16   pt-6 sm:pt-10 pb-5 bg-gradient-to-b from-background to-white relative overflow-hidden">
+    <section className="py-8 sm:py-16   pt-6 sm:pt-10 pb-5 bg-white relative overflow-hidden">
       {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2" />

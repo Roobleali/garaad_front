@@ -1,6 +1,6 @@
 export function MotivationSection() {
   return (
-    <section className="py-16 bg-gradient-to-br from-white via-primary/[0.02] to-background relative overflow-hidden">
+    <section className="py-16 bg-white relative overflow-hidden">
       {/* Enhanced decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2" />

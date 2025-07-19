@@ -60,7 +60,7 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 py-8 md:py-16">
@@ -211,28 +211,28 @@ export default function AboutPage() {
                 title: "Si gaar ah loogu talagalay ardayda Soomaaliyeed",
                 description:
                   "Waxaan fahamsanahay xaaladda dhaqanka iyo kala duwanaanta luqadda ee dadka aan beegsaneyno.",
-                color: "bg-gradient-to-br from-emerald-50 to-teal-50",
+                color: "bg-emerald-50",
                 borderColor: "border-l-emerald-400",
               },
               {
                 title: "Diiradda saaraya xallinta dhibaatooyinka",
                 description:
                   "Koorsooyinkayagu waxay xoogga saaraan waxbarashada ku saleysan ficilka iyo fikirka qoto dheer.",
-                color: "bg-gradient-to-br from-sky-50 to-blue-50",
+                color: "bg-sky-50",
                 borderColor: "border-l-sky-400",
               },
               {
                 title: "Isticmaal xog yar",
                 description:
                   "Waxaan jebineynaa caqabadaha helitaanka anagoo naqshadeynayna barxad isticmaalka xogta yaraysa.",
-                color: "bg-gradient-to-br from-amber-50 to-yellow-50",
+                color: "bg-amber-50",
                 borderColor: "border-l-amber-400",
               },
               {
                 title: "Dhismaha bulsho",
                 description:
                   "Waxaan dhiseynaa nidaam taageero oo ardayda Soomaaliyeed ay ku xiriiri karaan.",
-                color: "bg-gradient-to-br from-rose-50 to-pink-50",
+                color: "bg-rose-50",
                 borderColor: "border-l-rose-400",
               },
             ].map((feature, index) => (
