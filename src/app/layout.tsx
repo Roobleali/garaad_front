@@ -7,12 +7,12 @@ import { Analytics } from "@vercel/analytics/react";
 import { Providers } from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Suspense } from "react";
-import ShakeInitializer from "@/components/ShakeInitializer";
 import { Loader } from "lucide-react";
 
 export const metadata: Metadata = {
   title: {
-    default: "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
+    default:
+      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
     template: "%s | Garaad - Somali STEM Education",
   },
   description:
@@ -225,7 +225,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "so_SO",
     url: "https://garaad.so",
-    title: "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
+    title:
+      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
     description:
       "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan. Waxaan kuu diyaarisay koorsooyin tayo sare leh oo ku qoran Af-Soomaali.",
     siteName: "Garaad - Somali STEM Education",
@@ -240,7 +241,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
+    title:
+      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
     description:
       "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
     images: ["/images/twitter-image.jpg"],
@@ -283,10 +285,7 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
@@ -298,9 +297,23 @@ export default function RootLayout({
           content="width=device-width, initial-scale=1, maximum-scale=5"
         />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
         <link rel="manifest" href="/site.webmanifest" />
 
         {/* JSON-LD Structured Data for SEO */}
@@ -310,126 +323,128 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "EducationalOrganization",
-              "name": "Garaad",
-              "alternateName": "Garaad Somali STEM Platform",
-              "description": "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
-              "url": "https://garaad.so",
-              "logo": "https://garaad.so/logo.png",
-              "image": "https://garaad.so/images/og-image.jpg",
-              "sameAs": [
+              name: "Garaad",
+              alternateName: "Garaad Somali STEM Platform",
+              description:
+                "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
+              url: "https://garaad.so",
+              logo: "https://garaad.so/logo.png",
+              image: "https://garaad.so/images/og-image.jpg",
+              sameAs: [
                 "https://twitter.com/garaad_so",
                 "https://facebook.com/garaad.so",
-                "https://instagram.com/garaad.so"
+                "https://instagram.com/garaad.so",
               ],
-              "address": {
+              address: {
                 "@type": "PostalAddress",
-                "addressCountry": "SO",
-                "addressRegion": "Somalia"
+                addressCountry: "SO",
+                addressRegion: "Somalia",
               },
-              "contactPoint": {
+              contactPoint: {
                 "@type": "ContactPoint",
-                "contactType": "customer service",
-                "email": "info@garaad.so"
+                contactType: "customer service",
+                email: "info@garaad.so",
               },
-              "hasOfferCatalog": {
+              hasOfferCatalog: {
                 "@type": "OfferCatalog",
-                "name": "Somali STEM Courses",
-                "itemListElement": [
+                name: "Somali STEM Courses",
+                itemListElement: [
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "Xisaabta Aasaasiga - Somali Basic Math",
-                      "description": "Barashada xisaabta aasaasiga ee Soomaalida",
-                      "provider": {
+                      name: "Xisaabta Aasaasiga - Somali Basic Math",
+                      description: "Barashada xisaabta aasaasiga ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Beginner",
-                      "inLanguage": "so-SO"
-                    }
+                      educationalLevel: "Beginner",
+                      inLanguage: "so-SO",
+                    },
                   },
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "Algebra Soomaali - Somali Algebra",
-                      "description": "Barashada algebra ee Soomaalida",
-                      "provider": {
+                      name: "Algebra Soomaali - Somali Algebra",
+                      description: "Barashada algebra ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Intermediate",
-                      "inLanguage": "so-SO"
-                    }
+                      educationalLevel: "Intermediate",
+                      inLanguage: "so-SO",
+                    },
                   },
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "Geometry Soomaali - Somali Geometry",
-                      "description": "Barashada geometry ee Soomaalida",
-                      "provider": {
+                      name: "Geometry Soomaali - Somali Geometry",
+                      description: "Barashada geometry ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Intermediate",
-                      "inLanguage": "so-SO"
-                    }
+                      educationalLevel: "Intermediate",
+                      inLanguage: "so-SO",
+                    },
                   },
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "Physics Soomaali - Somali Physics",
-                      "description": "Barashada physics ee Soomaalida",
-                      "provider": {
+                      name: "Physics Soomaali - Somali Physics",
+                      description: "Barashada physics ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Intermediate",
-                      "inLanguage": "so-SO"
-                    }
+                      educationalLevel: "Intermediate",
+                      inLanguage: "so-SO",
+                    },
                   },
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "AI Soomaali - Somali Artificial Intelligence",
-                      "description": "Barashada AI ee Soomaalida",
-                      "provider": {
+                      name: "AI Soomaali - Somali Artificial Intelligence",
+                      description: "Barashada AI ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Advanced",
-                      "inLanguage": "so-SO"
-                    }
+                      educationalLevel: "Advanced",
+                      inLanguage: "so-SO",
+                    },
                   },
                   {
                     "@type": "Offer",
-                    "itemOffered": {
+                    itemOffered: {
                       "@type": "Course",
-                      "name": "Crypto Soomaali - Somali Cryptocurrency",
-                      "description": "Barashada cryptocurrency ee Soomaalida",
-                      "provider": {
+                      name: "Crypto Soomaali - Somali Cryptocurrency",
+                      description: "Barashada cryptocurrency ee Soomaalida",
+                      provider: {
                         "@type": "Organization",
-                        "name": "Garaad"
+                        name: "Garaad",
                       },
-                      "educationalLevel": "Intermediate",
-                      "inLanguage": "so-SO"
-                    }
-                  }
-                ]
+                      educationalLevel: "Intermediate",
+                      inLanguage: "so-SO",
+                    },
+                  },
+                ],
               },
-              "potentialAction": {
+              potentialAction: {
                 "@type": "SearchAction",
-                "target": {
+                target: {
                   "@type": "EntryPoint",
-                  "urlTemplate": "https://garaad.so/search?q={search_term_string}"
+                  urlTemplate:
+                    "https://garaad.so/search?q={search_term_string}",
                 },
-                "query-input": "required name=search_term_string"
-              }
-            })
+                "query-input": "required name=search_term_string",
+              },
+            }),
           }}
         />
 
@@ -440,25 +455,25 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
-              "name": "Garaad",
-              "description": "Somali STEM Education Platform",
-              "url": "https://garaad.so",
-              "telephone": "+252-XX-XXXXXXX",
-              "address": {
+              name: "Garaad",
+              description: "Somali STEM Education Platform",
+              url: "https://garaad.so",
+              telephone: "+252-XX-XXXXXXX",
+              address: {
                 "@type": "PostalAddress",
-                "addressCountry": "SO",
-                "addressRegion": "Somalia"
+                addressCountry: "SO",
+                addressRegion: "Somalia",
               },
-              "geo": {
+              geo: {
                 "@type": "GeoCoordinates",
-                "latitude": "2.0469",
-                "longitude": "45.3181"
+                latitude: "2.0469",
+                longitude: "45.3181",
               },
-              "openingHours": "Mo-Su 00:00-23:59",
-              "priceRange": "Free to Premium",
-              "currenciesAccepted": "USD, EUR, SOS",
-              "paymentAccepted": "Cash, Credit Card, Mobile Money"
-            })
+              openingHours: "Mo-Su 00:00-23:59",
+              priceRange: "Free to Premium",
+              currenciesAccepted: "USD, EUR, SOS",
+              paymentAccepted: "Cash, Credit Card, Mobile Money",
+            }),
           }}
         />
 
@@ -469,49 +484,49 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              "mainEntity": [
+              mainEntity: [
                 {
                   "@type": "Question",
-                  "name": "Waa maxay Garaad?",
-                  "acceptedAnswer": {
+                  name: "Waa maxay Garaad?",
+                  acceptedAnswer: {
                     "@type": "Answer",
-                    "text": "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan."
-                  }
+                    text: "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
+                  },
                 },
                 {
                   "@type": "Question",
-                  "name": "Ma heli kartaa koorsooyinka xisaabta Soomaalida?",
-                  "acceptedAnswer": {
+                  name: "Ma heli kartaa koorsooyinka xisaabta Soomaalida?",
+                  acceptedAnswer: {
                     "@type": "Answer",
-                    "text": "Haa, waxaan kuu diyaarisay koorsooyin dhammeysan oo ku saabsan xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan."
-                  }
+                    text: "Haa, waxaan kuu diyaarisay koorsooyin dhammeysan oo ku saabsan xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
+                  },
                 },
                 {
                   "@type": "Question",
-                  "name": "Ma lacag baa looga baahan yahay?",
-                  "acceptedAnswer": {
+                  name: "Ma lacag baa looga baahan yahay?",
+                  acceptedAnswer: {
                     "@type": "Answer",
-                    "text": "Waxaa jira koorsooyin bilaash ah iyo kuwo lacag leh. Waxaad dooran kartaa midka aad rabto."
-                  }
+                    text: "Waxaa jira koorsooyin bilaash ah iyo kuwo lacag leh. Waxaad dooran kartaa midka aad rabto.",
+                  },
                 },
                 {
                   "@type": "Question",
-                  "name": "Ma ku baran kartaa AI Soomaalida?",
-                  "acceptedAnswer": {
+                  name: "Ma ku baran kartaa AI Soomaalida?",
+                  acceptedAnswer: {
                     "@type": "Answer",
-                    "text": "Haa, waxaan kuu diyaarisay koorsooyin dhammeysan oo ku saabsan AI, machine learning, iyo artificial intelligence ee ku qoran Af-Soomaali."
-                  }
+                    text: "Haa, waxaan kuu diyaarisay koorsooyin dhammeysan oo ku saabsan AI, machine learning, iyo artificial intelligence ee ku qoran Af-Soomaali.",
+                  },
                 },
                 {
                   "@type": "Question",
-                  "name": "Ma ku baran kartaa Crypto Soomaalida?",
-                  "acceptedAnswer": {
+                  name: "Ma ku baran kartaa Crypto Soomaalida?",
+                  acceptedAnswer: {
                     "@type": "Answer",
-                    "text": "Haa, waxaan kuu diyaarisay koorsooyin ku saabsan cryptocurrency, blockchain, Bitcoin, Ethereum iyo digital finance ee ku qoran Af-Soomaali."
-                  }
-                }
-              ]
-            })
+                    text: "Haa, waxaan kuu diyaarisay koorsooyin ku saabsan cryptocurrency, blockchain, Bitcoin, Ethereum iyo digital finance ee ku qoran Af-Soomaali.",
+                  },
+                },
+              ],
+            }),
           }}
         />
       </head>
@@ -520,7 +535,6 @@ export default function RootLayout({
           <Providers>
             <ClientLayout>
               <Suspense fallback={<Loader className="spin " />}>
-                <ShakeInitializer />
                 {children}
               </Suspense>
               <Toaster />

@@ -60,19 +60,21 @@ const streakFetcher = async (url: string): Promise<StreakData> => {
   if (!response.ok) {
     // Handle 401 Unauthorized error
     if (response.status === 401) {
-      console.log("401 Unauthorized - clearing session and redirecting to home");
+      console.log(
+        "401 Unauthorized - clearing session and redirecting to home"
+      );
 
       // Clear all cookies and localStorage
       authService.logout();
 
       // Clear localStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.clear();
       }
 
       // Redirect to home page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/';
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
       }
 
       throw new Error("Session expired. Please log in again.");
@@ -122,12 +124,10 @@ export function Header() {
     () =>
       user
         ? [
-          { name: "Guriga", href: "/home", icon: Home },
-          { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-        ]
-        : [
-          { name: "Guriga", href: "/", icon: Home },
-        ],
+            { name: "Guriga", href: "/home", icon: Home },
+            { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
+          ]
+        : [{ name: "Guriga", href: "/", icon: Home }],
     [user]
   );
 
@@ -157,7 +157,9 @@ export function Header() {
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium">Ku biir 5 toddobaadka SaaS challenge-ka</span>
+                  <span className="font-medium">
+                    Ku biir 5 toddobaadka SaaS challenge-ka
+                  </span>
                   <Link
                     href="https://saas.garaad.org"
                     target="_blank"
@@ -180,7 +182,7 @@ export function Header() {
         </div>
       )}
 
-      <header className="sticky top-0 z-50 bg-white">
+      <header className="sticky mt-5 top-0 z-50 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="items-center gap-6 flex">
             <Link
@@ -199,7 +201,11 @@ export function Header() {
                     "text-gray-600 hover:text-black transition-all duration-300 font-medium flex items-center gap-1 py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
                     isLinkActive(href) && "text-primary after:w-full"
                   )}
-                  style={{ alignItems: 'center', display: 'flex', height: '100%' }}
+                  style={{
+                    alignItems: "center",
+                    display: "flex",
+                    height: "100%",
+                  }}
                 >
                   {/* icon */}
                   <span className="w-4 h-4">
