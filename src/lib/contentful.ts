@@ -1,10 +1,27 @@
 import { createClient, type Entry, type Asset } from "contentful";
 
-// Initialize Contentful client
-const client = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID || "",
-  accessToken: process.env.CONTENTFUL_ACCESS_TOKEN || "",
-});
+// Lazy-loaded Contentful client to prevent initialization errors at build time
+let _client: ReturnType<typeof createClient> | null = null;
+
+function getClient(): ReturnType<typeof createClient> {
+  if (!_client) {
+    const spaceId = process.env.CONTENTFUL_SPACE_ID;
+    const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN;
+
+    if (!spaceId || !accessToken) {
+      throw new Error(
+        "Contentful credentials not configured. Please set CONTENTFUL_SPACE_ID and CONTENTFUL_ACCESS_TOKEN environment variables."
+      );
+    }
+
+    _client = createClient({
+      space: spaceId,
+      accessToken: accessToken,
+    });
+  }
+
+  return _client;
+}
 
 // Type definitions for Contentful entries
 export type ContentfulImage = Asset;
@@ -29,7 +46,7 @@ export type BlogPage = Entry<BlogPageSkeleton>;
  */
 export async function getBlogPages(): Promise<BlogPage[]> {
   try {
-    const response = await client.getEntries<BlogPageSkeleton>({
+    const response = await getClient().getEntries<BlogPageSkeleton>({
       content_type: "blogPage",
       order: ["sys.createdAt", "sys.updatedAt"],
       include: 2, // Include linked assets and entries
@@ -48,7 +65,7 @@ export async function getBlogPages(): Promise<BlogPage[]> {
  */
 export async function getBlogPageById(id: string): Promise<BlogPage | null> {
   try {
-    const entry = await client.getEntry<BlogPageSkeleton>(id, { include: 2 });
+    const entry = await getClient().getEntry<BlogPageSkeleton>(id, { include: 2 });
     return entry as BlogPage;
   } catch (error) {
     console.error(`Error fetching blog page with ID "${id}":`, error);
@@ -76,7 +93,7 @@ export async function getBlogPageBySlug(
   slug: string
 ): Promise<BlogPage | null> {
   try {
-    const response = await client.getEntries<BlogPageSkeleton>({
+    const response = await getClient().getEntries<BlogPageSkeleton>({
       content_type: "blogPage",
       include: 2,
       ...({ ["fields.slug"]: slug } as any),
