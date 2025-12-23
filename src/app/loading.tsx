@@ -1,16 +1,22 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="flex flex-col items-center space-y-6 p-8">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-spin" style={{ animationDelay: '-0.5s' }}></div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative"
+      >
+        <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Minimalist G mark or dot */}
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
         </div>
-        <div className="text-center space-y-2">
-          <p className="text-gray-700 text-lg font-medium">Waa la soo raraya...</p>
-          <p className="text-gray-500 text-sm">Fadlan sug</p>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

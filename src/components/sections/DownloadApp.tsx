@@ -1,35 +1,38 @@
 function DownloadApp() {
     return (
-        <section className="py-16 bg-white pb-24">
-            <div className="container mx-auto px-4 text-center">
-                <h2 className="text-4xl font-bold mb-8">Lasoo Deg applicationka-ka</h2>
-                <p className="text-xl text-gray-600 mb-12">
-                    Ka faa`ideyso casharada meel kasta iyo wakhti kasta  Naftaada Hormari
-                </p>
-                <div className="flex flex-wrap justify-center gap-4">
-                    <div className="relative">
-                        <img
-                            src="/images/app-store.svg"
-                            alt="Download on App Store"
-                            width={140}
-                            height={56}
-                            className="opacity-50 cursor-not-allowed"
-                        />
-                        <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                            Dhowaan
-                        </span>
-                    </div>
-                    <div className="relative">
-                        <img
-                            src="/images/google-play.svg"
-                            alt="Get it on Google Play"
-                            width={140}
-                            height={56}
-                            className="opacity-50 cursor-not-allowed"
-                        />
-                        <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                            Dhowaan
-                        </span>
+        <section className="py-24 bg-gray-50/30">
+            <div className="max-w-7xl mx-auto px-4 text-center">
+                <div className="max-w-2xl mx-auto space-y-8">
+                    <h2 className="text-3xl sm:text-5xl font-black text-foreground">
+                        Baro meel kasta
+                    </h2>
+                    <p className="text-xl text-muted-foreground font-medium leading-relaxed">
+                        App-ka Garaad wuxuu kuu sahlayaa inaad casharada ka faa'ideysato wakhti kasta. Naftaada hormari adigoo gurigaaga jooga.
+                    </p>
+
+                    <div className="flex flex-wrap justify-center gap-6 pt-4">
+                        <div className="group relative opacity-40 grayscale transition-all">
+                            <img
+                                src="/images/app-store.svg"
+                                alt="App Store"
+                                width={160}
+                                height={48}
+                            />
+                            <div className="absolute -top-3 -right-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter bg-primary/10 text-primary rounded border border-primary/20">
+                                Dhowaan
+                            </div>
+                        </div>
+                        <div className="group relative opacity-40 grayscale transition-all">
+                            <img
+                                src="/images/google-play.svg"
+                                alt="Google Play"
+                                width={160}
+                                height={48}
+                            />
+                            <div className="absolute -top-3 -right-3 px-2 py-0.5 text-[8px] font-black uppercase tracking-tighter bg-primary/10 text-primary rounded border border-primary/20">
+                                Dhowaan
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

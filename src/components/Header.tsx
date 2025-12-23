@@ -124,9 +124,9 @@ export function Header() {
     () =>
       user
         ? [
-            { name: "Guriga", href: "/home", icon: Home },
-            { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-          ]
+          { name: "Guriga", href: "/home", icon: Home },
+          { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
+        ]
         : [{ name: "Guriga", href: "/", icon: Home }],
     [user]
   );
@@ -187,7 +187,7 @@ export function Header() {
           <div className="items-center gap-6 flex">
             <Link
               href="/"
-              className="text-2xl font-semibold tracking-tight text-black font-[fkGrotesk,Fallback] md:text-3xl md:flex"
+              className="text-2xl font-bold tracking-tight text-primary md:text-3xl md:flex"
             >
               <Logo priority={true} loading="eager" />
             </Link>

@@ -28,29 +28,37 @@ const courses = [
 
 export function CourseGrid() {
   return (
-    <section className="py-0 bg-background">
+    <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold mb-6">Casharadeena</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mb-16">
+          <h2 className="text-3xl sm:text-4xl font-black text-foreground">
+            Casharadeena
+          </h2>
+          <div className="h-1.5 w-20 bg-primary mt-4 rounded-full" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {courses.map((course, index) => (
             <div
               key={index}
-              className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 relative overflow-hidden hover:-translate-y-1"
+              className="group p-8 bg-gray-50/50 rounded-3xl border border-transparent hover:border-primary/10 hover:bg-white hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300"
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300" />
-              <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors duration-300">
-                  <svg viewBox="0 0 24 24" className="w-6 h-6 text-primary">
+              <div className="space-y-6">
+                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <svg viewBox="0 0 24 24" className="w-7 h-7 text-primary">
                     <path
                       d={course.icon}
                       fill="currentColor"
                     />
                   </svg>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors duration-300">
+                <div className="space-y-3">
+                  <h3 className="text-xl font-bold text-foreground leading-tight">
                     {course.title}
                   </h3>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {course.description}
+                  </p>
                 </div>
               </div>
             </div>

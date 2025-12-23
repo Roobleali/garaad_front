@@ -105,198 +105,125 @@ export function GuidedPathsSection() {
   const [angle, setAngle] = useState(300);
 
   return (
-    <section className="py-8 sm:py-16   pt-6 sm:pt-10 pb-5 bg-white relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform -translate-x-1/2 translate-y-1/2" />
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-      </div>
-
+    <section className="py-24 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative">
-        <h2
-          className="text-4xl lg:text-5xl font-bold text-center mb-12"
-
-        >
-          Waddooyinka lagugu hagayo{" "}
-          <span className="relative inline-block">
-            safar kasta
-            <svg
-              className="absolute -bottom-1 left-0 w-full"
-              viewBox="0 0 100 10"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,5 Q50,9 100,5"
-                stroke="currentColor"
-                strokeWidth="2"
-                fill="none"
-                className="text-primary"
-              />
-            </svg>
-          </span>
-        </h2>
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-5xl font-black text-foreground">
+            Waddooyinka lagugu hagayo
+          </h2>
+          <p className="mt-4 text-muted-foreground font-medium text-lg">Xulo maadooyinka aad xiiseyneyso</p>
+        </div>
 
         {/* Tab Navigation */}
-        <div role="tablist" className="flex justify-center mb-12 px-4 overflow-x-auto -mx-4 py-2">
-          <div className="inline-flex p-1.5 bg-white shadow-lg rounded-full relative min-w-0">
+        <div role="tablist" className="flex justify-center mb-16 overflow-x-auto pb-4">
+          <div className="flex p-2 bg-gray-50 rounded-2xl gap-2">
             {subjects.map((subject) => (
               <button
                 key={subject.id}
                 role="tab"
                 aria-selected={activeTab === subject.id}
-                aria-controls={`${subject.id}-panel`}
-                onClick={() =>
-                  subject.id === "math" && setActiveTab(subject.id)
-                }
+                onClick={() => subject.id === "math" && setActiveTab(subject.id)}
                 className={cn(
-                  "px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-medium transition-all duration-300 relative whitespace-nowrap",
+                  "px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap",
                   subject.id === "math"
                     ? activeTab === subject.id
-                      ? "bg-primary text-white shadow-sm transform scale-105"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
                     : "text-gray-400 cursor-not-allowed opacity-60"
                 )}
               >
                 {subject.label}
-                {subject.id !== "math" && (
-                  <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[8px] sm:text-[10px] font-semibold bg-yellow-100 text-yellow-800 rounded-full border border-yellow-200">
-                    Dhowaan
-                  </span>
-                )}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Course List */}
-            <div
-              className="space-y-2"
-
-            >
-              <div className="space-y-1.5">
+            <div className="space-y-4">
+              <div className="grid gap-3">
                 {mathCourses.map((course) => (
                   <div
                     key={course.title}
-                    className="flex items-center gap-3 p-2.5 group bg-white rounded-lg hover:shadow-md transition-all cursor-pointer"
-
+                    className="flex items-center gap-4 p-5 group bg-gray-50/50 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/10"
                   >
-                    <div className="w-8 h-8 shrink-0 transition-transform group-hover:scale-110">
+                    <div className="w-10 h-10 shrink-0 text-primary">
                       {course.icon}
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-bold text-gray-900 text-sm">
+                    <div>
+                      <h3 className="font-bold text-gray-900 leading-tight">
                         {course.title}
                       </h3>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {course.description}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-
-              <button className="px-2.5 text-xs text-primary hover:text-primary/80 transition-colors">
-                16 Casharo oo kale
-              </button>
             </div>
 
             {/* Interactive Visualization */}
-            <div
-              key={activeTab}
+            <div className="relative aspect-square bg-gray-50/50 rounded-[2.5rem] p-12 border border-primary/5">
+              <div className="relative h-full flex flex-col items-center">
+                <svg className="w-full h-full max-w-[320px]" viewBox="0 0 400 400">
+                  <defs>
+                    <linearGradient id="circGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
 
-              className="relative aspect-square bg-white rounded-2xl p-8 shadow-sm"
-            >
-              {activeTab === "math" && (
-                <div className="relative h-full" role="presentation">
+                  <circle
+                    cx="200"
+                    cy="200"
+                    r="150"
+                    fill="url(#circGrad)"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    className="text-primary/20"
+                  />
+
+                  {/* Angle Line */}
+                  <line
+                    x1="200"
+                    y1="200"
+                    x2={200 + 150 * Math.cos((angle * Math.PI) / 180)}
+                    y2={200 + 150 * Math.sin((angle * Math.PI) / 180)}
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    className="text-primary"
+                  />
+
+                  <circle cx="200" cy="200" r="6" fill="currentColor" className="text-primary" />
+
+                  <text
+                    x="200"
+                    y="200"
+                    dy="-20"
+                    className="text-3xl font-black fill-primary"
+                    textAnchor="middle"
+                  >
+                    {angle}°
+                  </text>
+                </svg>
+
+                <div className="mt-8 w-full max-w-xs space-y-4">
                   <input
                     type="range"
                     min="0"
                     max="360"
                     value={angle}
                     onChange={(e) => setAngle(Number(e.target.value))}
-                    className="absolute bottom-2 left-1/2 -translate-x-1/2 w-64 accent-primary"
-                    aria-label="Adjust angle"
+                    className="w-full h-1.5 bg-primary/10 rounded-full appearance-none cursor-pointer accent-primary"
                   />
-                  <svg className="w-full h-full" viewBox="0 0 400 400">
-                    {/* Background grid with subtle lines */}
-                    <defs>
-                      <linearGradient
-                        id="circleGradient"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="#4F46E5"
-                          stopOpacity="0.1"
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor="#4F46E5"
-                          stopOpacity="0.05"
-                        />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Subtle grid lines */}
-                    <g className="text-gray-100">
-                      {Array.from({ length: 8 }).map((_, i) => (
-                        <path
-                          key={i}
-                          d={`M${50 + i * 50},50 v300 M50,${50 + i * 50} h300`}
-                          stroke="currentColor"
-                          strokeWidth="0.5"
-                          strokeDasharray="4 4"
-                        />
-                      ))}
-                    </g>
-
-                    {/* Main circle with gradient */}
-                    <circle
-                      cx="200"
-                      cy="180"
-                      r="150"
-                      fill="url(#circleGradient)"
-                      className="stroke-primary"
-                      strokeWidth="2"
-                    />
-
-                    {/* Rotating angle indicator */}
-                    <path
-                      d={`M200,200 L${200 + 150 * Math.cos((angle * Math.PI) / 180)},${200 + 150 * Math.sin((angle * Math.PI) / 180)}`}
-                      className="stroke-primary"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-
-                    {/* Angle label */}
-                    <text
-                      x="200"
-                      y="160"
-                      className="text-lg font-medium text-primary text-center"
-                      textAnchor="middle"
-                    >
-                      {angle}°
-                    </text>
-
-                    {/* "Xagalada dibadda" label */}
-                    <text
-                      x="200"
-                      y="360"
-                      className="text-sm text-gray-600 text-center"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                    >
-                      Xagalada dibadda
-                    </text>
-                  </svg>
+                  <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    Xagalada Dibadda
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

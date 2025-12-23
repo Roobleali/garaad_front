@@ -55,67 +55,43 @@ const courseLevels = [
 
 export function LearningLevelsSection() {
   return (
-    <section className="py-4 md:mt-4 bg-white relative overflow-hidden">
-      {/* Add decorative background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl opacity-50 transform -translate-x-1/2 translate-y-1/2" />
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-      </div>
+    <section className="py-24 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          {/* Text Content */}
+          <div className="space-y-8">
+            <h2 className="text-4xl lg:text-6xl font-black text-foreground leading-[1.1]">
+              Baro heer kasta oo aad joogto
+            </h2>
+            <p className="text-xl text-muted-foreground font-medium leading-relaxed max-w-xl">
+              Laga bilaabo aasaaska ilaa heerarka sare. Loogu talagalay ardayda jecel ogaanshaha iyo aqoonta.
+            </p>
+            <div className="h-1.5 w-24 bg-primary rounded-full" />
+          </div>
 
-      {/* Content */}
-      <div className="relative">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Text Content */}
-            <div className="space-y-6">
-              <h2 className="text-4xl lg:text-5xl font-bold">
-                Baro heerkaaga
-              </h2>
-              <p className="text-xl text-gray-600">
-                Dib u eeg aasaaska ama baro xirfado cusub.{" "}
-                <span className="relative">
-                  Loogu talagalay bartayaasha da`doodu tahay 13 ilaa 113
-                  <svg
-                    className="absolute -bottom-1 left-0 w-full"
-                    viewBox="0 0 100 10"
-                    preserveAspectRatio="none"
-                  >
-                    <path
-                      d="M0,5 Q50,9 100,5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      className="text-primary"
-                    />
-                  </svg>
-                </span>
-              </p>
-            </div>
-
-            {/* Course Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-y-10">
-              {courseLevels.map((course, index) => (
-                <div
-                  key={index}
-                  className="relative"
-                  style={{ opacity: 1, transform: "translateY(0)" }}
-                >
-                  <div className="absolute -top-4 left-4">
-                    <span className="px-3 py-1 text-sm font-medium bg-primary/20 text-primary rounded-full">
+          {/* Course Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {courseLevels.map((course, index) => (
+              <div
+                key={index}
+                className="group relative bg-gray-50/50 p-8 rounded-[2rem] hover:bg-white hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 border border-transparent hover:border-primary/10"
+              >
+                <div className="space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div className="w-12 h-12 text-primary group-hover:scale-110 transition-transform">
+                      {course.icon}
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/40 bg-primary/5 px-2 py-1 rounded-md">
                       {course.level}
                     </span>
                   </div>
-                  <div className="flex items-start gap-6 bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="w-16 h-16">{course.icon}</div>
-                    <div>
-                      <h3 className="text-xl font-semibold">{course.title}</h3>
-                      <p className="text-gray-600">{course.description}</p>
-                    </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground leading-tight">{course.title}</h3>
+                    <p className="text-sm text-muted-foreground font-medium mt-2 leading-relaxed">{course.description}</p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

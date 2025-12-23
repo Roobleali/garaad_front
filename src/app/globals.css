@@ -349,3 +349,8 @@
 ul {
   list-style: disc !important;
 }
+@layer utilities {
+  .glassmorphism {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+}
