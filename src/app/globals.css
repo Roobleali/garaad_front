@@ -145,6 +145,14 @@
   --sidebar-accent-foreground: #353535;
   --sidebar-border: #ebebeb;
   --sidebar-ring: #b5b5b5;
+
+  /* Premium Design Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  --primary-glow: 0 0 20px rgba(209, 143, 253, 0.3);
+  --secondary-glow: 0 0 20px rgba(240, 255, 0, 0.3);
 }
 
 .dark {
@@ -185,6 +193,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -227,6 +236,7 @@
     transform: scale(0);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -234,11 +244,13 @@
 }
 
 @keyframes pulse-slow {
+
   0%,
   100% {
     transform: scale(1);
     opacity: 0.1;
   }
+
   50% {
     transform: scale(1.15);
     opacity: 0.3;
@@ -246,10 +258,12 @@
 }
 
 @keyframes bounce-slow {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-5px);
   }
@@ -260,10 +274,12 @@
     opacity: 0;
     transform: scale(0);
   }
+
   50% {
     opacity: 1;
     transform: scale(1);
   }
+
   100% {
     opacity: 0;
     transform: scale(0) translateY(-20px);
@@ -298,6 +314,7 @@
   from {
     width: 100%;
   }
+
   to {
     width: 0%;
   }
@@ -308,6 +325,7 @@
     opacity: 0;
     transform: translate(-50%, calc(-100% - 10px));
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, calc(-100% - 20px));
@@ -341,6 +359,7 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -349,8 +368,21 @@
 ul {
   list-style: disc !important;
 }
+
 @layer utilities {
   .glassmorphism {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+    background: var(--glass-bg);
+    backdrop-filter: blur(120px);
+    -webkit-backdrop-filter: blur(120px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .text-glow-primary {
+    text-shadow: var(--primary-glow);
+  }
+
+  .shadow-glow-primary {
+    box-shadow: var(--primary-glow);
   }
 }

@@ -1,102 +1,60 @@
 "use client";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  SquareFunction,
+  Grid3X3,
+  LineChart,
+  Pyramid,
+  MoveRight,
+  Compass,
+  ChevronRight,
+  TrendingUp,
+  Activity
+} from "lucide-react";
 
 const subjects = [
   { id: "math", label: "Xisaabta" },
-  { id: "cs", label: "Computer Science" },
-  { id: "data", label: "Data Science and AI" },
-  { id: "science", label: "Logic and Thinking" },
+  { id: "cs", label: "Cilmiga Kombiyuutarka" },
+  { id: "data", label: "Xogta iyo AI" },
+  { id: "science", label: "Mantiqiyadda" },
 ];
 
 const mathCourses = [
   {
     title: "Xalinta Isla'egyada",
-    description: "Solving Equations",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-2h2v2zm0-4h-2V7h2v6z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Xalinta isla'egyada fudud iyo kuwa adag",
+    icon: SquareFunction,
   },
   {
     title: "Nidaamyada Isla'egyada",
-    description: "Systems of Equations",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Nidaamyada isla'egyada toosan",
+    icon: Grid3X3,
   },
   {
     title: "Xisaabta Dhabta ah",
-    description: "Real World Algebra",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5.97 4.06L14.09 9l1.06 1.06l-2.83 2.83l2.83 2.83l-1.06 1.06L11.25 14l-2.83 2.83l-1.06-1.06l2.83-2.83l-2.83-2.83l1.06-1.06L11.25 12l2.78-2.94z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Aljebra-da adduunka dhabta ah",
+    icon: Activity,
   },
   {
     title: "Fahamka Jaantuska",
-    description: "Understanding Graphs",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M3.5 18.49l6-6.01l4 4L22 6.92l-1.41-1.41l-7.09 7.97l-4-4L2 16.99z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Sidee loo akhriyaa jaantusyada",
+    icon: LineChart,
   },
   {
     title: "Joomitri I",
-    description: "Geometry I",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    description: "Barashada qaababka iyo fahamka Joomitri",
+    icon: Pyramid,
   },
   {
     title: "Vectors",
-    description: "Vectors",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M12 2L3 9l3 3L3 15l9 7 9-7-3-3 3-3-9-7zm0 4.6L15.89 9 12 12.1 8.11 9 12 6.6z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Cilmiga Vectors-ka iyo jihada",
+    icon: MoveRight,
   },
   {
     title: "Calculus",
-    description: "Calculus",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary">
-        <path
-          d="M4 19h16v2H4zm16-6H4v2h16zm0-6H4v2h16zm0-6H4v2h16z M7 17h2v-3H7zm4 0h2V7h-2zm4 0h2v-5h-2z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
+    description: "Hordhaca Calculus iyo isbeddelka xisaabta",
+    icon: TrendingUp,
   },
 ];
 
@@ -105,18 +63,22 @@ export function GuidedPathsSection() {
   const [angle, setAngle] = useState(300);
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-32 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-5xl font-black text-foreground">
-            Waddooyinka lagugu hagayo
-          </h2>
-          <p className="mt-4 text-muted-foreground font-medium text-lg">Xulo maadooyinka aad xiiseyneyso</p>
+        <div className="text-center mb-20 space-y-6">
+          <div>
+            <h2 className="text-5xl lg:text-7xl font-black text-foreground tracking-tight">
+              Waddooyinka <span className="text-primary">lagugu</span> hagayo.
+            </h2>
+            <p className="mt-6 text-muted-foreground font-medium text-xl max-w-2xl mx-auto">
+              Xulo maadooyinka aad xiiseyneyso oo ku bilow safarkaaga STEM-ka.
+            </p>
+          </div>
         </div>
 
         {/* Tab Navigation */}
-        <div role="tablist" className="flex justify-center mb-16 overflow-x-auto pb-4">
-          <div className="flex p-2 bg-gray-50 rounded-2xl gap-2">
+        <div role="tablist" className="flex justify-center mb-20 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex p-2 bg-gray-50 rounded-[2rem] gap-2 border border-gray-100">
             {subjects.map((subject) => (
               <button
                 key={subject.id}
@@ -124,12 +86,12 @@ export function GuidedPathsSection() {
                 aria-selected={activeTab === subject.id}
                 onClick={() => subject.id === "math" && setActiveTab(subject.id)}
                 className={cn(
-                  "px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap",
+                  "px-10 py-4 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap",
                   subject.id === "math"
                     ? activeTab === subject.id
-                      ? "bg-white text-primary shadow-sm"
+                      ? "bg-white text-primary shadow-xl shadow-primary/5"
                       : "text-gray-500 hover:text-gray-900"
-                    : "text-gray-400 cursor-not-allowed opacity-60"
+                    : "text-gray-300 cursor-not-allowed opacity-50"
                 )}
               >
                 {subject.label}
@@ -139,39 +101,44 @@ export function GuidedPathsSection() {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             {/* Course List */}
             <div className="space-y-4">
-              <div className="grid gap-3">
-                {mathCourses.map((course) => (
+              <div className="grid gap-4">
+                {mathCourses.map((course, index) => (
                   <div
                     key={course.title}
-                    className="flex items-center gap-4 p-5 group bg-gray-50/50 rounded-2xl hover:bg-white hover:shadow-xl hover:shadow-primary/5 transition-all cursor-pointer border border-transparent hover:border-primary/10"
+                    className="flex justify-between items-center p-6 group bg-[#F9FBFF] rounded-[2rem] hover:bg-white hover:shadow-xl transition-all cursor-pointer border border-transparent hover:border-primary/10"
                   >
-                    <div className="w-10 h-10 shrink-0 text-primary">
-                      {course.icon}
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 shrink-0 bg-white rounded-[1rem] flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                        <course.icon size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-gray-900 leading-tight">
+                          {course.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1 font-medium">
+                          {course.description}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 leading-tight">
-                        {course.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {course.description}
-                      </p>
-                    </div>
+                    <ChevronRight size={20} className="text-primary opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0" />
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Interactive Visualization */}
-            <div className="relative aspect-square bg-gray-50/50 rounded-[2.5rem] p-12 border border-primary/5">
-              <div className="relative h-full flex flex-col items-center">
-                <svg className="w-full h-full max-w-[320px]" viewBox="0 0 400 400">
+            <div
+              className="relative aspect-square bg-[#F9FBFF] rounded-[4rem] p-16 border border-primary/5 flex flex-col items-center justify-center group shadow-2xl shadow-primary/5"
+            >
+              <div className="relative w-full h-full flex flex-col items-center max-w-[340px]">
+                <svg className="w-full h-full" viewBox="0 0 400 400">
                   <defs>
                     <linearGradient id="circGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
-                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.02" />
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.15" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.05" />
                     </linearGradient>
                   </defs>
 
@@ -192,36 +159,40 @@ export function GuidedPathsSection() {
                     x2={200 + 150 * Math.cos((angle * Math.PI) / 180)}
                     y2={200 + 150 * Math.sin((angle * Math.PI) / 180)}
                     stroke="currentColor"
-                    strokeWidth="4"
+                    strokeWidth="6"
                     strokeLinecap="round"
                     className="text-primary"
                   />
 
-                  <circle cx="200" cy="200" r="6" fill="currentColor" className="text-primary" />
+                  <circle cx="200" cy="200" r="10" fill="currentColor" className="text-primary" />
 
                   <text
                     x="200"
                     y="200"
-                    dy="-20"
-                    className="text-3xl font-black fill-primary"
+                    dy="-30"
+                    className="text-5xl font-black fill-primary"
                     textAnchor="middle"
                   >
                     {angle}°
                   </text>
                 </svg>
 
-                <div className="mt-8 w-full max-w-xs space-y-4">
+                <div className="mt-12 w-full space-y-6">
                   <input
                     type="range"
                     min="0"
                     max="360"
                     value={angle}
                     onChange={(e) => setAngle(Number(e.target.value))}
-                    className="w-full h-1.5 bg-primary/10 rounded-full appearance-none cursor-pointer accent-primary"
+                    className="w-full h-2 bg-primary/10 rounded-full appearance-none cursor-pointer accent-primary"
                   />
-                  <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    Xagalada Dibadda
-                  </p>
+                  <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-primary">
+                    <div className="flex items-center gap-2">
+                      <Compass size={14} />
+                      <span>Xagalada Dibadda</span>
+                    </div>
+                    <span>360°</span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -29,26 +29,18 @@ export default function Home() {
           {/* Above the fold - Hero is Client Component for animations/user-state */}
           <HeroSection />
 
-          <Reveal>
-            <CourseGrid />
-          </Reveal>
+          <CourseGrid />
 
           <Suspense fallback={<SectionSkeleton />}>
-            <Reveal>
-              <DynamicGuidedPathsSection />
-            </Reveal>
+            <DynamicGuidedPathsSection />
           </Suspense>
 
           <Suspense fallback={<SectionSkeleton />}>
-            <Reveal>
-              <DynamicLearningLevelsSection />
-            </Reveal>
+            <DynamicLearningLevelsSection />
           </Suspense>
 
           <Suspense fallback={<SectionSkeleton />}>
-            <Reveal>
-              <DynamicDownloadApp />
-            </Reveal>
+            <DynamicDownloadApp />
           </Suspense>
 
           <FooterSection />

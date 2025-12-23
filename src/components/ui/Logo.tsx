@@ -25,7 +25,7 @@ export function Logo({
             width={width}
             height={height}
             className={cn(
-                "h-12 w-auto sm:h-14 md:h-16 lg:h-20 max-w-[160px] sm:max-w-[180px] md:max-w-[200px] transition-all duration-300 object-contain",
+                "h-12 w-auto sm:h-14 md:h-16 lg:h-20 max-w-[160px] sm:max-w-[180px] md:max-w-[200px] object-contain",
                 className
             )}
             priority={priority}

@@ -10,6 +10,7 @@ import { FolderDot, Home, ExternalLink, X } from "lucide-react";
 import clsx from "clsx";
 import StreakDisplay from "./StreakDisplay";
 import { useMemo, useCallback, useState } from "react";
+import { motion } from "framer-motion";
 import AuthService from "@/services/auth";
 import useSWR from "swr";
 import NotificationPanel from "./Notifications";
@@ -89,6 +90,7 @@ const streakFetcher = async (url: string): Promise<StreakData> => {
 export function Header() {
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
 
   // SWR hook for streak data with caching and automatic revalidation
@@ -119,6 +121,17 @@ export function Header() {
     }
   );
 
+  // Add scroll listener
+  useMemo(() => {
+    if (typeof window !== "undefined") {
+      const handleScroll = () => {
+        setIsScrolled(window.scrollY > 10);
+      };
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    }
+  }, []);
+
   // Memoized navigation links to prevent unnecessary re-renders
   const navLinks = useMemo(
     () =>
@@ -141,9 +154,6 @@ export function Header() {
   const errorMessage = error
     ? "Lagu guuldaraaystay in la soo raro xogta streak-ga. Fadlan mar kale isku day."
     : null;
-
-  console.log("user:", user);
-  console.log("streak:", streakData);
 
   return (
     <>
@@ -182,53 +192,60 @@ export function Header() {
         </div>
       )}
 
-      <header className="sticky mt-5 top-0 z-50 bg-white">
+      <header className={clsx(
+        "sticky top-0 z-50 transition-all duration-300",
+        isScrolled ? "py-2 glassmorphism mx-4 mt-4 rounded-2xl" : "py-5 bg-white"
+      )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="items-center gap-6 flex">
+          <div className="items-center gap-10 flex">
             <Link
               href="/"
-              className="text-2xl font-bold tracking-tight text-primary md:text-3xl md:flex"
+              className="group flex items-center gap-2"
             >
               <Logo priority={true} loading="eager" />
             </Link>
 
-            <nav className="flex items-center gap-6 md:gap-8 lg:gap-10 h-full">
-              {navLinks.map(({ name, href, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className={clsx(
-                    "text-gray-600 hover:text-black transition-all duration-300 font-medium flex items-center gap-1 py-1 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full",
-                    isLinkActive(href) && "text-primary after:w-full"
-                  )}
-                  style={{
-                    alignItems: "center",
-                    display: "flex",
-                    height: "100%",
-                  }}
-                >
-                  {/* icon */}
-                  <span className="w-4 h-4">
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </span>
-                  <span className="hidden md:block text-base">{name}</span>
-                </Link>
-              ))}
+            <nav className="hidden md:flex items-center gap-8">
+              {navLinks.map(({ name, href, icon: Icon }) => {
+                const active = isLinkActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={clsx(
+                      "group relative flex items-center gap-2 text-sm font-black uppercase tracking-widest transition-colors",
+                      active ? "text-primary" : "text-gray-500 hover:text-black"
+                    )}
+                  >
+                    {Icon && <Icon className={clsx("w-4 h-4 transition-transform group-hover:scale-110", active && "animate-pulse")} />}
+                    <span>{name}</span>
+                    {active && (
+                      <div
+                        className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full transition-all"
+                      />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {user && (
-              <StreakDisplay
-                loading={loading}
-                error={errorMessage}
-                streakData={streakData || null}
-              />
+              <div className="hidden sm:block">
+                <StreakDisplay
+                  loading={loading}
+                  error={errorMessage}
+                  streakData={streakData || null}
+                />
+              </div>
             )}
 
             {user && <NotificationPanel />}
 
-            {user ? <ProfileDropdown /> : <AuthDialog />}
+            <div className="flex items-center gap-3">
+              {user ? <ProfileDropdown /> : <AuthDialog />}
+            </div>
           </div>
         </div>
       </header>
