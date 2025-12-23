@@ -40,6 +40,7 @@ export interface CampusDetails extends Campus {
 
 export interface CampusRoom {
   id: number;
+  uuid: string;
   name: string;
   name_somali: string;
   description_somali: string;
@@ -141,12 +142,12 @@ export interface Notification {
   id: number;
   sender?: User;
   notification_type:
-    | "post_like"
-    | "comment_like"
-    | "post_comment"
-    | "comment_reply"
-    | "mention"
-    | "new_campus_member";
+  | "post_like"
+  | "comment_like"
+  | "post_comment"
+  | "comment_reply"
+  | "mention"
+  | "new_campus_member";
   notification_type_display: string;
   title: string;
   message: string;
@@ -255,12 +256,12 @@ export interface ApiError {
 
 export interface ApiErrorResponse {
   type:
-    | "validation"
-    | "auth"
-    | "permission"
-    | "notFound"
-    | "server"
-    | "unknown";
+  | "validation"
+  | "auth"
+  | "permission"
+  | "notFound"
+  | "server"
+  | "unknown";
   message: string;
   errors?: Record<string, string[]>;
 }
@@ -268,12 +269,12 @@ export interface ApiErrorResponse {
 // WebSocket message types
 export interface WebSocketMessage {
   type:
-    | "new_post"
-    | "new_comment"
-    | "like_update"
-    | "notification"
-    | "user_online"
-    | "user_offline";
+  | "new_post"
+  | "new_comment"
+  | "like_update"
+  | "notification"
+  | "user_online"
+  | "user_offline";
   data: any;
   timestamp: string;
 }
@@ -349,7 +350,10 @@ export interface CommunityState {
   // Data
   campuses: Campus[];
   posts: Post[];
+  rooms: CampusRoom[];
+  messages: Post[];
   selectedCampus: Campus | null;
+  selectedRoom: CampusRoom | null;
   selectedPost: PostDetails | null;
   userProfile: UserProfile | null;
   notifications: Notification[];
@@ -359,14 +363,18 @@ export interface CommunityState {
   // UI State
   loading: {
     campuses: boolean;
+    rooms: boolean;
     posts: boolean;
+    messages: boolean;
     profile: boolean;
     notifications: boolean;
   };
 
   errors: {
     campuses: string | null;
+    rooms: string | null;
     posts: string | null;
+    messages: string | null;
     profile: string | null;
     notifications: string | null;
   };

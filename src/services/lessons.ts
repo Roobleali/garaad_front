@@ -70,7 +70,7 @@ class LessonService {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = `${baseURL}lessons`;
+    this.baseUrl = `${baseURL}/api/lms/lessons`;
   }
 
   public static getInstance(): LessonService {
@@ -82,7 +82,7 @@ class LessonService {
 
   async getLesson(lessonId: string): Promise<Lesson> {
     try {
-      const response = await axios.get(`${this.baseUrl}/${lessonId}`);
+      const response = await axios.get(`${this.baseUrl}/${lessonId}/`);
       return response.data;
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -106,7 +106,7 @@ class LessonService {
 
   async completeLesson(lessonId: string): Promise<void> {
     try {
-      await axios.post(`${this.baseUrl}/${lessonId}/complete`);
+      await axios.post(`${this.baseUrl}/${lessonId}/complete/`);
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`Failed to complete lesson: ${error.message}`);

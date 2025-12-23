@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   Campus,
+  CampusRoom,
   Post,
   PostDetails,
   Comment,
@@ -20,8 +21,11 @@ import communityService, { handleApiError } from "@/services/community";
 const initialState: CommunityState = {
   // Data
   campuses: [],
+  rooms: [],
   posts: [],
+  messages: [],
   selectedCampus: null,
+  selectedRoom: null,
   selectedPost: null,
   userProfile: null,
   notifications: [],
@@ -31,14 +35,18 @@ const initialState: CommunityState = {
   // UI State
   loading: {
     campuses: false,
+    rooms: false,
     posts: false,
+    messages: false,
     profile: false,
     notifications: false,
   },
 
   errors: {
     campuses: null,
+    rooms: null,
     posts: null,
+    messages: null,
     profile: null,
     notifications: null,
   },
@@ -69,7 +77,7 @@ export const fetchCampuses = createAsyncThunk(
       const response = await communityService.campus.getCampuses(filters);
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -81,7 +89,7 @@ export const joinCampus = createAsyncThunk(
       const response = await communityService.campus.joinCampus(slug);
       return { slug, ...response };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -93,7 +101,7 @@ export const leaveCampus = createAsyncThunk(
       const response = await communityService.campus.leaveCampus(slug);
       return { slug, ...response };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -105,7 +113,52 @@ export const fetchCampusDetails = createAsyncThunk(
       const response = await communityService.campus.getCampusDetails(slug);
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
+    }
+  }
+);
+
+// Async thunks for rooms
+export const fetchCampusRooms = createAsyncThunk(
+  "community/fetchCampusRooms",
+  async (slug: string, { rejectWithValue }) => {
+    try {
+      const response = await communityService.campus.getCampusRooms(slug);
+      return response;
+    } catch (error) {
+      return rejectWithValue(handleApiError(error as any));
+    }
+  }
+);
+
+// Async thunks for messages
+export const fetchRoomMessages = createAsyncThunk(
+  "community/fetchRoomMessages",
+  async (roomUuid: string, { rejectWithValue }) => {
+    try {
+      const response = await communityService.message.getMessages(roomUuid);
+      return response;
+    } catch (error) {
+      return rejectWithValue(handleApiError(error as any));
+    }
+  }
+);
+
+export const sendRoomMessage = createAsyncThunk(
+  "community/sendRoomMessage",
+  async (
+    messageData: {
+      room: string;
+      content: string;
+      reply_to?: string;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await communityService.message.sendMessage(messageData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -125,7 +178,7 @@ export const fetchPosts = createAsyncThunk(
         await communityService.post.getPosts(filters);
       return { ...response, reset };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -137,7 +190,7 @@ export const createPost = createAsyncThunk(
       const response = await communityService.post.createPost(postData);
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -149,7 +202,7 @@ export const fetchPostDetails = createAsyncThunk(
       const response = await communityService.post.getPostDetails(postId);
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -161,7 +214,7 @@ export const togglePostLike = createAsyncThunk(
       const response = await communityService.post.togglePostLike(postId);
       return { postId, ...response };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -176,7 +229,7 @@ export const createComment = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -190,7 +243,7 @@ export const toggleCommentLike = createAsyncThunk(
       );
       return { commentId, ...response };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -203,21 +256,21 @@ export const fetchUserProfile = createAsyncThunk(
       const response = await communityService.profile.getUserProfile();
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
 
 export const fetchLeaderboard = createAsyncThunk(
   "community/fetchLeaderboard",
-  async (campusSlug?: string, { rejectWithValue }) => {
+  async (campusSlug: string | undefined, { rejectWithValue }) => {
     try {
       const response = await communityService.profile.getLeaderboard(
         campusSlug
       );
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -234,7 +287,7 @@ export const fetchNotifications = createAsyncThunk(
         await communityService.notification.getNotifications(page);
       return { ...response, reset };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -248,7 +301,7 @@ export const markNotificationRead = createAsyncThunk(
       );
       return { notificationId, ...response };
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -261,7 +314,7 @@ export const markAllNotificationsRead = createAsyncThunk(
         await communityService.notification.markAllNotificationsRead();
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -274,7 +327,7 @@ export const fetchTrendingTags = createAsyncThunk(
       const response = await communityService.trending.getTrendingTags(period);
       return response;
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleApiError(error as any));
     }
   }
 );
@@ -296,7 +349,9 @@ const communitySlice = createSlice({
     clearErrors: (state) => {
       state.errors = {
         campuses: null,
+        rooms: null,
         posts: null,
+        messages: null,
         profile: null,
         notifications: null,
       };
@@ -308,6 +363,14 @@ const communitySlice = createSlice({
 
     clearSelectedCampus: (state) => {
       state.selectedCampus = null;
+    },
+
+    setSelectedCampus: (state, action: PayloadAction<Campus>) => {
+      state.selectedCampus = action.payload;
+    },
+
+    setSelectedRoom: (state, action: PayloadAction<CampusRoom>) => {
+      state.selectedRoom = action.payload;
     },
 
     // Real-time updates
@@ -381,6 +444,13 @@ const communitySlice = createSlice({
       state.notifications.unshift(action.payload);
       state.unreadNotifications += 1;
     },
+
+    handleNewMessage: (state, action: PayloadAction<any>) => {
+      // If the message is for the currently selected room, add it to the messages array
+      if (state.selectedRoom && (action.payload.room === state.selectedRoom.uuid || action.payload.room_id === state.selectedRoom.id)) {
+        state.messages.push(action.payload);
+      }
+    },
   },
   extraReducers: (builder) => {
     // Campuses
@@ -421,6 +491,38 @@ const communitySlice = createSlice({
 
       .addCase(fetchCampusDetails.fulfilled, (state, action) => {
         state.selectedCampus = action.payload;
+      })
+
+      // Rooms
+      .addCase(fetchCampusRooms.pending, (state) => {
+        state.loading.rooms = true;
+        state.errors.rooms = null;
+      })
+      .addCase(fetchCampusRooms.fulfilled, (state, action) => {
+        state.loading.rooms = false;
+        state.rooms = action.payload;
+      })
+      .addCase(fetchCampusRooms.rejected, (state, action) => {
+        state.loading.rooms = false;
+        state.errors.rooms = (action.payload as any)?.message || "Cillad ayaa dhacday";
+      })
+
+      // Messages
+      .addCase(fetchRoomMessages.pending, (state) => {
+        state.loading.messages = true;
+        state.errors.messages = null;
+      })
+      .addCase(fetchRoomMessages.fulfilled, (state, action) => {
+        state.loading.messages = false;
+        state.messages = action.payload.results || action.payload;
+      })
+      .addCase(fetchRoomMessages.rejected, (state, action) => {
+        state.loading.messages = false;
+        state.errors.messages = (action.payload as any)?.message || "Cillad ayaa dhacday";
+      })
+
+      .addCase(sendRoomMessage.fulfilled, (state, action) => {
+        state.messages.push(action.payload);
       });
 
     // Posts
@@ -442,7 +544,7 @@ const communitySlice = createSlice({
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.loading.posts = false;
-        state.errors.posts = action.payload?.message || "Cillad ayaa dhacday";
+        state.errors.posts = (action.payload as any)?.message || "Cillad ayaa dhacday";
       })
 
       .addCase(createPost.fulfilled, (state, action) => {
@@ -524,7 +626,7 @@ const communitySlice = createSlice({
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.loading.profile = false;
-        state.errors.profile = action.payload?.message || "Cillad ayaa dhacday";
+        state.errors.profile = (action.payload as any)?.message || "Cillad ayaa dhacday";
       })
 
       .addCase(fetchLeaderboard.fulfilled, (state, action) => {
@@ -551,7 +653,7 @@ const communitySlice = createSlice({
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading.notifications = false;
         state.errors.notifications =
-          action.payload?.message || "Cillad ayaa dhacday";
+          (action.payload as any)?.message || "Cillad ayaa dhacday";
       })
 
       .addCase(markNotificationRead.fulfilled, (state, action) => {
@@ -592,6 +694,8 @@ export const {
   clearErrors,
   clearSelectedPost,
   clearSelectedCampus,
+  setSelectedCampus,
+  setSelectedRoom,
   updateOnlineUsers,
   addOnlineUser,
   removeOnlineUser,
@@ -599,6 +703,7 @@ export const {
   handleNewComment,
   handleLikeUpdate,
   handleNewNotification,
+  handleNewMessage,
 } = communitySlice.actions;
 
 // Export reducer

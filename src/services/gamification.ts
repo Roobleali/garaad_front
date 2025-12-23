@@ -119,6 +119,21 @@ export function useLeague() {
   };
 }
 
+export function useLeagues() {
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/league/leagues/`,
+    fetcher,
+    swrConfig
+  );
+
+  return {
+    leagues: data,
+    isLoading,
+    isError: error,
+    mutate,
+  };
+}
+
 export function useLeagueLeaderboard(
   timePeriod = "weekly",
   leagueId?: string,

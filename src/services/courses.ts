@@ -61,6 +61,34 @@ interface GetCoursesParams {
 }
 
 export const coursesService = {
+  // Categories
+  async getCategories() {
+    const url = `${baseURL}/api/lms/categories/`;
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch categories");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      throw error;
+    }
+  },
+
   // Courses
   async getCourses({ search, ordering }: GetCoursesParams = {}) {
     const params = new URLSearchParams();
@@ -68,9 +96,8 @@ export const coursesService = {
     if (ordering) params.append("ordering", ordering);
 
     const queryString = params.toString();
-    const url = `${baseURL}/api/lms/courses/${
-      queryString ? `?${queryString}` : ""
-    }`;
+    const url = `${baseURL}/api/lms/courses/${queryString ? `?${queryString}` : ""
+      }`;
 
     // Get the token from localStorage
     const token =

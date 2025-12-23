@@ -85,10 +85,49 @@ export const roomService = {
     return apiCall(`rooms/${params}`);
   },
 
-  // Get room posts
+  // Get room posts (v1 - legacy)
   getRoomPosts: async (roomId: number, page?: number) => {
     const params = page ? `?page=${page}` : "";
     return apiCall(`rooms/${roomId}/posts/${params}`);
+  },
+};
+
+// Messaging Management APIs
+export const messageService = {
+  // Fetch messages for a specific room
+  getMessages: async (roomUuid: string) => {
+    return apiCall(`messages/?room=${roomUuid}`);
+  },
+
+  // Send a new message
+  sendMessage: async (messageData: {
+    room: string; // UUID
+    content: string;
+    reply_to?: string; // Optional UUID
+  }) => {
+    return apiCall("messages/", {
+      method: "POST",
+      body: JSON.stringify(messageData),
+    });
+  },
+};
+
+// Presence Management APIs
+export const presenceService = {
+  // Get current user's presence
+  getPresence: async () => {
+    return apiCall("presence/");
+  },
+
+  // Update presence status
+  setStatus: async (presenceData: {
+    status: "online" | "idle" | "dnd" | "offline";
+    custom_status?: string;
+  }) => {
+    return apiCall("presence/set_status/", {
+      method: "POST",
+      body: JSON.stringify(presenceData),
+    });
   },
 };
 
@@ -417,6 +456,8 @@ export class CommunityWebSocket {
 const communityService = {
   campus: campusService,
   room: roomService,
+  message: messageService,
+  presence: presenceService,
   post: postService,
   comment: commentService,
   profile: profileService,
