@@ -41,6 +41,11 @@ import {
   Moon,
   SunDim,
   RotateCcw,
+  User,
+  Mail,
+  Lock,
+  Calendar,
+  Tag,
 } from "lucide-react";
 import { useSoundManager } from "@/hooks/use-sound-effects";
 
@@ -635,37 +640,22 @@ export default function Page() {
                     >
                       Magacaaga
                     </Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="Geli magacaaga"
-                      value={userData.name}
-                      onChange={(e) =>
-                        setUserData({ ...userData, name: e.target.value })
-                      }
-                      className="w-full p-3 rounded-lg border-slate-200 focus:border-peimary focus:ring-primary/20 text-base md:text-lg"
-                      disabled={isLoading}
-                    />
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="Geli magacaaga"
+                        value={userData.name}
+                        onChange={(e) =>
+                          setUserData({ ...userData, name: e.target.value })
+                        }
+                        className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
-                  {/* <div className="space-y-2">
-                    <Label
-                      htmlFor="lastName"
-                      className="text-sm font-medium text-slate-700"
-                    >
-                      Magacaaga Danbe
-                    </Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Geli magacaaga"
-                      value={userData.lastName}
-                      onChange={(e) =>
-                        setUserData({ ...userData, lastName: e.target.value })
-                      }
-                      className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:ring-primary/20"
-                      disabled={isLoading}
-                    />
-                  </div> */}
+
                   <div className="space-y-2">
                     <Label
                       htmlFor="age"
@@ -673,21 +663,25 @@ export default function Page() {
                     >
                       Da`da
                     </Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      min="5"
-                      max="100"
-                      placeholder="Geli da'daada"
-                      value={userData.age}
-                      onChange={(e) =>
-                        setUserData({ ...userData, age: e.target.value })
-                      }
-                      className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:ring-primary/20 text-base md:text-lg"
-                      disabled={isLoading}
-                    />
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                      <Input
+                        id="age"
+                        type="number"
+                        min="5"
+                        max="100"
+                        placeholder="Geli da'daada"
+                        value={userData.age}
+                        onChange={(e) =>
+                          setUserData({ ...userData, age: e.target.value })
+                        }
+                        className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
@@ -695,18 +689,22 @@ export default function Page() {
                   >
                     Emailkaaga
                   </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Geli emailkaaga"
-                    value={userData.email}
-                    onChange={(e) =>
-                      setUserData({ ...userData, email: e.target.value })
-                    }
-                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20 text-base md:text-lg"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={userData.email}
+                      onChange={(e) =>
+                        setUserData({ ...userData, email: e.target.value })
+                      }
+                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
                   <Label
                     htmlFor="password"
@@ -714,18 +712,22 @@ export default function Page() {
                   >
                     Passwordkaaga
                   </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Geli passwordkaaga"
-                    value={userData.password}
-                    onChange={(e) =>
-                      setUserData({ ...userData, password: e.target.value })
-                    }
-                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20 text-base md:text-lg"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={userData.password}
+                      onChange={(e) =>
+                        setUserData({ ...userData, password: e.target.value })
+                      }
+                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
+
                 {/* Referral Code Input */}
                 <div className="space-y-2">
                   <Label
@@ -734,17 +736,20 @@ export default function Page() {
                   >
                     Koodka La Wareejiyo (ikhtiyaari)
                   </Label>
-                  <Input
-                    id="referralCode"
-                    type="text"
-                    placeholder="Geli koodka la wareejiyo (haddii aad hayso)"
-                    value={userData.referralCode || ""}
-                    onChange={(e) =>
-                      setUserData({ ...userData, referralCode: e.target.value })
-                    }
-                    className="w-full p-3 rounded-lg border-slate-200 focus:border-primary focus:primary/20 text-base md:text-lg"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                    <Input
+                      id="referralCode"
+                      type="text"
+                      placeholder="Geli koodka"
+                      value={userData.referralCode || ""}
+                      onChange={(e) =>
+                        setUserData({ ...userData, referralCode: e.target.value })
+                      }
+                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </div>
               </div>
             )}

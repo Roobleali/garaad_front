@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import AuthService from "@/services/auth";
 import { useDispatch } from "react-redux";
 import { setUser, logout } from "@/store/features/authSlice";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 export default function ClientLayout({
   children,
@@ -30,5 +31,10 @@ export default function ClientLayout({
   }, [dispatch]);
 
   // Just render children - no Providers here
-  return <>{children}</>;
+  return (
+    <>
+      <PushNotificationManager />
+      {children}
+    </>
+  );
 }

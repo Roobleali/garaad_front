@@ -81,11 +81,11 @@ export function GuidedPathsSection() {
           </div>
 
           <div>
-            <h2 className="text-5xl lg:text-7xl font-black text-foreground tracking-tight leading-[1.1]">
-              Waddooyinka <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d18ffd] to-[#a855f7]">lagugu</span> hagayo.
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.1]">
+              Ku guulayso <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d18ffd] to-[#a855f7]">yoolalka</span> waxbarasho ee waaweyn
             </h2>
-            <p className="mt-8 text-muted-foreground font-medium text-xl max-w-2xl mx-auto leading-relaxed">
-              Xulo maadooyinka aad xiiseyneyso oo ku bilow safarkaaga STEM-ka ee afkaaga hooyo.
+            <p className="mt-6 text-muted-foreground font-medium text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed px-4">
+              Xulo maadooyinka aad xiiseyneyso oo ku bilow safarkaaga STEM-ka.
             </p>
           </div>
         </div>
