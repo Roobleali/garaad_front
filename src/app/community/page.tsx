@@ -116,7 +116,9 @@ export default function CommunityPage() {
         }
     };
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // State for mobile menu (unified drawer)
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    // State for desktop channel sidebar collapsing
     const [isChannelOpen, setIsChannelOpen] = useState(true);
 
     // ... (existing useEffects)
@@ -149,26 +151,41 @@ export default function CommunityPage() {
 
     return (
         <div className="flex h-screen bg-white dark:bg-[#313338] overflow-hidden select-none relative">
-            {/* 1. Global Campus Rail - Hidden on very small screens, shown as drawer */}
+            {/* Mobile Menu Overlay/Backdrop */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm transition-opacity"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* 1. Global Campus Rail */}
+            {/* Mobile: Part of the drawer. Desktop: Fixed/Relative rail. */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 md:relative md:translate-x-0",
-                isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                "fixed inset-y-0 left-0 z-50 w-[72px] h-full transform transition-transform duration-300 md:relative md:translate-x-0",
+                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 <CommunitySidebar
                     campuses={campuses}
                     selectedCampusId={selectedCampus?.id}
                     onSelectCampus={(campus) => {
                         dispatch(setSelectedCampus(campus));
-                        // Don't close sidebar on mobile when selecting campus, allow exploring channels
+                        // Keep menu open on mobile to allow selecting channels
                     }}
-                    onClearCampus={() => dispatch(clearSelectedCampus())}
+                    onClearCampus={() => {
+                        dispatch(clearSelectedCampus());
+                        // Keep menu open to show home-related channels if any
+                    }}
                 />
             </div>
 
-            {/* 2. Room Sidebar - Collapsible on tablet, hidden on mobile */}
+            {/* 2. Room Sidebar */}
+            {/* Mobile: Part of the drawer, slides in with Campus Rail. Desktop: Collapsible. */}
             <div className={cn(
-                "fixed inset-y-0 left-[72px] z-40 transform transition-transform duration-300 md:relative md:translate-x-0 md:left-0",
-                isChannelOpen || (isSidebarOpen && window.innerWidth < 768) ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                "fixed inset-y-0 left-[72px] z-50 w-60 h-full transform transition-transform duration-300 md:relative md:translate-x-0 md:left-0",
+                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+                // Handle desktop collapsing
+                !isMobileMenuOpen && !isChannelOpen ? "md:hidden" : ""
             )}>
                 <ChannelSidebar
                     selectedCampus={selectedCampus}
@@ -178,30 +195,17 @@ export default function CommunityPage() {
                     userProfile={userProfile}
                     onSelectRoom={(room) => {
                         dispatch(setSelectedRoom(room));
-                        if (window.innerWidth < 768) {
-                            setIsChannelOpen(false);
-                            setIsSidebarOpen(false);
-                        }
+                        // Close mobile menu when a room is selected
+                        setIsMobileMenuOpen(false);
                     }}
                 />
             </div>
-
-            {/* Mobile Overlay */}
-            {(isSidebarOpen || (isChannelOpen && window.innerWidth < 768)) && (
-                <div
-                    className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-sm"
-                    onClick={() => {
-                        setIsSidebarOpen(false);
-                        setIsChannelOpen(false);
-                    }}
-                />
-            )}
 
             {/* 3. Main Chat Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header Toggle */}
                 <div className="h-14 border-b border-black/5 dark:border-white/5 bg-white dark:bg-[#313338] flex items-center px-4 md:hidden">
-                    <Button variant="ghost" size="icon" onClick={() => { setIsSidebarOpen(true); setIsChannelOpen(true); }}>
+                    <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
                         <Menu className="h-5 w-5" />
                     </Button>
                     <span className="ml-3 font-black text-sm dark:text-white truncate">

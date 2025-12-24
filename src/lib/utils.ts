@@ -21,7 +21,7 @@ export function getMediaUrl(
     return filename;
   }
 
-  const baseUrl = "https://api.garaad.org/api/media";
+  const baseUrl = "https://api.garaad.org/media";
 
   // Extract filename from path if it starts with /media/
   let cleanFilename = filename;

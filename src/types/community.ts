@@ -252,10 +252,11 @@ export interface SearchResult {
 }
 
 export interface TrendingTag {
-  tag: string;
+  id: string; // Changed from tag to id
+  name: string; // Added name (e.g. "Fiisigis")
   count: number;
-  type: "seasonal" | "subject" | "event" | "general";
-  trend_direction: "up" | "down" | "stable";
+  type?: "seasonal" | "subject" | "event" | "general";
+  trend_direction?: "up" | "down" | "stable";
 }
 
 // API Response types

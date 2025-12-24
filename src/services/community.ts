@@ -442,6 +442,10 @@ export class CommunityWebSocket {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          // If the backend broadcasts the exact message back, it might look like { type: 'chat_message', content: ..., ... }
+          // The current frontend expects { type: 'new_message', message: ... }
+          // We might need an adapter here if the backend changed the format strictly to what was sent.
+          // For now, let's assume the backend wraps it or we handle variations.
           onMessage(data);
         } catch (error) {
           console.warn("Error parsing WebSocket message:", error);
