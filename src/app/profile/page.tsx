@@ -37,7 +37,6 @@ import { getMediaUrl } from "@/lib/utils";
 import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/features/authSlice";
-import { useToast } from "@/hooks/use-toast";
 
 // Extend User type to include required fields
 interface ExtendedUser extends User {
@@ -77,7 +76,6 @@ export default function ProfilePage() {
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
-  const { toast } = useToast();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -284,17 +282,10 @@ export default function ProfilePage() {
       console.log('Profile picture update: Successfully updated user data');
 
       // Show success message
-      toast({
-        title: "Sawirka profile-ka waa la cusboonaysiiyay!",
-        description: "Sawirkaaga cusub waa la muujin doonaa.",
-      });
+      console.log("Sawirka profile-ka waa la cusboonaysiiyay!");
     } catch (error) {
       console.error('Failed to update profile picture:', error);
-      toast({
-        title: "Cillad ayaa dhacday",
-        description: error instanceof Error ? error.message : "Fadlan isku day mar kale.",
-        variant: "destructive",
-      });
+      alert("Cillad ayaa dhacday: " + (error instanceof Error ? error.message : "Fadlan isku day mar kale."));
     } finally {
       setIsUploadingPicture(false);
     }

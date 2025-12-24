@@ -28,7 +28,6 @@ import ImageBlock from "@/components/lesson/ImageBlock";
 import VideoBlock from "@/components/lesson/VideoBlock";
 import CalculatorProblemBlock from "@/components/lesson/CalculatorProblemBlock";
 import { useSoundManager } from "@/hooks/use-sound-effects";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import RewardSequence from "@/components/Reward";
 
@@ -379,7 +378,6 @@ const LessonPage = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dispatch = useDispatch<AppDispatch>();
-    const { toast } = useToast();
     const { answerState, currentLesson } = useSelector(
         (state: RootState) => state.learning
     );
@@ -779,11 +777,7 @@ const LessonPage = () => {
                 ]);
             } catch (err) {
                 console.error("Completion error", err);
-                toast({
-                    title: "Error",
-                    description: "An error occurred while submitting your progress",
-                    variant: "destructive",
-                });
+                console.error("An error occurred while submitting your progress");
             }
         }
     }, [
@@ -791,7 +785,6 @@ const LessonPage = () => {
         currentLesson,
         isCorrect,
         playSound,
-        toast,
         sortedBlocks,
         refreshStreakData,
         refreshLeagueData,

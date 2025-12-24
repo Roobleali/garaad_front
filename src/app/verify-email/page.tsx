@@ -5,7 +5,6 @@ import type React from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -33,7 +32,6 @@ export default function VerifyEmailPage() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -73,10 +71,7 @@ export default function VerifyEmailPage() {
         if (!response.ok) {
           // Check if the error is "Email is already verified"
           if (data.error === "Email is already verified" || data.detail === "Email is already verified") {
-            toast({
-              title: "Emailkaaga horey ayaa la xaqiijiyay",
-              description: "Waxaad hadda isticmaali kartaa adeegga.",
-            });
+            console.log("Emailkaaga horey ayaa la xaqiijiyay");
 
             // Clear localStorage data
             if (typeof window !== 'undefined') {
@@ -124,10 +119,7 @@ export default function VerifyEmailPage() {
           return;
         }
 
-        toast({
-          title: "Number sireed ayaa loo diray",
-          description: "Fadlan hubi email-kaaga koodka xaqiijinta",
-        });
+        console.log("Number sireed ayaa loo diray. Fadlan hubi email-kaaga koodka xaqiijinta");
       } catch (err) {
         console.error("Error sending initial verification email:", err);
       }
@@ -139,7 +131,7 @@ export default function VerifyEmailPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [email, router, toast]);
+  }, [email, router]);
 
   const handleInputChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -214,10 +206,7 @@ export default function VerifyEmailPage() {
       if (!response.ok) throw new Error(data.error || "Verification failed");
 
       // Success state - update user's email verification status and check premium status
-      toast({
-        title: "Emailkaaga waa la xaqiijiyay!",
-        description: "Waad mahadsantahay. Hadda waxaan hubin doonaa heerka adeeggaaga.",
-      });
+      console.log("Emailkaaga waa la xaqiijiyay!");
 
       // Clear localStorage data after successful verification
       if (typeof window !== 'undefined') {
@@ -294,10 +283,7 @@ export default function VerifyEmailPage() {
       if (!response.ok) {
         // Check if the error is "Email is already verified"
         if (data.error === "Email is already verified" || data.detail === "Email is already verified") {
-          toast({
-            title: "Emailkaaga horey ayaa la xaqiijiyay",
-            description: "Waxaad hadda isticmaali kartaa adeegga.",
-          });
+          console.log("Emailkaaga horey ayaa la xaqiijiyay");
 
           // Clear localStorage data
           if (typeof window !== 'undefined') {
@@ -344,10 +330,7 @@ export default function VerifyEmailPage() {
         throw new Error(data.error || data.detail || "Failed to resend code");
       }
 
-      toast({
-        title: "Number sireed cusub ayaa loo diray",
-        description: "Fadlan hubi email-kaaga koodka cusub",
-      });
+      console.log("Number sireed cusub ayaa loo diray");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to send verification code";

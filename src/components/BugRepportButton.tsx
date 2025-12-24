@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import Shake from "@shakebugs/browser";
 import { Button } from "./ui/button";
 import { Flag } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 /**
  * Advanced function to replace specific unsupported color formats (like oklch, oklab)
@@ -210,7 +209,6 @@ interface BugReportButtonProps {
 const BugReportButton: React.FC<BugReportButtonProps> = ({
   setIsReportingBug,
 }) => {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize Shake with optimal settings when component mounts

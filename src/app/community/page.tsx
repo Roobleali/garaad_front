@@ -101,13 +101,14 @@ export default function CommunityPage() {
         }
     }, [dispatch, selectedRoom]);
 
-    const handleSendMessage = async () => {
-        if (!messageInput.trim() || !selectedRoom) return;
+    const handleSendMessage = async (image?: File | null) => {
+        if ((!messageInput.trim() && !image) || !selectedRoom) return;
 
         try {
             await dispatch(sendRoomMessage({
                 room: selectedRoom.uuid, // ✅ Fixed: Using UUID instead of ID
-                content: messageInput
+                content: messageInput,
+                image
             })).unwrap();
             setMessageInput('');
         } catch (error) {
@@ -158,7 +159,7 @@ export default function CommunityPage() {
                     selectedCampusId={selectedCampus?.id}
                     onSelectCampus={(campus) => {
                         dispatch(setSelectedCampus(campus));
-                        setIsSidebarOpen(false);
+                        // Don't close sidebar on mobile when selecting campus, allow exploring channels
                     }}
                     onClearCampus={() => dispatch(clearSelectedCampus())}
                 />
@@ -166,8 +167,8 @@ export default function CommunityPage() {
 
             {/* 2. Room Sidebar - Collapsible on tablet, hidden on mobile */}
             <div className={cn(
-                "fixed inset-y-0 left-16 z-40 transform transition-transform duration-300 md:relative md:translate-x-0 md:left-0",
-                isChannelOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                "fixed inset-y-0 left-[72px] z-40 transform transition-transform duration-300 md:relative md:translate-x-0 md:left-0",
+                isChannelOpen || (isSidebarOpen && window.innerWidth < 768) ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 <ChannelSidebar
                     selectedCampus={selectedCampus}
@@ -177,7 +178,10 @@ export default function CommunityPage() {
                     userProfile={userProfile}
                     onSelectRoom={(room) => {
                         dispatch(setSelectedRoom(room));
-                        if (window.innerWidth < 768) setIsChannelOpen(false);
+                        if (window.innerWidth < 768) {
+                            setIsChannelOpen(false);
+                            setIsSidebarOpen(false);
+                        }
                     }}
                 />
             </div>
@@ -197,7 +201,7 @@ export default function CommunityPage() {
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Mobile Header Toggle */}
                 <div className="h-14 border-b border-black/5 dark:border-white/5 bg-white dark:bg-[#313338] flex items-center px-4 md:hidden">
-                    <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+                    <Button variant="ghost" size="icon" onClick={() => { setIsSidebarOpen(true); setIsChannelOpen(true); }}>
                         <Menu className="h-5 w-5" />
                     </Button>
                     <span className="ml-3 font-black text-sm dark:text-white truncate">

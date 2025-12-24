@@ -14,7 +14,6 @@ import {
   setUser,
 } from "@/store/features/authSlice";
 import AuthService from "@/services/auth";
-import { useToast } from "@/hooks/use-toast";
 import type { AppDispatch } from "@/store";
 import { validateEmail } from "@/lib/email-validation";
 import { Progress } from "@/components/ui/progress";
@@ -83,7 +82,6 @@ export default function Page() {
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
   const authError = useSelector(selectAuthError);
-  const { toast } = useToast();
 
   // Load saved data from localStorage on mount
   useEffect(() => {
@@ -291,11 +289,8 @@ export default function Page() {
         // Check if the user's email is already verified
         if (result.user?.is_email_verified) {
           // User is already verified, check premium status
-          toast({
-            variant: "default",
-            title: "Waad mahadsantahay!",
-            description: "Emailkaaga la xaqiijiyay. Hadda waxaan hubin doonaa heerka adeeggaaga.",
-          });
+          // User is already verified, check premium status
+          console.log("Waad mahadsantahay! Emailkaaga la xaqiijiyay.");
 
           // Clear localStorage data since user is already verified
           if (typeof window !== 'undefined') {
@@ -315,11 +310,8 @@ export default function Page() {
           }
         } else {
           // User needs email verification
-          toast({
-            variant: "default",
-            title: "Waad mahadsantahay!",
-            description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
-          });
+          // User needs email verification
+          console.log("Waad mahadsantahay! Si aad u bilowdo, fadlan xaqiiji emailkaaga.");
 
           // Store user data in localStorage for email verification page
           localStorage.setItem('user', JSON.stringify({ email: userData.email }));
@@ -334,11 +326,8 @@ export default function Page() {
       // Handle specific case where user already exists
       if (error instanceof Error && error.message.includes("horey ayaa loo diiwaangeliyay")) {
         // User already exists - suggest they should verify email or login
-        toast({
-          variant: "destructive",
-          title: "Isticmaalaha ayaa horey u jira",
-          description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Haddii aadan xaqiijin emailkaaga, fadlan aad xaqiiji. Haddii kale soo gal.",
-        });
+        // User already exists - suggest they should verify email or login
+        console.log("Isticmaalaha ayaa horey u jira. Emailkaagu horey ayuu u diiwaangelisan yahay.");
 
         // Clear local storage
         if (typeof window !== 'undefined') {

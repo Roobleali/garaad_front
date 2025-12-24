@@ -3,11 +3,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 export function PushNotificationManager() {
     const [permission, setPermission] = useState<NotificationPermission>("default");
-    const { toast } = useToast();
 
     useEffect(() => {
         if ("Notification" in window) {
@@ -17,11 +15,7 @@ export function PushNotificationManager() {
 
     const requestPermission = async () => {
         if (!("Notification" in window)) {
-            toast({
-                title: "Lama taageero",
-                description: "Browser-kaagu ma taageero ogeysiisyada.",
-                variant: "destructive",
-            });
+            console.log("Lama taageero: Browser-kaagu ma taageero ogeysiisyada.");
             return;
         }
 
@@ -30,10 +24,7 @@ export function PushNotificationManager() {
             setPermission(result);
 
             if (result === "granted") {
-                toast({
-                    title: "Waad mahadsantahay!",
-                    description: "Waxaad hadda heli doontaa ogeysiisyada muhiimka ah.",
-                });
+                console.log("Waad mahadsantahay! Waxaad hadda heli doontaa ogeysiisyada muhiimka ah.");
 
                 // Ensure Service Worker is ready and subscribe if needed
                 if ('serviceWorker' in navigator) {

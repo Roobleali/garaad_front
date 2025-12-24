@@ -11,13 +11,16 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     throw new Error("Authentication required");
   }
 
+  const isFormData = options.body instanceof FormData;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...options.headers,
+  };
+
   const config: RequestInit = {
     ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   };
 
   const response = await fetch(`${BASE_URL}${endpoint}`, config);
@@ -113,11 +116,31 @@ export const messageService = {
     room: string; // UUID
     content: string;
     reply_to?: string; // Optional UUID
+    image?: File | null;
   }) => {
-    return apiCall("messages/", {
-      method: "POST",
-      body: JSON.stringify(messageData),
-    });
+    if (messageData.image) {
+      const formData = new FormData();
+      formData.append("room", messageData.room);
+      formData.append("content", messageData.content);
+      if (messageData.reply_to) {
+        formData.append("reply_to", messageData.reply_to);
+      }
+      formData.append("image", messageData.image);
+
+      return apiCall("messages/", {
+        method: "POST",
+        headers: {
+          // Remove Content-Type to let browser set it for FormData
+          Authorization: `Bearer ${AuthService.getInstance().getToken()}`,
+        },
+        body: formData,
+      });
+    } else {
+      return apiCall("messages/", {
+        method: "POST",
+        body: JSON.stringify(messageData),
+      });
+    }
   },
 };
 

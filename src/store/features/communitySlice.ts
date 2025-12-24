@@ -152,6 +152,7 @@ export const sendRoomMessage = createAsyncThunk(
       room: string;
       content: string;
       reply_to?: string;
+      image?: File | null;
     },
     { rejectWithValue }
   ) => {

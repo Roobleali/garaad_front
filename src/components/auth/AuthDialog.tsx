@@ -32,7 +32,6 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/hooks/use-toast";
 import type { SignUpData } from "@/types/auth";
 import { EyeOff } from "lucide-react";
 import Link from "next/link";
@@ -51,7 +50,6 @@ const formSchema = z.object({
 
 export function AuthDialog() {
   const dispatch = useDispatch<AppDispatch>();
-  const { toast } = useToast();
   const [isLogin] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const isLoading = useSelector(selectAuthLoading);
@@ -89,14 +87,9 @@ export function AuthDialog() {
   // Show toast when error changes
   useEffect(() => {
     if (error) {
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: error,
-      });
       dispatch(setError(null));
     }
-  }, [error, toast, dispatch]);
+  }, [error, dispatch]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -110,10 +103,7 @@ export function AuthDialog() {
           setIsOpen(false);
 
           // Show success message
-          toast({
-            title: "Waad mahadsantahay!",
-            description: "Si guul leh ayaad u soo gashay.",
-          });
+          console.log("Waad mahadsantahay! Si guul leh ayaad u soo gashay.");
 
           // Let the middleware handle routing based on verification and premium status
           // No manual redirects here - middleware will do it correctly
@@ -141,10 +131,7 @@ export function AuthDialog() {
           setIsOpen(false);
 
           // Show success message
-          toast({
-            title: "Waad mahadsantahay!",
-            description: "Si guul leh ayaad u isdiiwaangelisay.",
-          });
+          console.log("Waad mahadsantahay! Si guul leh ayaad u isdiiwaangelisay.");
 
           // Let the middleware handle routing based on verification status
           window.location.href = '/courses'; // This will be intercepted by middleware

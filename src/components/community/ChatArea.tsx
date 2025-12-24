@@ -1,7 +1,7 @@
 import { SOMALI_UI_TEXT, Post, CampusRoom } from "@/types/community";
 import { cn } from "@/lib/utils";
-import { useRef, useEffect } from "react";
-import { Search, Users, Share2, Plus, TrendingUp, Heart } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import { Search, Users, Share2, Plus, TrendingUp, Heart, Image as ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,7 +15,7 @@ interface ChatAreaProps {
     messageInput: string;
     isMemberListOpen: boolean;
     onSetMessageInput: (value: string) => void;
-    onSendMessage: () => void;
+    onSendMessage: (image?: File | null) => void;
     onToggleMemberList: () => void;
     onToggleReaction: (messageId: string, emoji: string) => void;
 }
@@ -31,6 +31,20 @@ export function ChatArea({
     onToggleReaction
 }: ChatAreaProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedImage(e.target.files[0]);
+        }
+    };
+
+    const handleSend = () => {
+        onSendMessage(selectedImage);
+        setSelectedImage(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     // Auto-scroll to bottom on new messages
     useEffect(() => {
@@ -175,21 +189,53 @@ export function ChatArea({
 
             {/* Input Box */}
             <div className="p-4 md:p-6 bg-white dark:bg-[#313338] border-t border-black/5 dark:border-white/5">
+                {selectedImage && (
+                    <div className="max-w-4xl mx-auto mb-4 relative inline-block">
+                        <div className="relative group">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={URL.createObjectURL(selectedImage)}
+                                alt="Preview"
+                                className="h-48 w-auto rounded-lg border border-gray-200 dark:border-gray-700 object-cover"
+                            />
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                            >
+                                <Plus className="h-4 w-4 rotate-45" />
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <div className="max-w-4xl mx-auto bg-[#F2F3F5] dark:bg-[#383A40] rounded-2xl px-4 py-2 flex items-center gap-4 transition-all focus-within:ring-2 focus-within:ring-primary/10">
-                    {/* Attachment button removed (non-functional) */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <Plus className="h-5 w-5" />
+                    </Button>
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                    />
                     <Input
                         value={messageInput}
                         onChange={(e) => onSetMessageInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && onSendMessage()}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                         placeholder={`Ku qor # ${selectedRoom?.name_somali || SOMALI_UI_TEXT.posts}`}
                         className="flex-1 bg-transparent border-none focus-visible:ring-0 px-0 h-10 text-[14px] font-medium dark:text-white"
                     />
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {/* Trending button removed (non-functional) */}
                         <Button
-                            onClick={onSendMessage}
+                            onClick={handleSend}
                             size="sm"
                             className="h-8 rounded-xl font-black uppercase text-[10px] tracking-widest px-4 shadow-sm"
+                            disabled={!messageInput.trim() && !selectedImage}
                         >
                             Dir
                         </Button>

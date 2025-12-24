@@ -26,7 +26,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UserProgress } from "@/services/progress";
 
@@ -47,7 +46,6 @@ export default function ProgressPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshCount, setRefreshCount] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { toast } = useToast();
 
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/lms/user-progress/`;
 
@@ -102,7 +100,7 @@ export default function ProgressPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [apiUrl, refreshCount, toast]);
+  }, [apiUrl, refreshCount]);
 
   useEffect(() => {
     fetchProgress();

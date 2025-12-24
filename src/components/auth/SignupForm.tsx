@@ -5,7 +5,6 @@ import { Label } from "../ui/label";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { signUp, selectAuthLoading, selectAuthError, setError } from "@/store/features/authSlice";
-import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import type { AppDispatch } from "@/store";
 import type { SignUpData } from "@/types/auth";
@@ -20,7 +19,6 @@ interface SignupFormProps {
 export function SignupForm({ onClose }: SignupFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { toast } = useToast();
   const isLoading = useSelector(selectAuthLoading);
   const authError = useSelector(selectAuthError);
 
@@ -113,11 +111,7 @@ export function SignupForm({ onClose }: SignupFormProps) {
         // Check if the user's email is already verified
         if (result.user?.is_email_verified) {
           // User is already verified, check premium status
-          toast({
-            variant: "default",
-            title: "Waad mahadsantahay!",
-            description: "Emailkaaga la xaqiijiyay. Hadda waxaan hubin doonaa heerka adeeggaaga.",
-          });
+          console.log("Emailkaaga la xaqiijiyay.");
 
           // Check premium status and redirect accordingly
           if (result.user.is_premium) {
@@ -127,11 +121,7 @@ export function SignupForm({ onClose }: SignupFormProps) {
           }
         } else {
           // User needs email verification first
-          toast({
-            variant: "default",
-            title: "Waad mahadsantahay!",
-            description: "Si aad u bilowdo, fadlan xaqiiji emailkaaga.",
-          });
+          console.log("Fadlan xaqiiji emailkaaga.");
 
           // After email verification, user will be redirected based on premium status
           router.push(`/verify-email?email=${result.user?.email || formData.email}`);
@@ -143,19 +133,8 @@ export function SignupForm({ onClose }: SignupFormProps) {
       // Handle specific case where user already exists
       if (error instanceof Error && error.message.includes("horey ayaa loo diiwaangeliyay")) {
         // User already exists - suggest they should verify email or login
-        toast({
-          variant: "destructive",
-          title: "Isticmaalaha ayaa horey u jira",
-          description: "Emailkaagu horey ayuu u diiwaangelisan yahay. Haddii aadan xaqiijin emailkaaga, fadlan aad xaqiiji. Haddii kale soo gal.",
-          action: (
-            <button
-              onClick={() => router.push(`/verify-email?email=${formData.email}`)}
-              className="bg-white text-black px-3 py-1 rounded text-sm"
-            >
-              Xaqiiji Email
-            </button>
-          ),
-        });
+        console.log("Isticmaalaha ayaa horey u jira: Emailkaagu horey ayuu u diiwaangelisan yahay.");
+        router.push(`/verify-email?email=${formData.email}`);
       }
       // Error will be handled by the useEffect that watches authError
     }
@@ -164,14 +143,9 @@ export function SignupForm({ onClose }: SignupFormProps) {
   // Handle auth error from Redux
   React.useEffect(() => {
     if (authError) {
-      toast({
-        variant: "destructive",
-        title: "Khalad ayaa dhacay",
-        description: authError,
-      });
       dispatch(setError(null));
     }
-  }, [authError, toast, dispatch]);
+  }, [authError, dispatch]);
 
   return (
     <div
