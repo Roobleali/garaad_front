@@ -97,7 +97,6 @@ export function Header() {
   const user = useSelector(selectCurrentUser);
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showAlert, setShowAlert] = useState(true);
 
   // SWR hook for streak data with caching and automatic revalidation
   const {
@@ -164,40 +163,7 @@ export function Header() {
 
   return (
     <>
-      {/* SaaS Challenge Alert Banner */}
-      {showAlert && (
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">
-                    Ku biir 5 toddobaadka SaaS challenge-ka
-                  </span>
-                  <Link
-                    href="https://saas.garaad.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1 text-white hover:text-blue-100 transition-colors duration-200 underline"
-                  >
-                    <span>saas.garaad.org</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAlert(false)}
-                className="flex-shrink-0 text-white hover:text-blue-100 transition-colors duration-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <header className={clsx(
         "sticky top-0 z-50 transition-all duration-300",

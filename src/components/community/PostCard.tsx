@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, MoreHorizontal, Loader2 } from "lucide-react";
 import { ReplyList } from "./ReplyList";
 import { formatDistanceToNow } from "date-fns";
+import { UserProfileModal } from "./UserProfileModal";
 
 interface PostCardProps {
     post: CommunityPost;
@@ -29,6 +30,7 @@ export function PostCard({ post, userProfile }: PostCardProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [showReplies, setShowReplies] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     const isOwnPost = userProfile?.user.id === post.author.id;
     const isPending = post.id.toString().startsWith("temp-");
@@ -66,15 +68,23 @@ export function PostCard({ post, userProfile }: PostCardProps) {
         )}>
             {/* Header */}
             <div className="flex items-start gap-3 mb-3">
-                <AuthenticatedAvatar
-                    src={getMediaUrl(post.author.profile_picture, 'profile_pics')}
-                    alt={post.author.first_name || post.author.username}
-                    size="md"
-                    fallback={post.author.first_name?.[0] || post.author.username[0]}
-                />
+                <div
+                    className="cursor-pointer transition-transform hover:scale-105"
+                    onClick={() => setIsProfileModalOpen(true)}
+                >
+                    <AuthenticatedAvatar
+                        src={getMediaUrl(post.author.profile_picture, 'profile_pics')}
+                        alt={post.author.first_name || post.author.username}
+                        size="md"
+                        fallback={post.author.first_name?.[0] || post.author.username[0]}
+                    />
+                </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm dark:text-white">
+                        <span
+                            className="font-bold text-sm dark:text-white cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => setIsProfileModalOpen(true)}
+                        >
                             {post.author.first_name || post.author.username}
                         </span>
                         <span className="text-xs text-gray-500">
@@ -166,6 +176,12 @@ export function PostCard({ post, userProfile }: PostCardProps) {
                     userProfile={userProfile}
                 />
             )}
+
+            <UserProfileModal
+                userId={post.author.id}
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+            />
         </div>
     );
 }

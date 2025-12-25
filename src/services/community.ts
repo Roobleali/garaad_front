@@ -54,10 +54,11 @@ export const categoryService = {
 
 // Post Management APIs
 export const postService = {
-  // List posts in category
   getPosts: async (categoryId: string, page?: number) => {
     const params = page ? `?page=${page}` : "";
-    return apiCall(`community/categories/${categoryId}/posts/${params}`);
+    // Normalize path to avoid double slashes or missing trailing slash that may cause 404/redirect issues
+    const path = `community/categories/${categoryId}/posts/${params}`.replace(/\/+/g, '/').replace(/\/$/, '');
+    return apiCall(path);
   },
 
   // Create post
@@ -137,9 +138,13 @@ export const replyService = {
 
 // User Profile APIs
 export const profileService = {
-  // Get current user profile
   getUserProfile: async () => {
     return apiCall("community/profiles/me/");
+  },
+
+  // Get other user profile for community interactions
+  getOtherUserProfile: async (userId: number) => {
+    return apiCall(`community/profiles/${userId}/`);
   },
 
   // Update profile settings
@@ -160,7 +165,8 @@ export const notificationService = {
   // List notifications
   getNotifications: async (page?: number) => {
     const params = page ? `?page=${page}` : "";
-    return apiCall(`community/notifications/${params}`);
+    const path = `community/notifications/${params}`.replace(/\/+/g, '/').replace(/\/$/, '');
+    return apiCall(path);
   },
 
   // Mark notification as read

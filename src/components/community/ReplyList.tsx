@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { UserProfileModal } from "./UserProfileModal";
 
 interface ReplyListProps {
     postId: number;
@@ -28,6 +29,13 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
     const dispatch = useDispatch<AppDispatch>();
     const [replyContent, setReplyContent] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+    const handleOpenProfile = (userId: number) => {
+        setSelectedUserId(userId);
+        setIsProfileModalOpen(true);
+    };
 
     // OPTIMISTIC: Handle reply submission
     const handleSubmit = async () => {
@@ -123,15 +131,23 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                                 key={reply.id}
                                 className={`flex gap-2 ${isPending ? 'opacity-60' : ''}`}
                             >
-                                <AuthenticatedAvatar
-                                    src={getMediaUrl(reply.author.profile_picture, 'profile_pics')}
-                                    alt={reply.author.first_name || reply.author.username}
-                                    size="sm"
-                                    fallback={reply.author.first_name?.[0] || reply.author.username[0]}
-                                />
+                                <div
+                                    className="cursor-pointer transition-transform hover:scale-105"
+                                    onClick={() => handleOpenProfile(reply.author.id)}
+                                >
+                                    <AuthenticatedAvatar
+                                        src={getMediaUrl(reply.author.profile_picture, 'profile_pics')}
+                                        alt={reply.author.first_name || reply.author.username}
+                                        size="sm"
+                                        fallback={reply.author.first_name?.[0] || reply.author.username[0]}
+                                    />
+                                </div>
                                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-bold text-xs dark:text-white">
+                                        <span
+                                            className="font-bold text-xs dark:text-white cursor-pointer hover:text-primary transition-colors"
+                                            onClick={() => handleOpenProfile(reply.author.id)}
+                                        >
                                             {reply.author.first_name || reply.author.username}
                                         </span>
                                         <span className="text-xs text-gray-500">{timeAgo}</span>
@@ -161,6 +177,12 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                     })}
                 </div>
             )}
+
+            <UserProfileModal
+                userId={selectedUserId}
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+            />
         </div>
     );
 }

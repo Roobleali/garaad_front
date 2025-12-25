@@ -25,6 +25,8 @@ const authSlice = createSlice({
         referral_count: action.payload.referral_count,
         referred_by: action.payload.referred_by,
         referred_by_username: action.payload.referred_by_username,
+        identity: action.payload.identity,
+        next_action: action.payload.next_action,
       };
       state.isAuthenticated = true;
     },

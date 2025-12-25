@@ -25,6 +25,11 @@ export class CommunityWebSocket {
             return;
         }
 
+        if (!categoryId || categoryId === "null" || categoryId === "undefined") {
+            console.warn("Invalid categoryId, skipping WebSocket connection:", categoryId);
+            return;
+        }
+
         this.dispatch = dispatch;
         this.currentCategoryId = categoryId;
 

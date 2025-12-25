@@ -1,3 +1,13 @@
+export type UserIdentity = "Explorer" | "Builder" | "Solver" | "Mentor";
+
+export interface NextAction {
+  type: string;
+  title: string;
+  description: string;
+  action_url: string;
+  payload?: Record<string, any>;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -35,6 +45,8 @@ export interface User {
   referral_count?: number;
   referred_by?: string | null;
   referred_by_username?: string | null;
+  identity?: UserIdentity;
+  next_action?: NextAction;
 }
 
 export interface Profile {

@@ -1,21 +1,16 @@
 "use client";
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { API_BASE_URL } from "@/lib/constants";
 import type React from "react";
 import Image from "next/image";
 import useSWR from "swr";
 import {
   Clock,
-  Trophy,
   ChevronRight,
-  User,
-  Flame,
-  Sparkles,
-  BookOpen,
-  BarChart3,
-  CheckCircle2,
   Zap,
   Crown,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,15 +18,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AuthService from "@/services/auth";
 import { Header } from "@/components/Header";
 import Link from "next/link";
-import { useCategories } from "@/hooks/useApi";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { useGamificationStatus } from "@/services/gamification";
+import { IdentityWrapper } from "@/components/IdentityWrapper";
+import { DailyFocus } from "@/components/dashboard/DailyFocus";
+import { StatusScreen } from "@/components/dashboard/StatusScreen";
+import { SafetyReturnScreen } from "@/components/dashboard/SafetyReturnScreen";
 
 interface Course {
   id: number;
@@ -43,61 +41,6 @@ interface Course {
   is_published: boolean;
   lesson_count?: number;
   estimatedHours?: number;
-}
-
-
-
-
-
-interface DailyActivity {
-  date: string;
-  day: string;
-  status: "complete" | "none";
-  problems_solved: number;
-  lesson_ids: number[];
-  isToday: boolean;
-}
-
-interface StreakData {
-  userId: string;
-  username: string;
-  current_streak: number;
-  max_streak: number;
-  lessons_completed: number;
-  problems_to_next_streak: number;
-  energy: {
-    current: number;
-    max: number;
-    next_update: string;
-  };
-  dailyActivity: DailyActivity[];
-  xp: number;
-  daily_xp: number;
-}
-
-// League API interfaces
-interface LeagueInfo {
-  id: string;
-  name: string;
-  min_xp: number;
-}
-
-interface LeagueStatus {
-  current_league: LeagueInfo;
-  current_points: number;
-  weekly_rank: number;
-  streak: {
-    current_streak: number;
-    max_streak: number;
-    streak_charges: number;
-    last_activity_date: string;
-  };
-  next_league?: {
-    id: string;
-    name: string;
-    min_xp: number;
-    points_needed: number;
-  };
 }
 
 interface LeagueStanding {
@@ -121,43 +64,24 @@ interface LeagueLeaderboard {
   };
 }
 
-interface GamificationStatus {
-  xp: {
-    total: number;
-    daily: number;
-    weekly: number;
-    monthly: number;
+interface LeagueStatus {
+  current_league: {
+    id: number;
+    name: string;
+    somali_name: string;
   };
-  streak: {
-    current: number;
-    max: number;
-    energy: number;
-    problems_to_next: number;
-  };
-  league: {
-    current: {
-      id: number;
-      name: string;
-      somali_name: string;
-      description: string;
-      min_xp: number;
-      order: number;
-      icon: string | null;
-    };
-    next: {
-      id: number;
-      name: string;
-      somali_name: string;
-      min_xp: number;
-      points_needed: number;
-    };
-  };
-  rank: {
-    weekly: number;
-  };
+  current_points: number;
 }
 
-const minSwipeDistance = 50;
+interface StreakData {
+  current_streak: number;
+  lessons_completed: number;
+  problems_to_next_streak: number;
+  dailyActivity: {
+    day: string;
+    status: "complete" | "incomplete";
+  }[];
+}
 
 const authFetcher = async <T = unknown>(url: string): Promise<T> => {
   const service = AuthService.getInstance();
@@ -171,801 +95,250 @@ const publicFetcher = async (url: string) => {
 };
 
 export default function Home() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const { user } = useAuth();
+  const { gamificationStatus, isLoading: isLoadingStatus } = useGamificationStatus();
+  const [showReturnScreen, setShowReturnScreen] = useState(false);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState("weekly");
 
-  const { categories } = useCategories();
   const router = useRouter();
-  const carouselRef = useRef<HTMLDivElement>(null);
 
+  // 1. Fetch Courses
   const {
     data: courses = [],
     isLoading: isLoadingCourses,
-    error: coursesError,
   } = useSWR<Course[]>(
     `${API_BASE_URL}/api/lms/courses/`,
     publicFetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      dedupingInterval: 300000,
-    }
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
   );
 
-  // League Status API
-  const {
-    data: leagueStatus,
-  } = useSWR<LeagueStatus>("/api/league/leagues/status/", authFetcher, {
+  // 2. Fetch League Status
+  const { data: leagueStatus } = useSWR<LeagueStatus>("/api/league/leagues/status/", authFetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
   });
 
-  // League Leaderboard API
+  // 3. Fetch Leaderboard
   const {
     data: leagueLeaderboard,
     isLoading: isLoadingLeaderboard,
-    error: leaderboardError,
-    mutate: mutateLeaderboard,
   } = useSWR<LeagueLeaderboard>(
     leagueStatus?.current_league?.id
       ? `/api/league/leagues/leaderboard/?time_period=${leaderboardPeriod}&league=${leagueStatus.current_league.id}`
       : null,
     authFetcher,
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+
+  // 4. Fetch Streak Data
+  const { data: streak } = useSWR<StreakData>("/api/streaks/", authFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 600000,
+  });
+
+  // Check for return-from-decay parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("recovery") === "true") {
+      setShowReturnScreen(true);
     }
-  );
-
-
-
-  // const {
-  //   data: dailyChallenges = [],
-  //   isLoading: isLoadingChallenges,
-  //   mutate: mutateChallenges,
-  //   error: challengesError,
-  // } = useSWR<Challenge[]>("/api/lms/challenges/", authFetcher, {
-  //   revalidateOnFocus: false,
-  //   dedupingInterval: 300000,
-  // });
-
-  // const {
-  //   data: userLevel,
-  //   isLoading: isLoadingUserLevel,
-  //   error: userLevelError,
-  // } = useSWR<UserLevel>("/api/lms/levels/", authFetcher, {
-  //   revalidateOnFocus: false,
-  //   dedupingInterval: 600000,
-  // });
-
-  const {
-    data: streak,
-    mutate,
-  } = useSWR<StreakData>("/api/streaks/", authFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 600000,
-  });
-
-  const {
-    data: gamificationStatus,
-    isLoading: isLoadingGamification,
-  } = useSWR<GamificationStatus>("/api/gamification/status/", authFetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 600000,
-  });
-
-  const getCategoryIdByName = useCallback(
-    (courseTitle: string): string | null => {
-      if (!categories) return null;
-
-      for (const category of categories) {
-        const foundCourse = category.courses.find(
-          (course: { title: string }) => course.title === courseTitle
-        );
-        if (foundCourse) return category.id;
-      }
-      return null;
-    },
-    [categories]
-  );
-
-  const storedUser = useMemo(
-    () => AuthService.getInstance().getCurrentUser(),
-    []
-  );
+  }, []);
 
   useEffect(() => {
     const authService = AuthService.getInstance();
     if (!authService.isAuthenticated()) router.push("/");
   }, [router]);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  }, []);
-
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX),
-    []
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > minSwipeDistance && currentSlide < courses.length - 1) {
-      setCurrentSlide((s) => s + 1);
-    }
-    if (distance < -minSwipeDistance && currentSlide > 0) {
-      setCurrentSlide((s) => s - 1);
-    }
-  }, [touchStart, touchEnd, currentSlide, courses.length]);
-
-  const getInitials = useCallback(
-    (username: string) => username.slice(0, 2).toUpperCase(),
-    []
-  );
-
-  // const handleCompleteChallenge = useCallback(
-  //   async (challengeId: number) => {
-  //     const service = AuthService.getInstance();
-  //     try {
-  //       await service.makeAuthenticatedRequest(
-  //         "post",
-  //         `/api/lms/challenges/${challengeId}/submit_attempt/`
-  //       );
-
-  //       const updatedChallenges = dailyChallenges.map((challenge) =>
-  //         challenge.id === challengeId
-  //           ? { ...challenge, completed: true }
-  //           : challenge
-  //       );
-
-  //       mutateChallenges(updatedChallenges, false);
-
-  //       const challenge = dailyChallenges.find((c) => c.id === challengeId);
-  //       setNotificationMessage(
-  //         `Challenge completed! +${challenge?.points_reward} points`
-  //       );
-  //       setShowNotification(true);
-  //       setTimeout(() => setShowNotification(false), 3000);
-
-  //       mutateLeagueStatus();
-  //       mutateLeaderboard();
-  //     } catch (err) {
-  //       console.error("Error completing challenge:", err);
-  //       mutateChallenges();
-  //     }
-  //   },
-  //   [dailyChallenges, mutateChallenges, mutateLeagueStatus, mutateLeaderboard]
-  // );
-
-  // Find current user's rank in the leaderboard standings
-  const myRank = useMemo(() => {
-    return gamificationStatus?.rank?.weekly || null;
-  }, [gamificationStatus?.rank?.weekly]);
-
-
-
-
-
   const streakVisualization = useMemo(() => {
+    if (!streak?.dailyActivity) return null;
     return (
       <div className="flex justify-between px-4 w-full mt-4">
-        {streak?.dailyActivity
+        {streak.dailyActivity
           .slice(0, 7)
           .reverse()
           .map((activity, index) => (
             <div key={index} className="flex flex-col items-center">
               <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center ${activity.status === "complete"
-                  ? "bg-yellow-400"
-                  : "bg-gray-100"
-                  }`}
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                  activity.status === "complete" ? "bg-yellow-400 shadow-lg shadow-yellow-400/20" : "bg-gray-100 dark:bg-gray-800"
+                )}
               >
                 <Zap
-                  className={`w-4 h-4 ${activity.status === "complete"
-                    ? "text-black"
-                    : "text-gray-400"
-                    }`}
+                  className={cn(
+                    "w-4 h-4",
+                    activity.status === "complete" ? "text-black" : "text-gray-400"
+                  )}
                 />
               </div>
-              <span className="text-xs text-gray-500 mt-1">{activity.day}</span>
+              <span className="text-[10px] font-black text-gray-400 mt-2 uppercase tracking-widest">{activity.day}</span>
             </div>
           ))}
       </div>
     );
   }, [streak]);
 
-
-
   return (
     <>
       <Header />
 
+      <div className="flex flex-col gap-10 p-4 md:p-8 max-w-7xl mx-auto mt-20 pb-20">
 
+        {showReturnScreen ? (
+          <SafetyReturnScreen onReturn={() => setShowReturnScreen(false)} />
+        ) : (
+          <>
+            {/* 1. Daily Focus (Entry Point) - Always visible, but adapts to next_action */}
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <DailyFocus nextAction={user?.next_action || gamificationStatus?.next_action} />
+            </section>
 
+            {/* 2. Status / Perception Screen */}
+            <section className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+              <StatusScreen status={gamificationStatus} loading={isLoadingStatus} />
+            </section>
 
+            {/* 3. Conditional Content based on Identity */}
 
-      <div className="flex flex-col gap-6 p-4 md:p-6 max-w-7xl mx-auto">
-        {/* League Status & User Level Progress Bar */}
-        {isLoadingGamification ? (
-          <Card className="p-4 md:p-6 rounded-lg bg-card shadow-sm border border-muted">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-              <div className="flex items-center gap-4">
-                <Skeleton className="w-16 h-16 rounded-full" />
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-32" />
-                  <Skeleton className="h-4 w-48" />
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-32" />
-              </div>
-            </div>
-            <div className="mt-4 p-4 bg-muted/30 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-              <Skeleton className="h-3 w-full" />
-            </div>
-          </Card>
-        ) : gamificationStatus ? (
-          <Card className="p-4 md:p-6 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 shadow-sm border-primary/20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                  <Crown className="h-8 w-8" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xl flex items-center gap-2">
-                    {gamificationStatus.league.current.name}
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      <Trophy className="h-3 w-3" />#
-                      {gamificationStatus.rank.weekly}
-                    </Badge>
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {gamificationStatus.league.current.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md">
-                  <Sparkles className="h-5 w-5" />
-                  <span className="font-bold">
-                    {gamificationStatus.xp.total} Dhibco
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 bg-muted text-muted-foreground px-4 py-2 rounded-md">
-                  <Flame className="h-5 w-5" />
-                  <span className="font-bold">
-                    {gamificationStatus.streak.current} Maalin isu xigxiga
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Next League Progress */}
-            {gamificationStatus.league.next && (
-              <div className="mt-4 p-4 bg-background/50 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">
-                    inta kaaga dhimman liiga{" "}
-                    {gamificationStatus.league.next.name}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {gamificationStatus.league.next.points_needed} dhibco baa
-                    loo baahan yahay
-                  </span>
-                </div>
-                <Progress
-                  value={Math.min(
-                    100,
-                    Math.round(
-                      ((gamificationStatus.xp.total -
-                        gamificationStatus.league.current.min_xp) /
-                        (gamificationStatus.league.next.min_xp -
-                          gamificationStatus.league.current.min_xp)) *
-                      100
-                    )
-                  )}
-                  className="h-3"
-                />
-              </div>
-            )}
-          </Card>
-        ) : null}
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: League Leaderboard */}
-          <div className="space-y-6">
-            {/* League Leaderboard Card */}
-            <Card className="p-6 rounded-lg bg-card shadow-sm">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <Trophy className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">
-                      {leagueStatus?.current_league?.name || "League"} Shaxda
-                      tartanka
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Meeshaad liigaga hadda ka joogtid
-                    </p>
-                  </div>
-                </div>
-                <Tabs
-                  defaultValue="weekly"
-                  className="w-full md:w-auto"
-                  onValueChange={setLeaderboardPeriod}
-                >
-                  <TabsList className="grid grid-cols-2 w-full md:w-[160px]">
-                    <TabsTrigger value="weekly">asbuucle</TabsTrigger>
-                    <TabsTrigger value="monthly">bille</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-
-              {isLoadingLeaderboard ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center gap-4 p-4 rounded-md border bg-card">
-                      <Skeleton className="w-8 h-8 rounded-full" />
-                      <Skeleton className="w-10 h-10 rounded-full" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
+            {/* Stats & Progress - Visible for Builder and above */}
+            <IdentityWrapper minIdentity="Builder">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                <div className="lg:col-span-2 space-y-10">
+                  {/* XP & Weekly Progress */}
+                  <Card className="p-8 md:p-10 rounded-[3rem] bg-white dark:bg-[#2B2D31] border-none shadow-sm overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 rounded-full blur-3xl" />
+                    <h3 className="text-2xl font-black mb-8 uppercase tracking-tight text-black dark:text-white">Dhaqdhaqaaqaaga</h3>
+                    {streakVisualization}
+                    <div className="mt-10 p-8 bg-slate-50 dark:bg-[#1E1F22] rounded-[2rem] border border-slate-100 dark:border-white/5">
+                      <div className="flex justify-between items-end mb-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Hadafka Toddobaadka</span>
+                          <p className="text-sm font-bold text-gray-600 dark:text-gray-300">Waxa kuu dhiman {streak?.problems_to_next_streak || 0} tallaabo</p>
+                        </div>
+                        <span className="text-lg font-black text-primary">{((streak?.lessons_completed || 0) * 10)}%</span>
                       </div>
-                      <Skeleton className="h-4 w-12" />
+                      <Progress value={Math.min(100, ((streak?.lessons_completed || 0) / 10) * 100)} className="h-4 rounded-full" />
                     </div>
+                  </Card>
+                </div>
+
+                <div className="space-y-10">
+                  {/* League Info */}
+                  {leagueStatus && (
+                    <Card className="p-10 rounded-[3rem] bg-gradient-to-br from-yellow-400/10 via-transparent to-transparent border-none shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400/20" />
+                      <div className="w-24 h-24 bg-yellow-400 rounded-[2rem] rotate-12 flex items-center justify-center text-black mb-8 shadow-2xl shadow-yellow-400/20">
+                        <Crown className="w-12 h-12" />
+                      </div>
+                      <h3 className="text-3xl font-black mb-2 italic text-black dark:text-white">{leagueStatus.current_league.name}</h3>
+                      <p className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-8">Current League</p>
+
+                      <div className="w-full space-y-4">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-gray-500">
+                          <span>Wadarta XP</span>
+                          <span>{leagueStatus.current_points}</span>
+                        </div>
+                        <Progress value={Math.min(100, (leagueStatus.current_points / 500) * 100)} className="h-2.5 rounded-full bg-yellow-400/10" />
+                      </div>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            </IdentityWrapper>
+
+            {/* Leaderboards - Visible for Solver and above */}
+            <IdentityWrapper minIdentity="Solver">
+              <section className="space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-3xl font-black uppercase tracking-tight text-black dark:text-white italic">Tartanka Jira</h3>
+                    <p className="text-sm font-medium text-gray-500">Baro, xali, oo horyaal noqo.</p>
+                  </div>
+                  <Tabs value={leaderboardPeriod} onValueChange={setLeaderboardPeriod} className="w-auto">
+                    <TabsList className="rounded-full p-1 bg-slate-100 dark:bg-[#2B2D31] h-12">
+                      <TabsTrigger value="weekly" className="rounded-full px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Usbuuca</TabsTrigger>
+                      <TabsTrigger value="monthly" className="rounded-full px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm">Bisha</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {isLoadingLeaderboard ? (
+                    [1, 2, 3].map(i => <Card key={i} className="h-56 animate-pulse rounded-[2.5rem] bg-gray-50 dark:bg-gray-800/50" />)
+                  ) : leagueLeaderboard?.standings.slice(0, 3).map((standing, idx) => (
+                    <Card key={standing.user.id} className="p-8 rounded-[2.5rem] border-none shadow-sm bg-white dark:bg-[#2B2D31] flex items-center gap-6 group/card hover:shadow-xl transition-all">
+                      <div className={cn(
+                        "w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-black text-2xl transition-transform group-hover/card:scale-110",
+                        idx === 0 ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20" : "bg-slate-100 dark:bg-[#1E1F22] text-black dark:text-white"
+                      )}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="font-black text-lg text-black dark:text-white tracking-tight">{standing.user.name}</div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary">{standing.points} XP</Badge>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Velocity {Math.floor(Math.random() * 10) + 1}x</span>
+                        </div>
+                      </div>
+                    </Card>
                   ))}
                 </div>
-              ) : leaderboardError ? (
-                <div className="text-center py-4 text-destructive">
-                  {leaderboardError.message || "Ku guuldaraystay in la soo raro shaxda horyaalka"}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => mutateLeaderboard()}
-                    className="ml-2"
-                  >
-                    ku celi
-                  </Button>
-                </div>
-              ) : leagueLeaderboard?.standings &&
-                leagueLeaderboard.standings.length > 0 ? (
-                <ScrollArea className="h-[320px] pr-4">
-                  <div className="space-y-3">
-                    {leagueLeaderboard.standings.map((standing) => {
-                      const isCurrent =
-                        storedUser?.username === standing.user.name;
-                      return (
-                        <div
-                          key={standing.user.id}
-                          className={cn(
-                            "flex items-center gap-4 p-4 rounded-md transition-all",
-                            isCurrent
-                              ? "bg-primary/10 border border-primary/20"
-                              : "bg-background border"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "flex items-center justify-center w-8 h-8 rounded-full font-bold",
-                              standing.rank === 1
-                                ? "bg-yellow-500/20 text-yellow-700"
-                                : standing.rank === 2
-                                  ? "bg-gray-400/20 text-gray-700"
-                                  : standing.rank === 3
-                                    ? "bg-orange-500/20 text-orange-700"
-                                    : "bg-muted text-muted-foreground"
-                            )}
-                          >
-                            {standing.rank}
-                          </div>
-                          <Avatar
-                            className={cn(
-                              "w-10 h-10 border-2",
-                              isCurrent
-                                ? "border-primary bg-primary"
-                                : "border-muted bg-muted"
-                            )}
-                          >
-                            <AvatarFallback
-                              className={
-                                isCurrent
-                                  ? "text-primary-foreground"
-                                  : "text-muted-foreground"
-                              }
-                            >
-                              {getInitials(standing.user.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span
-                              className={cn(
-                                "font-medium",
-                                isCurrent ? "text-primary" : ""
-                              )}
-                            >
-                              {standing.user.name}
-                              {isCurrent ? " (Adiga)" : ""}
-                            </span>
-                            {standing.streak > 0 && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Badge
-                                  variant="outline"
-                                  className="flex items-center gap-1 py-0 h-5"
-                                >
-                                  <Flame className="h-3 w-3 text-yellow-400 fill-amber-500" />
-                                  {standing.streak}
-                                </Badge>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-auto flex items-center">
-                            <span
-                              className={cn(
-                                "font-bold",
-                                isCurrent ? "text-primary" : ""
-                              )}
-                            >
-                              {standing.points}
-                            </span>
-                            <span className="ml-1 text-xs text-muted-foreground">
-                              Dhibco
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              ) : !isLoadingLeaderboard && leagueLeaderboard ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  wax liiga ah kuma jirtid
-                </div>
-              ) : null}
+              </section>
+            </IdentityWrapper>
 
-              {/* My Standing */}
-              {isLoadingLeaderboard ? (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-6 w-20" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-6 w-12" />
-                    </div>
-                  </div>
+            {/* Course Carousel - Visible to all, but secondary to Daily Focus */}
+            <section className="space-y-8 pt-10 border-t border-slate-100 dark:border-white/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-black dark:text-white">Koorsooyinkaaga</h3>
+                  <p className="text-sm font-medium text-gray-500">Dhammaan casharrada aad baranayso.</p>
                 </div>
-              ) : leagueLeaderboard?.my_standing ? (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">kaalintaada</Badge>
-                      <span className="font-medium">#{myRank}</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold">{streak?.xp} Dhibco</span>
-                      <Badge
-                        variant="secondary"
-                        className="flex items-center gap-1"
-                      >
-                        <Flame className="h-3 w-3" />
-                        {leagueLeaderboard.my_standing.streak}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-            </Card>
-
-            {/* Streak visualization */}
-            <Card className="p-6 rounded-lg bg-card shadow-sm">
-              {isLoadingGamification ? (
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <Skeleton className="w-20 h-20 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-6 w-32" />
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-8 w-12" />
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <div className="flex items-center gap-2 mt-2 justify-end ml-auto mb-auto">
-                    <Skeleton className="h-4 w-4" />
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                    <Flame className="h-10 w-10 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Maalmaha isu xigxiga</h3>
-                    <div className="flex items-center gap-2">
-                      <span className="text-3xl font-bold">
-                        {gamificationStatus?.streak?.current || 0}
-                      </span>
-                      <span className="text-muted-foreground">maalmood</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      ugu fiicnaa: {gamificationStatus?.streak?.max || 0} maalmood
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2 justify-end ml-auto mb-auto">
-                    <Zap className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm">
-                      Tamarta: {gamificationStatus?.streak?.energy || 0}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-4 pt-4 border-t">
-                {isLoadingGamification ? (
-                  <div className="grid grid-cols-4 gap-4 text-center">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="p-3 bg-muted/50 rounded-lg">
-                        <Skeleton className="h-6 w-8 mx-auto mb-1" />
-                        <Skeleton className="h-3 w-16 mx-auto" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-4 gap-4 text-center">
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">
-                        {gamificationStatus?.xp?.daily || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Dhibcaha Maanta
-                      </div>
-                    </div>
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">
-                        {gamificationStatus?.xp?.weekly || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Dhibcaha asbuucaan
-                      </div>
-                    </div>
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">
-                        {gamificationStatus?.xp?.monthly || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Dhibcaha bishaan
-                      </div>
-                    </div>
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-bold">
-                        #{gamificationStatus?.rank?.weekly || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Booskaada asbuucaan
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {streak?.dailyActivity && !isLoadingGamification && (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">7 berri ugu danbeysay</p>
-                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex justify-between items-center mt-1">
-                    {streakVisualization}
-                  </div>
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Right Column: Courses */}
-          <div className="space-y-6">
-            {/* Courses Carousel */}
-            <Card className="p-6 rounded-lg bg-card shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-bold text-lg">Koorsooyinkaada</h3>
-                </div>
-                <Link href={"/courses"}>
-                  <Button variant="outline" size="sm">
-                    Arag kulli <ChevronRight className="ml-1 h-4 w-4" />
+                <Link href="/courses">
+                  <Button variant="ghost" className="h-12 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary/5 hover:text-primary px-6">
+                    Eeg Dhammaan <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
               </div>
 
-              <div
-                ref={carouselRef}
-                className="relative w-full overflow-hidden my-6 rounded-md bg-background p-4 border"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                role="region"
-                aria-label="Courses carousel"
-                aria-roledescription="carousel"
-              >
-                {isLoadingCourses ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-48 w-full" />
-                    <div className="flex justify-center gap-2">
-                      <Skeleton className="h-2 w-8" />
-                      <Skeleton className="h-2 w-8" />
-                      <Skeleton className="h-2 w-8" />
-                    </div>
-                  </div>
-                ) : coursesError ? (
-                  <div className="text-center py-4 text-destructive">
-                    {coursesError.message || "Ku guuldaraystay in la soo raro koorsooyinka"}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => mutate()}
-                      className="ml-2"
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                ) : courses.length ? (
-                  <div
-                    className="flex transition-all duration-300 ease-in-out"
-                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                  >
-                    {courses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="min-w-full flex flex-col items-center"
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label={`Course: ${course.title}`}
-                      >
-                        <div className="relative w-48 h-48 mb-4">
-                          <Image
-                            src={
-                              course.thumbnail ||
-                              "/placeholder.svg?height=192&width=192" ||
-                              "/placeholder.svg" ||
-                              "/placeholder.svg"
-                            }
-                            width={192}
-                            height={192}
-                            alt={course.title}
-                            className="object-contain"
-                            loading="lazy"
-                          />
-                          {course.progress > 75 && (
-                            <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1">
-                              <CheckCircle2 className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
-                        <h4 className="font-bold text-center mb-2">
-                          {course.title}
-                        </h4>
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                          <Clock className="h-4 w-4" />
-                          <span>{course.estimatedHours || 0} saac</span>
-                          <span className="mx-1">•</span>
-                          <span>{course.lesson_count || 0} casharo</span>
-                        </div>
-
-                        {course.progress > 0 && (
-                          <div className="w-full mt-3">
-                            <Progress value={course.progress} className="h-2" />
-                            <div className="flex justify-between text-xs mt-1">
-                              <span className="text-muted-foreground">
-                                Progress
-                              </span>
-                              <span className="font-medium">
-                                {course.progress}%
-                              </span>
-                            </div>
-                          </div>
+              <ScrollArea className="w-full whitespace-nowrap rounded-[3rem]">
+                <div className="flex gap-8 pb-8">
+                  {isLoadingCourses ? (
+                    [1, 2, 3].map(i => <Skeleton key={i} className="w-[380px] h-[300px] shrink-0 rounded-[2.5rem]" />)
+                  ) : courses?.map(course => (
+                    <Card key={course.id} className="w-[380px] shrink-0 p-3 rounded-[3rem] bg-white dark:bg-[#2B2D31] border-none shadow-sm hover:shadow-2xl transition-all group/card overflow-hidden">
+                      <div className="aspect-[16/10] rounded-[2rem] bg-slate-100 dark:bg-[#1E1F22] relative overflow-hidden mb-5">
+                        {course.thumbnail && (
+                          <Image src={course.thumbnail} alt={course.title} fill className="object-cover group-hover/card:scale-110 transition-transform duration-700" />
                         )}
-
-                        <Link
-                          href={`/courses/${getCategoryIdByName(
-                            course.title
-                          )}/${course.slug}`}
-                        >
-                          <Button className="mt-4">
-                            {course.progress > 0
-                              ? "sii wado koorsada"
-                              : "gal koorsada"}
-                          </Button>
-                        </Link>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                        <div className="absolute top-5 right-5">
+                          <Badge className="rounded-full font-black text-[9px] uppercase tracking-widest px-4 py-1.5 bg-white/90 dark:bg-[#1E1F22]/90 text-black dark:text-white backdrop-blur-md border-none shadow-xl">
+                            {course.lesson_count || 0} Cashar
+                          </Badge>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-48 text-center">
-                    <User className="h-12 w-12 text-muted mb-4" />
-                    <p className="text-muted-foreground">
-                      Wax Koorsaa lama helin
-                    </p>
-                    <Button className="mt-4">Baar Koorsooyinka</Button>
-                  </div>
-                )}
-              </div>
-
-              {courses.length > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
-                  {courses.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentSlide(idx)}
-                      className={cn(
-                        "w-2 h-2 rounded-full transition-all",
-                        currentSlide === idx ? "bg-primary w-8" : "bg-muted"
-                      )}
-                      aria-label={`Go to slide ${idx + 1}`}
-                      aria-current={currentSlide === idx}
-                    />
+                      <div className="p-5 pt-0">
+                        <Link href={`/courses/default/${course.slug}`}>
+                          <h4 className="font-black text-xl mb-3 truncate text-black dark:text-white tracking-tight hover:text-primary transition-colors cursor-pointer">{course.title}</h4>
+                        </Link>
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <Clock className="w-3.5 h-3.5" />
+                            {course.estimatedHours || 5}h Content
+                          </div>
+                          <div className="text-[10px] font-black text-primary uppercase tracking-[0.15em] bg-primary/5 px-2 py-1 rounded-md">
+                            {course.progress}% Completed
+                          </div>
+                        </div>
+                        <Progress value={course.progress} className="h-2 rounded-full bg-slate-100 dark:bg-[#1E1F22]" />
+                      </div>
+                    </Card>
                   ))}
                 </div>
-              )}
-            </Card>
-
-            {/* Course Thumbnails */}
-            {courses.length > 1 && (
-              <div className="flex justify-center w-full gap-2 overflow-x-auto pb-2">
-                {courses.map((course, idx) => (
-                  <button
-                    key={course.id}
-                    onClick={() => setCurrentSlide(idx)}
-                    className={cn(
-                      "p-3 border rounded-md min-w-[70px] transition-all",
-                      currentSlide === idx
-                        ? "border-primary bg-primary/10"
-                        : "border-muted bg-background"
-                    )}
-                    aria-label={`View ${course.title}`}
-                  >
-                    <Image
-                      src={
-                        course.thumbnail ||
-                        "/placeholder.svg?height=40&width=40" ||
-                        "/placeholder.svg" ||
-                        "/placeholder.svg"
-                      }
-                      width={40}
-                      height={40}
-                      alt={course.title}
-                      className="object-contain mx-auto"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-
-
-          </div>
-        </div>
+              </ScrollArea>
+            </section>
+          </>
+        )}
       </div>
     </>
   );

@@ -40,6 +40,13 @@ export default function CommunityPage() {
         dispatch(fetchUserProfile());
     }, [dispatch, isAuthenticated]);
 
+    // Select first category by default when categories load
+    useEffect(() => {
+        if (categories.length > 0 && !selectedCategory) {
+            dispatch(setSelectedCategory(categories[0]));
+        }
+    }, [categories, selectedCategory, dispatch]);
+
     // Fetch posts and join WebSocket when category changes
     useEffect(() => {
         if (!selectedCategory) return;
@@ -112,17 +119,9 @@ export default function CommunityPage() {
                         {/* Header */}
                         <div className="h-14 px-6 flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-white dark:bg-[#313338]">
                             <div>
-                                <h2 className="text-base font-black dark:text-white">{selectedCategory.title}</h2>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{selectedCategory.posts_count} {SOMALI_UI_TEXT.posts}</p>
+                                <h2 className="text-base font-black dark:text-white uppercase tracking-tight">{selectedCategory.title}</h2>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">{selectedCategory.posts_count} {SOMALI_UI_TEXT.posts}</p>
                             </div>
-                            <Button
-                                onClick={() => setIsCreatePostOpen(true)}
-                                className="rounded-xl font-bold"
-                                size="sm"
-                            >
-                                <Plus className="h-4 w-4 mr-1" />
-                                {SOMALI_UI_TEXT.createPost}
-                            </Button>
                         </div>
 
                         {/* Posts */}
@@ -144,6 +143,19 @@ export default function CommunityPage() {
                                 Dooro mid ka mid ah qaybaha bidixda si aad u aragto qoraallada
                             </p>
                         </div>
+                    </div>
+                )}
+
+                {/* Floating Create Post Button (Mobile/Tablet Style) */}
+                {selectedCategory && (
+                    <div className="absolute bottom-8 right-8 z-20">
+                        <Button
+                            onClick={() => setIsCreatePostOpen(true)}
+                            className="h-14 px-6 rounded-full font-black uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
+                        >
+                            <Plus className="h-6 w-6" />
+                            <span className="hidden sm:inline">{SOMALI_UI_TEXT.createPost}</span>
+                        </Button>
                     </div>
                 )}
             </div>

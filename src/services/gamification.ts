@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import AuthService from "./auth";
+import ActivityService from "./activity";
 
 const swrConfig = {
   revalidateOnFocus: false,
@@ -164,40 +165,13 @@ export async function solveProblem(
   answer: string,
   attemptNumber: number
 ) {
-  const token = await AuthService.getInstance().ensureValidToken();
-
-  const response = await fetch(`/api/problems/${problemId}/solve/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      answer,
-      attempt_number: attemptNumber,
-    }),
+  return ActivityService.getInstance().updateActivity("solve", {
+    problem_id: problemId,
+    answer,
+    attempt_number: attemptNumber,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to submit solution");
-  }
-
-  return response.json();
 }
 
 export async function useEnergy() {
-  const token = await AuthService.getInstance().ensureValidToken();
-
-  const response = await fetch(`/api/gamification/use_energy/`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to use energy");
-  }
-
-  return response.json();
+  return ActivityService.getInstance().updateActivity("use_energy");
 }

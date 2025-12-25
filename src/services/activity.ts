@@ -1,26 +1,6 @@
 import AuthService from "./auth";
 import MonitoringService from "./monitoring";
-
-export interface ActivityData {
-  success: boolean;
-  message: string;
-  user: {
-    last_active: string;
-    last_login: string;
-  };
-  streak: {
-    current_streak: number;
-    max_streak: number;
-    last_activity_date: string;
-  };
-  activity: {
-    date: string;
-    status: "complete" | "partial" | "none";
-    problems_solved: number;
-    lesson_ids: string[];
-  };
-  activity_date: string;
-}
+import { ActivityUpdatePayload, ActivityUpdateResponse } from "@/types/gamification";
 
 export class ActivityService {
   private static instance: ActivityService;
@@ -39,11 +19,12 @@ export class ActivityService {
   }
 
   /**
-   * Update user activity
+   * Update user activity (V2 Single Mutation Path)
    */
-  public async updateActivity(): Promise<ActivityData> {
+  public async updateActivity(actionType: string = "active", payload?: Record<string, any>): Promise<ActivityUpdateResponse> {
     const startTime = Date.now();
     let success = false;
+    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : this.generateFallbackUUID();
 
     try {
       const token = await AuthService.getInstance().ensureValidToken();
@@ -52,12 +33,19 @@ export class ActivityService {
         throw new Error("Authentication required");
       }
 
+      const body: ActivityUpdatePayload = {
+        action_type: actionType,
+        request_id: requestId,
+        payload
+      };
+
       const response = await fetch(`/api/activity/update/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -77,7 +65,7 @@ export class ActivityService {
         responseTime
       );
 
-      return data as ActivityData;
+      return data as ActivityUpdateResponse;
     } catch (error) {
       console.error("Activity update error:", error);
 
@@ -90,6 +78,13 @@ export class ActivityService {
 
       throw error;
     }
+  }
+
+  private generateFallbackUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   /**
