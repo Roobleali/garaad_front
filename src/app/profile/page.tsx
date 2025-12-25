@@ -32,6 +32,7 @@ import {
   Copy,
   TrendingUp,
   Flame,
+  Sparkles,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { getMediaUrl } from "@/lib/utils";
@@ -40,7 +41,7 @@ import { useDispatch } from "react-redux";
 import { setUser } from "@/store/features/authSlice";
 import { API_BASE_URL } from "@/lib/constants";
 
-import { BadgeLevel } from "@/types/community";
+import { UserProfile } from "@/types/community";
 import { DashboardProfile } from "@/services/auth";
 
 // Extended User type to include required fields
@@ -180,24 +181,25 @@ export default function ProfilePage() {
       if (!token) return;
 
       try {
-        const [statsResponse, listResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/auth/referral-stats/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE_URL}/api/auth/referral-list/`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        // TODO: Re-enable when referral endpoints are ready
+        // const [statsResponse, listResponse] = await Promise.all([
+        //   fetch(`${API_BASE_URL}/api/auth/referral-stats/`, {
+        //     headers: { Authorization: `Bearer ${token}` },
+        //   }),
+        //   fetch(`${API_BASE_URL}/api/auth/referral-list/`, {
+        //     headers: { Authorization: `Bearer ${token}` },
+        //   }),
+        // ]);
 
-        if (statsResponse.ok && listResponse.ok) {
-          const [statsData, listData] = await Promise.all([
-            statsResponse.json(),
-            listResponse.json(),
-          ]);
+        // if (statsResponse.ok && listResponse.ok) {
+        //   const [statsData, listData] = await Promise.all([
+        //     statsResponse.json(),
+        //     listResponse.json(),
+        //   ]);
 
-          setReferralStats(statsData);
-          setReferralList(listData);
-        }
+        //   setReferralStats(statsData);
+        //   setReferralList(listData);
+        // }
       } catch (error) {
         console.error("Failed to fetch referral data:", error);
       }

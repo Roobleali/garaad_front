@@ -55,10 +55,11 @@ export const categoryService = {
 // Post Management APIs
 export const postService = {
   getPosts: async (categoryId: string, page?: number) => {
-    const params = page ? `?page=${page}` : "";
-    // Ensure trailing slash for backend compatibility
-    const path = `community/categories/${categoryId}/posts/${params}`.replace(/\/+/g, '/');
-    return apiCall(path);
+    const params = new URLSearchParams();
+    params.append("category", categoryId);
+    if (page) params.append("page", page.toString());
+
+    return apiCall(`community/posts/?${params.toString()}`);
   },
 
   // Create post
@@ -73,13 +74,13 @@ export const postService = {
         formData.append(`images`, image);
       });
 
-      return apiCall(`community/categories/${categoryId}/posts/`, {
+      return apiCall(`community/posts/`, {
         method: "POST",
         body: formData,
       });
     } else {
       const { images, ...jsonData } = postData;
-      return apiCall(`community/categories/${categoryId}/posts/`, {
+      return apiCall(`community/posts/`, {
         method: "POST",
         body: JSON.stringify(jsonData),
       });
