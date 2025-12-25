@@ -34,8 +34,8 @@ export class CommunityWebSocket {
         this.currentCategoryId = categoryId;
 
         try {
-            const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "wss://api.garaad.org/ws/community/";
-            // Join category-specific room
+            const wsUrl = (process.env.NEXT_PUBLIC_WS_URL || "wss://api.garaad.org/ws/community/").replace(/\/$/, "") + "/";
+            // Join category-specific room - matches pattern: wss://api.garaad.org/ws/community/{room_name}/
             const url = `${wsUrl}category_${categoryId}/?token=${token}`;
             console.log(`Connecting to WebSocket: category_${categoryId}`);
 

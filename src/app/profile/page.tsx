@@ -31,6 +31,7 @@ import {
   Share2,
   Copy,
   TrendingUp,
+  Flame,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { getMediaUrl } from "@/lib/utils";

@@ -56,8 +56,8 @@ export const categoryService = {
 export const postService = {
   getPosts: async (categoryId: string, page?: number) => {
     const params = page ? `?page=${page}` : "";
-    // Normalize path to avoid double slashes or missing trailing slash that may cause 404/redirect issues
-    const path = `community/categories/${categoryId}/posts/${params}`.replace(/\/+/g, '/').replace(/\/$/, '');
+    // Ensure trailing slash for backend compatibility
+    const path = `community/categories/${categoryId}/posts/${params}`.replace(/\/+/g, '/');
     return apiCall(path);
   },
 
@@ -165,7 +165,7 @@ export const notificationService = {
   // List notifications
   getNotifications: async (page?: number) => {
     const params = page ? `?page=${page}` : "";
-    const path = `community/notifications/${params}`.replace(/\/+/g, '/').replace(/\/$/, '');
+    const path = `community/notifications/${params}`.replace(/\/+/g, '/');
     return apiCall(path);
   },
 
