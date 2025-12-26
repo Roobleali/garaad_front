@@ -25,18 +25,39 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
+  const url = `${BASE_URL}${endpoint}`;
+  try {
+    const response = await fetch(url, config);
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const responseText = await response.text();
+      let errorData = {};
+      try {
+        errorData = JSON.parse(responseText);
+      } catch (e) {
+        errorData = { raw: responseText };
+      }
+
+      console.error(`API Error [${response.status}] ${url}:`, errorData);
+
+      throw {
+        status: response.status,
+        message: response.statusText || "Request failed",
+        data: errorData,
+      };
+    }
+
+    return response.json();
+  } catch (error: any) {
+    if (error.status) throw error; // Re-throw structured API errors
+
+    console.error(`Network Error ${url}:`, error);
     throw {
-      status: response.status,
-      message: response.statusText,
-      data: errorData,
+      status: 0,
+      message: error.message || "Network request failed",
+      data: error,
     };
   }
-
-  return response.json();
 };
 
 // Category Management APIs

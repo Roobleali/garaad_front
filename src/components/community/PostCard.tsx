@@ -124,20 +124,24 @@ export function PostCard({ post, userProfile }: PostCardProps) {
 
             {/* Images */}
             {post.images && post.images.length > 0 && (
-                <div className="mb-3 grid grid-cols-2 gap-2">
+                <div className={cn(
+                    "mb-3 grid gap-2",
+                    post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
+                )}>
                     {post.images.map((img, idx) => (
-                        <img
-                            key={idx}
-                            src={img}
-                            alt="Post image"
-                            className="rounded-lg w-full h-auto object-cover"
-                        />
+                        <div key={idx} className="relative aspect-video lg:aspect-auto">
+                            <img
+                                src={img}
+                                alt="Post image"
+                                className="rounded-xl w-full h-full object-cover border border-gray-100 dark:border-white/5"
+                            />
+                        </div>
                     ))}
                 </div>
             )}
 
             {/* Reactions */}
-            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3 pb-3 border-b border-gray-100 dark:border-gray-700">
                 {(['like', 'fire', 'insight'] as ReactionType[]).map((type) => {
                     const count = post.reactions_count[type] || 0;
                     const isActive = post.user_reactions.includes(type);
@@ -148,7 +152,7 @@ export function PostCard({ post, userProfile }: PostCardProps) {
                             onClick={() => handleReaction(type)}
                             disabled={isPending}
                             className={cn(
-                                "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                                "flex items-center gap-1 px-2.5 py-1.5 sm:px-3 rounded-full text-[10px] sm:text-xs font-bold transition-all",
                                 isActive
                                     ? "bg-primary/10 text-primary dark:bg-primary/20"
                                     : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -163,9 +167,9 @@ export function PostCard({ post, userProfile }: PostCardProps) {
                 {/* Reply Toggle */}
                 <button
                     onClick={() => setShowReplies(!showReplies)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all ml-auto"
+                    className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 rounded-full text-[10px] sm:text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all ml-auto"
                 >
-                    <MessageSquare className="h-3 w-3" />
+                    <MessageSquare className="h-3.5 w-3.5" />
                     <span>{post.replies_count}</span>
                 </button>
             </div>

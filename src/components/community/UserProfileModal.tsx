@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import {
     Dialog,
     DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -65,6 +68,12 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden bg-white dark:bg-[#1E1F22] border-none shadow-2xl rounded-[2rem]">
+                <DialogHeader className="sr-only">
+                    <DialogTitle>Profile-ka Adeegsadaha</DialogTitle>
+                    <DialogDescription>
+                        Faahfaahinta dhibcaha, heerka iyo waxqabadka bulshada ee adeegsadahan.
+                    </DialogDescription>
+                </DialogHeader>
                 {/* Header/Cover Area */}
                 <div className="h-28 bg-gradient-to-br from-primary via-primary/80 to-purple-600 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />

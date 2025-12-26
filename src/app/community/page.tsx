@@ -13,9 +13,10 @@ import CommunityWebSocket from '@/services/communityWebSocket';
 import { CategoryList } from '@/components/community/CategoryList';
 import { PostList } from '@/components/community/PostList';
 import { CreatePostDialog } from '@/components/community/CreatePostDialog';
-import { AlertCircle, Plus } from 'lucide-react';
+import { AlertCircle, Plus, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SOMALI_UI_TEXT } from '@/types/community';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 export default function CommunityPage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -30,6 +31,7 @@ export default function CommunityPage() {
 
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const wsRef = useRef<CommunityWebSocket | null>(null);
 
     // Initialize data (fetch once)
@@ -95,66 +97,102 @@ export default function CommunityPage() {
         );
     }
 
+    const categoryList = (
+        <CategoryList
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(cat) => {
+                dispatch(setSelectedCategory(cat));
+                setIsMobileMenuOpen(false);
+            }}
+            loading={loading.categories}
+        />
+    );
+
     return (
         <div className="flex h-screen bg-white dark:bg-[#313338] overflow-hidden">
-            {/* Sidebar: Category List (Campuses) */}
-            <div className="w-80 border-r border-[#E3E5E8] dark:border-[#1E1F22] flex flex-col">
+            {/* Sidebar: Category List (Campuses) - Desktop Only */}
+            <div className="hidden lg:flex w-80 border-r border-[#E3E5E8] dark:border-[#1E1F22] flex-col">
                 <div className="h-14 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10">
                     <h1 className="text-lg font-black dark:text-white uppercase tracking-tight">
                         {SOMALI_UI_TEXT.community}
                     </h1>
                 </div>
-                <CategoryList
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onSelectCategory={(cat) => dispatch(setSelectedCategory(cat))}
-                    loading={loading.categories}
-                />
+                {categoryList}
             </div>
 
             {/* Main: Post List */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Mobile Header */}
+                <div className="lg:hidden h-14 px-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-white dark:bg-[#313338] z-10">
+                    <div className="flex items-center gap-3">
+                        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="lg:hidden">
+                                    <Menu className="h-6 w-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="p-0 w-80 bg-white dark:bg-[#2B2D31] border-none">
+                                <SheetHeader className="p-4 border-b border-black/10 dark:border-white/10">
+                                    <SheetTitle className="text-lg font-black uppercase tracking-tight text-left">
+                                        {SOMALI_UI_TEXT.community}
+                                    </SheetTitle>
+                                    <SheetDescription className="sr-only">
+                                        Dooro qaybta aad rabto inaad ku biirto.
+                                    </SheetDescription>
+                                </SheetHeader>
+                                {categoryList}
+                            </SheetContent>
+                        </Sheet>
+                        <h1 className="text-lg font-black dark:text-white uppercase tracking-tight">
+                            {SOMALI_UI_TEXT.community}
+                        </h1>
+                    </div>
+                </div>
+
                 {selectedCategory ? (
                     <>
                         {/* Header */}
                         <div className="h-14 px-6 flex items-center justify-between border-b border-black/10 dark:border-white/10 bg-white dark:bg-[#313338]">
-                            <div>
-                                <h2 className="text-base font-black dark:text-white uppercase tracking-tight">{selectedCategory.title}</h2>
+                            <div className="min-w-0">
+                                <h2 className="text-base font-black dark:text-white uppercase tracking-tight truncate">{selectedCategory.title}</h2>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">{selectedCategory.posts_count} {SOMALI_UI_TEXT.posts}</p>
                             </div>
                         </div>
 
                         {/* Posts */}
-                        <PostList
-                            posts={posts}
-                            loading={loading.posts}
-                            error={errors.posts}
-                            userProfile={userProfile}
-                        />
+                        <div className="flex-1 overflow-hidden">
+                            <PostList
+                                posts={posts}
+                                loading={loading.posts}
+                                error={errors.posts}
+                                userProfile={userProfile}
+                            />
+                        </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center max-w-md px-4">
+                    <div className="flex-1 flex items-center justify-center p-6 text-center">
+                        <div className="max-w-md">
                             <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <AlertCircle className="h-10 w-10 text-gray-400" />
                             </div>
-                            <h3 className="text-lg font-black mb-2 dark:text-white">Dooro Qaybta</h3>
+                            <h3 className="text-lg font-black mb-2 dark:text-white uppercase tracking-tight">Dooro Qaybta</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Dooro mid ka mid ah qaybaha bidixda si aad u aragto qoraallada
+                                Dooro mid ka mid ah qaybaha si aad u aragto qoraallada bulshada.
                             </p>
                         </div>
                     </div>
                 )}
 
-                {/* Floating Create Post Button (Mobile/Tablet Style) */}
+                {/* Floating Create Post Button */}
                 {selectedCategory && (
-                    <div className="absolute bottom-8 right-8 z-20">
+                    <div className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 z-20">
                         <Button
                             onClick={() => setIsCreatePostOpen(true)}
-                            className="h-14 px-6 rounded-full font-black uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
+                            className="h-14 w-14 lg:w-auto lg:px-6 rounded-full font-black uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center justify-center gap-2 transition-transform hover:scale-105 active:scale-95"
                         >
                             <Plus className="h-6 w-6" />
-                            <span className="hidden sm:inline">{SOMALI_UI_TEXT.createPost}</span>
+                            <span className="hidden lg:inline">{SOMALI_UI_TEXT.createPost}</span>
                         </Button>
                     </div>
                 )}

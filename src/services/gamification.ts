@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import AuthService from "./auth";
 import ActivityService from "./activity";
+import { API_BASE_URL } from "@/lib/constants";
 
 const swrConfig = {
   revalidateOnFocus: false,
@@ -32,7 +33,7 @@ const fetcher = async (url: string) => {
 export function useProblem(problemId?: string) {
   const shouldFetch = !!problemId;
   const { data, error, isLoading, mutate } = useSWR(
-    shouldFetch ? `/api/problems/${problemId}/` : null,
+    shouldFetch ? `${API_BASE_URL}/api/problems/${problemId}/` : null,
     fetcher,
     swrConfig
   );
@@ -47,7 +48,7 @@ export function useProblem(problemId?: string) {
 
 export function useGamificationStatus() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/gamification/status/`,
+    `${API_BASE_URL}/api/gamification/status/`,
     fetcher,
     swrConfig
   );
@@ -62,7 +63,7 @@ export function useGamificationStatus() {
 
 export function useNotification() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/notifications/`,
+    `${API_BASE_URL}/api/notifications/`,
     fetcher,
     swrConfig
   );
@@ -77,7 +78,7 @@ export function useNotification() {
 
 export function useStreak() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/streaks/`,
+    `${API_BASE_URL}/api/streaks/`,
     fetcher,
     swrConfig
   );
@@ -92,7 +93,7 @@ export function useStreak() {
 
 export function useProgress() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/progress/`,
+    `${API_BASE_URL}/api/progress/`,
     fetcher,
     swrConfig
   );
@@ -107,7 +108,7 @@ export function useProgress() {
 
 export function useLeague() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/league/leagues/status/`,
+    `${API_BASE_URL}/api/league/leagues/status/`,
     fetcher,
     swrConfig
   );
@@ -122,7 +123,7 @@ export function useLeague() {
 
 export function useLeagues() {
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/league/leagues/`,
+    `${API_BASE_URL}/api/league/leagues/`,
     fetcher,
     swrConfig
   );
@@ -146,7 +147,7 @@ export function useLeagueLeaderboard(
     ...(limit ? { limit: limit.toString() } : {}),
   });
 
-  const url = `/api/league/leagues/leaderboard/?${query.toString()}`;
+  const url = `${API_BASE_URL}/api/league/leagues/leaderboard/?${query.toString()}`;
 
   const { data, error, isLoading, mutate } = useSWR(url, fetcher, swrConfig);
 

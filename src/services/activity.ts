@@ -1,6 +1,7 @@
 import AuthService from "./auth";
 import MonitoringService from "./monitoring";
 import { ActivityUpdatePayload, ActivityUpdateResponse } from "@/types/gamification";
+import { API_BASE_URL } from "@/lib/constants";
 
 export class ActivityService {
   private static instance: ActivityService;
@@ -41,7 +42,7 @@ export class ActivityService {
         lesson_ids: payload?.lesson_ids,
       };
 
-      const response = await fetch(`/api/activity/update/`, {
+      const response = await fetch(`${API_BASE_URL}/api/activity/update/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

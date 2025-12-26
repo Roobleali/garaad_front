@@ -6,7 +6,7 @@ import {
     addOptimisticPost,
 } from "@/store/features/communitySlice";
 import { CommunityPost, SOMALI_UI_TEXT } from "@/types/community";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Loader2, Image as ImageIcon, AlertCircle } from "lucide-react";
@@ -143,6 +143,9 @@ export function CreatePostDialog({ isOpen, onClose, categoryId }: CreatePostDial
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <DialogTitle>{SOMALI_UI_TEXT.createPost}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Ku dar qoraal cusub bulshada Garaad si aad u wadaagto fikradahaaga.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     {/* Content Input */}
