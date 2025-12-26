@@ -52,10 +52,10 @@ export function HeroSection() {
                 {/* Community Badge */}
                 <div className="flex justify-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 backdrop-blur-sm cursor-pointer hover:bg-blue-100/50 transition-colors"
-                        onClick={() => window.open('https://github.com/StartUp-Somalia/garaad', '_blank')}>
+                        onClick={() => window.open('https://github.com/Garaadorg', '_blank')}>
                         <Github className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                            Proudly Open Source | Star us on GitHub
+                            Wan ku faaneyna inan nahay Open Source | Xiddig na sii GitHub-ka
                         </span>
                     </div>
                 </div>
@@ -94,15 +94,8 @@ export function HeroSection() {
                         {isAuthenticated ? "Sii wad Barashada" : "Bilow Hadda - Waa Bilaash"}
                     </Button>
 
-                    <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full sm:w-auto text-lg h-14 px-8 rounded-full border-2 hover:bg-secondary/50 font-semibold gap-2 transition-all transform hover:-translate-y-1 backdrop-blur-sm"
-                        onClick={() => window.open('https://github.com/StartUp-Somalia/garaad', '_blank')}
-                    >
-                        <Github className="w-5 h-5" />
-                        Contribute
-                    </Button>
+
+
                 </div>
 
             </div>
