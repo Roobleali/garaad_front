@@ -44,7 +44,7 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
         const tempId = `temp-${Date.now()}`;
         const optimisticReply: CommunityReply = {
             id: tempId as any,
-            author: userProfile.user,
+            author: userProfile as any,
             content: replyContent,
             created_at: new Date().toISOString(),
             is_edited: false,
@@ -85,10 +85,10 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
             {userProfile && (
                 <div className="flex gap-2">
                     <AuthenticatedAvatar
-                        src={getMediaUrl(userProfile.user.profile_picture, 'profile_pics')}
-                        alt={userProfile.user.first_name || userProfile.user.username}
+                        src={getMediaUrl(userProfile.profile_picture, 'profile_pics')}
+                        alt={userProfile.first_name || userProfile.username}
                         size="sm"
-                        fallback={userProfile.user.first_name?.[0] || userProfile.user.username[0]}
+                        fallback={userProfile.first_name?.[0] || userProfile.username[0]}
                     />
                     <div className="flex-1 flex gap-2">
                         <Textarea
