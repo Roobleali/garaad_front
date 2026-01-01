@@ -137,15 +137,23 @@ export function PostCard({ post, userProfile }: PostCardProps) {
                     "mb-4 grid gap-3 overflow-hidden rounded-2xl border border-gray-100 dark:border-white/5",
                     post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
                 )}>
-                    {post.images.map((img, idx) => (
-                        <div key={idx} className="relative aspect-video group cursor-zoom-in">
-                            <img
-                                src={img}
-                                alt="Post image"
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                        </div>
-                    ))}
+                    {post.images.map((img, idx) => {
+                        const imgSrc = typeof img === 'string'
+                            ? img
+                            : getMediaUrl(img?.image, 'community_posts');
+
+                        if (!imgSrc || imgSrc.includes('[object Object]')) return null;
+
+                        return (
+                            <div key={idx} className="relative aspect-video group cursor-zoom-in">
+                                <img
+                                    src={imgSrc}
+                                    alt="Post image"
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -186,7 +194,7 @@ export function PostCard({ post, userProfile }: PostCardProps) {
                     )}
                 >
                     <MessageSquare className={cn("h-4 w-4", showReplies ? "fill-current" : "")} />
-                    <span>{post.replies_count} {SOMALI_UI_TEXT.posts_count_label || 'Jawaab'}</span>
+                    <span>{post.replies_count} {SOMALI_UI_TEXT.posts_count_label}</span>
                 </button>
             </div>
 

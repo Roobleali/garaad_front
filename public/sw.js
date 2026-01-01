@@ -41,6 +41,13 @@ self.addEventListener('activate', event => {
 
 // Fetch event - Network First for HTML/Navigation, Cache First for others
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // Skip caching for API requests
+    if (url.pathname.startsWith('/api') || url.hostname.includes('api.')) {
+        return; // Let the browser handle these normally
+    }
+
     if (event.request.mode === 'navigate') {
         // For navigation requests (loading a page), try network first, then cache
         event.respondWith(

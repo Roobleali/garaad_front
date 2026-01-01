@@ -33,6 +33,13 @@ export interface CommunityReply {
   is_edited: boolean;
 }
 
+// Post Image
+export interface PostImage {
+  id: string;
+  image: string;
+  uploaded_at: string;
+}
+
 // Post (main discussion item)
 export interface CommunityPost {
   id: string;
@@ -42,7 +49,7 @@ export interface CommunityPost {
   created_at: string;
   updated_at: string;
   is_edited: boolean;
-  images: string[];
+  images: (string | PostImage)[];
   replies: CommunityReply[];
   replies_count: number;
   reactions_count: {
@@ -247,6 +254,7 @@ export const SOMALI_UI_TEXT = {
   notifications: "Ogeysiisyada",
   profile: "Profile-ka",
   community: "Bulshada",
+  posts_count_label: "Jawaab",
 
   // Actions
   create: "Samee",

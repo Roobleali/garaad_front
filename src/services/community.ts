@@ -47,7 +47,19 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
       };
     }
 
-    return response.json();
+    // Check for empty response (e.g. 204 No Content)
+    const contentType = response.headers.get("content-type");
+    if (response.status === 204 || !contentType || contentType.indexOf("application/json") === -1) {
+      return {};
+    }
+
+    try {
+      const text = await response.text();
+      return text ? JSON.parse(text) : {};
+    } catch (e) {
+      console.warn(`Failed to parse JSON response from ${url}:`, e);
+      return {};
+    }
   } catch (error: any) {
     if (error.status) throw error; // Re-throw structured API errors
 
