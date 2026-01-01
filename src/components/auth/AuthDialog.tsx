@@ -73,23 +73,12 @@ export function AuthDialog() {
     }
   }, [isOpen, form, dispatch]);
 
-  // Auto-hide error after 5 seconds
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        dispatch(setError(null));
-      }, 5000);
+  // Auto-hide error functionality removed to ensure user sees the error
+  // until they try again or dismiss it manually.
 
-      return () => clearTimeout(timer);
-    }
-  }, [error, dispatch]);
 
-  // Show toast when error changes
-  useEffect(() => {
-    if (error) {
-      dispatch(setError(null));
-    }
-  }, [error, dispatch]);
+  // Error handling is now manual (user dismisses it or tries again)
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -137,16 +126,17 @@ export function AuthDialog() {
           window.location.href = '/courses'; // This will be intercepted by middleware
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error:", error);
-      // The error will be handled by the Redux error handling
-      if (error instanceof Error) {
-        dispatch(setError(error.message));
-      } else {
-        dispatch(setError("Wax khalad ah ayaa dhacay. Fadlan mar kale isku day."));
-      }
+      // Handle various error formats safely
+      const errorMessage =
+        error?.message ||
+        (typeof error === 'string' ? error : "Wax khalad ah ayaa dhacay. Fadlan mar kale isku day.");
+
+      dispatch(setError(errorMessage));
     }
   };
+  // console.log("Auth error waa kan:", error); // Remove this or move it inside catch if needed, strictly it's out of scope here
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>

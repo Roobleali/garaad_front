@@ -72,6 +72,7 @@ export default function Page() {
     password: "",
     age: "",
     referralCode: "",
+    promoCode: "",
   });
   const [actualError, setActualError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -266,10 +267,13 @@ export default function Page() {
           minutes_per_day: Number.parseInt(String(selections[4]).split(" ")[0]),
         },
         ...(userData.referralCode ? { referral_code: userData.referralCode.trim() } : {}),
+        ...(userData.promoCode ? { promo_code: userData.promoCode.trim() } : {}),
       };
+
 
       // Call AuthService directly to avoid Redux error handling interference
       const result = await AuthService.getInstance().signUp(signUpData);
+
 
       // Update Redux state with the successful result
       if (result?.user) {
@@ -388,6 +392,7 @@ export default function Page() {
       password: "",
       age: "",
       referralCode: "",
+      promoCode: "",
     });
     setActualError("");
     setIsLoading(false);
@@ -630,7 +635,6 @@ export default function Page() {
                       Magacaaga
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                       <Input
                         id="firstName"
                         type="text"
@@ -639,7 +643,7 @@ export default function Page() {
                         onChange={(e) =>
                           setUserData({ ...userData, name: e.target.value })
                         }
-                        className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
                         disabled={isLoading}
                       />
                     </div>
@@ -653,7 +657,6 @@ export default function Page() {
                       Da`da
                     </Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                       <Input
                         id="age"
                         type="number"
@@ -664,7 +667,7 @@ export default function Page() {
                         onChange={(e) =>
                           setUserData({ ...userData, age: e.target.value })
                         }
-                        className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
                         disabled={isLoading}
                       />
                     </div>
@@ -679,7 +682,6 @@ export default function Page() {
                     Emailkaaga
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                     <Input
                       id="email"
                       type="email"
@@ -688,7 +690,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, email: e.target.value })
                       }
-                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
                       disabled={isLoading}
                     />
                   </div>
@@ -702,7 +704,6 @@ export default function Page() {
                     Passwordkaaga
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                     <Input
                       id="password"
                       type="password"
@@ -711,7 +712,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, password: e.target.value })
                       }
-                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
                       disabled={isLoading}
                     />
                   </div>
@@ -726,7 +727,6 @@ export default function Page() {
                     Koodka La Wareejiyo (ikhtiyaari)
                   </Label>
                   <div className="relative">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                     <Input
                       id="referralCode"
                       type="text"
@@ -735,7 +735,31 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, referralCode: e.target.value })
                       }
-                      className="w-full pl-10 p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+
+
+                {/* Promo Code Input */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="promoCode"
+                    className="text-sm font-medium text-slate-700"
+                  >
+                    Promo Code (Ikhtiyaari)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="promoCode"
+                      type="text"
+                      placeholder="Geli promo code"
+                      value={userData.promoCode || ""}
+                      onChange={(e) =>
+                        setUserData({ ...userData, promoCode: e.target.value })
+                      }
+                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
                       disabled={isLoading}
                     />
                   </div>
@@ -802,6 +826,6 @@ export default function Page() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }

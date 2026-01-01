@@ -114,12 +114,15 @@ export class AuthService {
   private refreshToken: string | null = null;
   private user: User | null = null;
   private baseURL: string =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+    typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? "http://localhost:8000"
+      : process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
   private refreshTimeout: NodeJS.Timeout | null = null;
   private isRefreshing = false;
   private refreshSubscribers: ((token: string) => void)[] = [];
 
   private constructor() {
+    console.log("AuthService initialized with baseURL:", this.baseURL);
     this.loadFromStorage();
   }
 
@@ -310,11 +313,8 @@ export class AuthService {
       console.error("SignIn error:", error);
       if (axios.isAxiosError(error)) {
         const responseData = error.response?.data;
-        if (error.response?.status === 401) {
-          throw new Error(
-            "Email-ka ama password-ka aad gelisay waa khalad. Fadlan hubi xogtaada oo mar kale isku day."
-          );
-        }
+
+        // Check for specific error message from server first
         if (responseData && typeof responseData === "object") {
           const errorMessage =
             responseData.detail ||
@@ -323,14 +323,23 @@ export class AuthService {
             (Array.isArray(responseData.non_field_errors)
               ? responseData.non_field_errors[0]
               : null);
+
           if (errorMessage) {
             throw new Error(errorMessage);
           }
         }
+
+        // Fallback for 401 if no specific message found
+        if (error.response?.status === 401) {
+          throw new Error(
+            "Email-ka ama password-ka aad gelisay waa khalad. Fadlan hubi xogtaada oo mar kale isku day."
+          );
+        }
       }
-      throw new Error("Cilad ayaa dhacday. Fadlan mar kale isku day.");
     }
+    throw new Error("Cilad ayaa dhacday. Fadlan mar kale isku day.");
   }
+
 
   public static async refreshAccessToken(): Promise<string> {
     const instance = AuthService.getInstance();

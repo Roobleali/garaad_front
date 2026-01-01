@@ -29,9 +29,27 @@ export function SignupForm({ onClose }: SignupFormProps) {
     password: '',
     firstName: '',
     lastName: '',
-    age: ''
+    age: '',
+    promoCode: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // ... (inside handleSubmit)
+
+  const signupData: SignUpData = {
+    email: formData.email.trim(),
+    password: formData.password.trim(),
+    name: formData.firstName.trim(),
+    age: parseInt(formData.age),
+    promo_code: formData.promoCode.trim() || undefined,
+    onboarding_data: {
+      goal: "learn_math", // Default goal
+      preferred_study_time: "self_paced", // Default preferred study time
+      topic: "general_math", // Default topic
+      math_level: "beginner", // Default math level
+      minutes_per_day: 30, // Default minutes per day
+    },
+  };
 
   // Handle input changes and show additional fields when email contains @
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +112,7 @@ export function SignupForm({ onClose }: SignupFormProps) {
         password: formData.password.trim(),
         name: formData.firstName.trim(),
         age: parseInt(formData.age),
+        promo_code: formData.promoCode.trim() || undefined,
         onboarding_data: {
           goal: "learn_math", // Default goal
           preferred_study_time: "self_paced", // Default preferred study time
@@ -275,6 +294,22 @@ export function SignupForm({ onClose }: SignupFormProps) {
                       <p className="text-red-500 text-sm mt-1">{errors.age}</p>
                     )}
                   </div>
+                </div>
+                <div className="pt-2">
+                  <Label htmlFor="promoCode" className="text-sm font-medium text-gray-700">
+                    Koodka Dalacsiinta (Ikhtiyaari)
+                  </Label>
+                  <Input
+                    id="promoCode"
+                    name="promoCode"
+                    type="text"
+                    placeholder="Garaad#2026"
+                    className="w-full p-3 md:p-4 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-base md:text-lg"
+                    style={{ fontSize: '16px' }}
+                    value={formData.promoCode}
+                    onChange={handleInputChange}
+                    disabled={isLoading}
+                  />
                 </div>
               </div>
             )}

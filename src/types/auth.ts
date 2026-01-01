@@ -110,17 +110,18 @@ export interface ApiErrorResponse {
 
 export interface SignUpData {
   email: string;
-  password: string;
-  name: string;
+  password?: string;
+  name?: string;
   // last_name: string;
-  age: number;
-  onboarding_data: {
+  age?: number;
+  onboarding_data?: {
     goal: string;
     preferred_study_time: string;
     topic: string;
     math_level: string;
     minutes_per_day: number;
   };
+  promo_code?: string;
   profile?: {
     bio?: string;
     avatar?: string;
