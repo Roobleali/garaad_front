@@ -14,8 +14,9 @@ import {
     Linkedin,
     Mail
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getMediaUrl } from "@/lib/utils";
 import { playfair } from "@/lib/fonts";
+import { Header } from "@/components/Header";
 
 export async function generateMetadata({ params }: { params: Promise<{ name: string }> }): Promise<Metadata> {
     const { name } = await params;
@@ -68,15 +69,7 @@ export default async function AboutProfilePage({ params }: { params: Promise<{ n
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] selection:bg-primary/30">
-            {/* Header / Navigation Support */}
-            <nav className="sticky top-0 z-50 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-white italic">G</div>
-                        <span className="font-bold text-lg tracking-tight dark:text-white">Garaad</span>
-                    </div>
-                </div>
-            </nav>
+            <Header />
 
             <main>
                 {/* Hero Section */}
@@ -109,11 +102,15 @@ export default async function AboutProfilePage({ params }: { params: Promise<{ n
                                         Contact Me
                                     </button>
                                     <div className="flex items-center gap-2">
-                                        {[Twitter, Linkedin, Github].map((Icon, i) => (
-                                            <button key={i} className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors dark:text-white">
-                                                <Icon className="w-5 h-5" />
-                                            </button>
-                                        ))}
+                                        <a href="https://x.com/ShakuurAlly" target="_blank" rel="noopener noreferrer" className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors dark:text-white">
+                                            <Twitter className="w-5 h-5" />
+                                        </a>
+                                        <a href="https://www.linkedin.com/in/rooblecali/" target="_blank" rel="noopener noreferrer" className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors dark:text-white">
+                                            <Linkedin className="w-5 h-5" />
+                                        </a>
+                                        <a href="https://github.com/Roobleali" target="_blank" rel="noopener noreferrer" className="p-4 bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/10 transition-colors dark:text-white">
+                                            <Github className="w-5 h-5" />
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -206,10 +203,10 @@ export default async function AboutProfilePage({ params }: { params: Promise<{ n
                                 </div>
 
                                 <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed relative z-10">
-                                    Abdishakur is a **bold, dedicated, and courageous independent thinker** driven by a deep curiosity. His interests span building, physics, and nature, all of which fuel his commitment to innovation.
+                                    Abdishakur is a bold, dedicated, and courageous independent thinker driven by a deep curiosity. His interests span building, physics, and nature, all of which fuel his commitment to innovation.
                                 </p>
                                 <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed relative z-10">
-                                    His ultimate goal is to apply his technical acumen to **solving the world's most complex issues** and contribute meaningfully to global advancement.
+                                    His ultimate goal is to apply his technical acumen to solving the world's most complex issues and contribute meaningfully to global advancement.
                                 </p>
 
                                 <div className="pt-6 border-t border-gray-100 dark:border-white/5">
