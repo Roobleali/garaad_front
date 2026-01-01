@@ -118,7 +118,7 @@ export function CourseGrid() {
                   </div>
 
                   {index === 0 && (
-                    <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-tighter border border-primary/20">
+                    <div className="px-3 py-1 rounded-full bg-[#f0ff00]/10 text-[#d4e000] text-[10px] font-black uppercase tracking-tighter border border-[#f0ff00]/20">
                       Ugu caansan
                     </div>
                   )}

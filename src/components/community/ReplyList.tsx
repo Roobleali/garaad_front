@@ -5,6 +5,7 @@ import {
     CommunityReply,
     UserProfile,
     SOMALI_UI_TEXT,
+    getUserDisplayName,
 } from "@/types/community";
 import {
     createReply,
@@ -91,7 +92,7 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                 <div className="flex gap-2">
                     <AuthenticatedAvatar
                         src={getMediaUrl(userProfile.profile_picture, 'profile_pics')}
-                        alt={userProfile.first_name || userProfile.username}
+                        alt={getUserDisplayName(userProfile)}
                         size="sm"
                         fallback={userProfile.first_name?.[0] || userProfile.username[0]}
                     />
@@ -142,7 +143,7 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                                 >
                                     <AuthenticatedAvatar
                                         src={getMediaUrl(reply.author?.profile_picture, 'profile_pics')}
-                                        alt={reply.author?.first_name || reply.author?.username || "User"}
+                                        alt={getUserDisplayName(reply.author)}
                                         size="sm"
                                         fallback={reply.author?.first_name?.[0] || reply.author?.username?.[0] || "?"}
                                     />
@@ -150,10 +151,10 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                                 <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span
-                                            className="font-bold text-xs dark:text-white cursor-pointer hover:text-primary transition-colors"
+                                            className="font-bold text-xs text-primary cursor-pointer hover:underline transition-all"
                                             onClick={() => reply.author?.id && handleOpenProfile(reply.author.id)}
                                         >
-                                            {reply.author?.first_name || reply.author?.username || "User"}
+                                            {getUserDisplayName(reply.author)}
                                         </span>
                                         <span className="text-xs text-gray-500">{timeAgo}</span>
                                         {reply.is_edited && (

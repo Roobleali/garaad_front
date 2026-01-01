@@ -125,12 +125,9 @@ export function InlinePostInput({ categoryId }: InlinePostInputProps) {
         )}>
             <div className="flex gap-4">
                 <div className="flex-shrink-0 pt-1">
-                    <AuthenticatedAvatar
-                        src={getMediaUrl(userProfile?.profile_picture, 'profile_pics')}
-                        alt={userProfile?.first_name || userProfile?.username || "User"}
-                        size="md"
-                        fallback={userProfile?.first_name?.[0] || userProfile?.username?.[0] || "?"}
-                    />
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
+                        <img src="/favicon.ico" alt="Garaad" className="w-5 h-5" />
+                    </div>
                 </div>
 
                 <div className="flex-1 min-w-0">

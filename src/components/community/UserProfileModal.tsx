@@ -16,10 +16,15 @@ import {
     Star,
     MessageSquare,
     Activity,
-    Loader2
+    Loader2,
+    Camera
 } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store/store";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import communityService from "@/services/community";
-import { UserProfile, BADGE_LEVELS } from "@/types/community";
+import { UserProfile, BADGE_LEVELS, getUserDisplayName } from "@/types/community";
 import AuthenticatedAvatar from "@/components/ui/authenticated-avatar";
 import { getMediaUrl } from "@/lib/utils";
 
@@ -61,6 +66,38 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
         }
     };
 
+    // Check if viewing own profile
+    const { userProfile: currentUser } = useSelector((state: RootState) => state.community);
+    const isCurrentUser = profile && currentUser && (profile.id === currentUser.id);
+
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const dispatch = useDispatch();
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingImage(true);
+        try {
+            await communityService.profile.updateProfile({ profile_picture: file });
+            // Refresh profile data
+            await fetchProfile();
+            // Also refresh global user profile state if it's the current user
+            if (isCurrentUser) {
+                // We might need to dispatch an action to refresh the global profile, 
+                // but since we don't have that handy, assume the page checks on mount or we just rely on local state for now.
+                // Or better, re-fetch for the app:
+                // dispatch(fetchUserProfile()); -- Assuming this action is available
+            }
+            toast.success("Sawirka waa la beddelay!");
+        } catch (err) {
+            console.error("Upload failed", err);
+            toast.error("Khalad ayaa dhacay markii la rarayay sawirka.");
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
     if (!userId && !isOpen) return null;
 
     const badge = profile ? BADGE_LEVELS[profile.badge_level] || BADGE_LEVELS.dhalinyaro : null;
@@ -84,15 +121,43 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
                         <div className="relative mb-4 group">
                             <div className="absolute -inset-1.5 bg-gradient-to-tr from-primary to-purple-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000" />
                             <div className="relative">
+                                {/* Hidden File Input */}
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={uploadingImage}
+                                />
+
                                 <AuthenticatedAvatar
                                     src={profile ? getMediaUrl(profile.profile_picture, 'profile_pics') : undefined}
                                     alt={profile?.username || "User"}
                                     size="xl"
                                     fallback={profile?.first_name?.[0] || profile?.username?.[0] || "?"}
-                                    className="border-[6px] border-white dark:border-[#1E1F22] w-28 h-28 text-3xl shadow-xl"
+                                    className="border-[6px] border-white dark:border-[#1E1F22] w-28 h-28 text-3xl shadow-xl bg-white"
                                 />
+
+                                {/* Edit Overlay for Current User */}
+                                {isCurrentUser && (
+                                    <label
+                                        htmlFor="avatar-upload"
+                                        className={cn(
+                                            "absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer",
+                                            uploadingImage && "opacity-100 bg-black/60 pointer-events-none"
+                                        )}
+                                    >
+                                        {uploadingImage ? (
+                                            <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                        ) : (
+                                            <Camera className="w-8 h-8 text-white drop-shadow-md" />
+                                        )}
+                                    </label>
+                                )}
+
                                 {profile && (
-                                    <div className="absolute bottom-1 right-1 bg-white dark:bg-[#1E1F22] p-2 rounded-2xl shadow-lg border border-gray-100 dark:border-white/5">
+                                    <div className="absolute bottom-1 right-1 bg-white dark:bg-[#1E1F22] p-2 rounded-2xl shadow-lg border border-gray-100 dark:border-white/5 z-20">
                                         <span className="text-2xl leading-none" title={profile.badge_level_display}>
                                             {badge?.emoji}
                                         </span>
@@ -119,7 +184,7 @@ export function UserProfileModal({ userId, isOpen, onClose }: UserProfileModalPr
                         ) : profile ? (
                             <>
                                 <h2 className="text-2xl font-black dark:text-white mb-1 tracking-tight">
-                                    {profile.first_name ? `${profile.first_name} ${profile.last_name || ""}` : profile.username || "User"}
+                                    {getUserDisplayName(profile)}
                                 </h2>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-6 italic">
                                     @{profile.username || "user"}

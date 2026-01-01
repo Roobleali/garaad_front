@@ -111,7 +111,7 @@ export function ChannelSidebar({
             >
                 <div className="flex items-center gap-2 overflow-hidden">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <img src="/logo.png" alt="G" className="w-5 h-5 opacity-40 grayscale" />
+                        <img src="/favicon.ico" alt="G" className="w-5 h-5" />
                     </div>
                     <div className="flex flex-col min-w-0">
                         <span className="truncate font-black text-sm tracking-tight leading-none uppercase">

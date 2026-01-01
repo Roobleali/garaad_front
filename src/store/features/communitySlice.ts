@@ -47,8 +47,8 @@ const initialState: CommunityState = {
       hasMore: false,
     },
   },
-  pinnedRoomIds: typeof window !== "undefined"
-    ? JSON.parse(localStorage.getItem("pinnedRoomIds") || "[]")
+  pinnedCategoryIds: typeof window !== "undefined"
+    ? JSON.parse(localStorage.getItem("pinnedCategoryIds") || "[]")
     : [],
 };
 
@@ -206,6 +206,19 @@ export const fetchUserProfile = createAsyncThunk(
   }
 );
 
+// Toggle pin category (Backend-persisted)
+export const togglePinCategory = createAsyncThunk(
+  "community/togglePinCategory",
+  async (categoryId: string, { rejectWithValue }) => {
+    try {
+      const result = await communityService.category.togglePinCategory(categoryId);
+      return { categoryId, ...result };
+    } catch (error: any) {
+      return rejectWithValue(handleApiError(error));
+    }
+  }
+);
+
 // Fetch notifications
 export const fetchNotifications = createAsyncThunk(
   "community/fetchNotifications",
@@ -252,11 +265,25 @@ const communitySlice = createSlice({
     // OPTIMISTIC: Add post immediately
     addOptimisticPost: (state, action: PayloadAction<CommunityPost>) => {
       state.posts.unshift(action.payload);
+      // Increment category post count
+      const category = state.categories.find(c => c.id === action.payload.category);
+      if (category) {
+        category.posts_count = (category.posts_count || 0) + 1;
+      }
     },
 
     // OPTIMISTIC: Remove failed post
     removeOptimisticPost: (state, action: PayloadAction<string>) => {
+      const post = state.posts.find(p => p.id.toString() === action.payload);
       state.posts = state.posts.filter(p => p.id.toString() !== action.payload);
+
+      // Decrement category post count if we found the post
+      if (post) {
+        const category = state.categories.find(c => c.id === post.category);
+        if (category) {
+          category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
+        }
+      }
     },
 
     // OPTIMISTIC: Toggle reaction immediately
@@ -301,21 +328,48 @@ const communitySlice = createSlice({
       const exists = state.posts.find(p => p.id === action.payload.id);
       if (!exists) {
         state.posts.unshift(action.payload);
+        // Increment category post count
+        const category = state.categories.find(c => c.id === action.payload.category);
+        if (category) {
+          category.posts_count = (category.posts_count || 0) + 1;
+        }
       }
     },
 
     // WEBSOCKET: Handle post deletion
     handleWebSocketPostDeleted: (state, action: PayloadAction<string>) => {
+      const post = state.posts.find(p => p.id === action.payload);
       state.posts = state.posts.filter(p => p.id !== action.payload);
+
+      // Decrement category post count if we deleted a post we knew about
+      if (post) {
+        const category = state.categories.find(c => c.id === post.category);
+        if (category) {
+          category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
+        }
+      } else if (state.selectedCategory) {
+        // If we didn't have the post in the list but we are in the category, we should still decrement
+        // But checking ID is safer.
+        // Actually, if we are in the category view and receive a delete for a post we don't have loaded,
+        // it implies total count might be off, but we can't be sure which category it belonged to unless payload included it.
+        // For now, safe to only decrement if we knew about the post or assume current selected category if that's safer?
+        // Let's stick to 'if post exists' to recall its category.
+      }
     },
 
     // WEBSOCKET: Handle reaction update
-    handleWebSocketReactionUpdate: (state, action: PayloadAction<{ post_id: string; reactions_count: any; user_reactions?: ReactionType[] }>) => {
+    handleWebSocketReactionUpdate: (state, action: PayloadAction<{ post_id: string; reaction_type: ReactionType; is_adding: boolean }>) => {
       const post = state.posts.find(p => p.id === action.payload.post_id);
       if (post) {
-        post.reactions_count = action.payload.reactions_count;
-        if (action.payload.user_reactions) {
-          post.user_reactions = action.payload.user_reactions;
+        const { reaction_type, is_adding } = action.payload;
+        if (is_adding) {
+          post.reactions_count[reaction_type] = (post.reactions_count[reaction_type] || 0) + 1;
+          if (!post.user_reactions.includes(reaction_type)) {
+            post.user_reactions.push(reaction_type);
+          }
+        } else {
+          post.reactions_count[reaction_type] = Math.max(0, (post.reactions_count[reaction_type] || 0) - 1);
+          post.user_reactions = post.user_reactions.filter(r => r !== reaction_type);
         }
       }
     },
@@ -347,15 +401,31 @@ const communitySlice = createSlice({
       };
     },
 
-    togglePinRoom: (state, action: PayloadAction<number>) => {
-      const roomId = action.payload;
-      if (state.pinnedRoomIds.includes(roomId)) {
-        state.pinnedRoomIds = state.pinnedRoomIds.filter(id => id !== roomId);
+    togglePinCategoryOptimistic: (state, action: PayloadAction<string>) => {
+      const categoryId = action.payload;
+      if (state.pinnedCategoryIds.includes(categoryId)) {
+        state.pinnedCategoryIds = state.pinnedCategoryIds.filter(id => id !== categoryId);
       } else {
-        state.pinnedRoomIds.push(roomId);
+        // Enforce 3-limit check is handled in component but good to have here too
+        if (state.pinnedCategoryIds.length < 3) {
+          state.pinnedCategoryIds.push(categoryId);
+        }
       }
+    },
+    setPinnedCategories: (state, action: PayloadAction<string[]>) => {
+      state.pinnedCategoryIds = action.payload;
+    },
+    // Action to load from localStorage explicitly
+    loadPinnedCategoriesFromStorage: (state) => {
       if (typeof window !== "undefined") {
-        localStorage.setItem("pinnedRoomIds", JSON.stringify(state.pinnedRoomIds));
+        const stored = localStorage.getItem("pinnedCategoryIds");
+        if (stored) {
+          try {
+            state.pinnedCategoryIds = JSON.parse(stored);
+          } catch (e) {
+            console.error("Failed to parse pinned categories", e);
+          }
+        }
       }
     },
   },
@@ -365,6 +435,25 @@ const communitySlice = createSlice({
       .addCase(fetchCategories.pending, (state) => {
         state.loading.categories = true;
         state.errors.categories = null;
+      })
+      .addCase(togglePinCategory.fulfilled, (state, action) => {
+        // SMART SYNC (Authoritative):
+        // Server returns the official list of IDs.
+        // If the SET of IDs matches our local state (which has the user's preferred order),
+        // we keep our local order. We only overwrite if the server logic (e.g. limits) changed the set.
+        if (action.payload.pinned_categories) {
+          const serverSet = new Set(action.payload.pinned_categories);
+          const localSet = new Set(state.pinnedCategoryIds);
+
+          const isSameSet = serverSet.size === localSet.size &&
+            action.payload.pinned_categories.every((id: string) => localSet.has(id));
+
+          if (!isSameSet) {
+            // If the sets differ (e.g. server rejected a pin due to limit, or added one), we must use server properties.
+            state.pinnedCategoryIds = action.payload.pinned_categories;
+          }
+          // Else: Sets match, so we keep state.pinnedCategoryIds which has the optimistic sort order.
+        }
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading.categories = false;
@@ -402,7 +491,16 @@ const communitySlice = createSlice({
         // Remove optimistic post on failure
         const tempId = (action.payload as any)?.tempId;
         if (tempId) {
+          // Find post to get category before removing
+          const post = state.posts.find(p => p.id.toString() === tempId);
           state.posts = state.posts.filter(p => p.id.toString() !== tempId);
+
+          if (post) {
+            const category = state.categories.find(c => c.id === post.category);
+            if (category) {
+              category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
+            }
+          }
         }
       });
 
@@ -418,7 +516,26 @@ const communitySlice = createSlice({
     // Delete Post
     builder
       .addCase(deletePost.fulfilled, (state, action) => {
+        // Find post to get category before removing (if it was in list)
+        const post = state.posts.find(p => p.id === action.payload);
         state.posts = state.posts.filter(p => p.id !== action.payload);
+
+        if (post) {
+          const category = state.categories.find(c => c.id === post.category);
+          if (category) {
+            category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
+          }
+        } else if (state.selectedCategory) {
+          // If we are in the category view, we can assume it belongs to selectedCategory
+          // Safest to just decrement if we are sure. 
+          // Since we filter by ID, if we didn't find it in posts, we might not have it loaded?
+          // But counting relies on accurate server data.
+          // Ideally validation matches server.
+          // For now, if we found it in posts array, we decrement.
+          // If not found, we refrain from guessing to avoid skewing unless we trust selectedCategory.
+          // Let's stick to consistent logic: if found in posts, decrement.
+          // Actually, if we just deleted it, we likely had it.
+        }
       });
 
     // React to Post - Sync with server response
@@ -493,6 +610,9 @@ const communitySlice = createSlice({
         }
       });
 
+
+
+
     // Fetch User Profile
     builder
       .addCase(fetchUserProfile.pending, (state) => {
@@ -502,6 +622,25 @@ const communitySlice = createSlice({
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.loading.profile = false;
         state.userProfile = action.payload;
+
+        // Sync pinned categories from server profile
+        // SMART SYNC: 
+        // 1. If server is empty, keep local (assume sync lag/fresh).
+        // 2. If server has data, check if it matches local set (ignoring order).
+        //    If it matches, KEEP LOCAL ORDER (preserves user's manual sorting/pinning sequence).
+        //    If it differs (new pins from other device), use server data.
+        if (action.payload.pinned_categories && action.payload.pinned_categories.length > 0) {
+          const serverSet = new Set(action.payload.pinned_categories);
+          const localSet = new Set(state.pinnedCategoryIds);
+
+          // Check if sets are equal size and content
+          const isSameSet = serverSet.size === localSet.size &&
+            [...serverSet].every(id => localSet.has(id as string));
+
+          if (!isSameSet) {
+            state.pinnedCategoryIds = action.payload.pinned_categories;
+          }
+        }
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.loading.profile = false;
@@ -536,6 +675,19 @@ const communitySlice = createSlice({
           notification.is_read = true;
         }
       });
+
+    // Toggle Pin Category
+    builder.addCase(togglePinCategory.rejected, (state, action) => {
+      // Rollback on failure (simplified: re-fetch profile or just undo local - let's just undo)
+      const categoryId = action.meta.arg;
+      if (state.pinnedCategoryIds.includes(categoryId)) {
+        state.pinnedCategoryIds = state.pinnedCategoryIds.filter(id => id !== categoryId);
+      } else {
+        state.pinnedCategoryIds.push(categoryId);
+      }
+      state.errors.categories = (action.payload as any)?.message || "Cillad ayaa dhacday.";
+    });
+
   },
 });
 
@@ -552,6 +704,9 @@ export const {
   handleWebSocketReply,
   clearPosts,
   clearErrors,
+  togglePinCategoryOptimistic,
+  setPinnedCategories,
+  loadPinnedCategoriesFromStorage,
 } = communitySlice.actions;
 
 export default communitySlice.reducer;

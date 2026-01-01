@@ -21,8 +21,7 @@ export interface CommunityCategory {
   posts_count: number;
 }
 
-// Reaction types
-export type ReactionType = 'like' | 'fire' | 'insight';
+// Reaction types have been moved to bottom to allow string type
 
 // Reply (one-level response to post)
 export interface CommunityReply {
@@ -52,11 +51,7 @@ export interface CommunityPost {
   images: (string | PostImage)[];
   replies: CommunityReply[];
   replies_count: number;
-  reactions_count: {
-    like: number;
-    fire: number;
-    insight: number;
-  };
+  reactions_count: Record<string, number>;
   user_reactions: ReactionType[];
 }
 
@@ -68,9 +63,13 @@ export interface CreatePostData {
 }
 
 // Create reply data
-export interface CreateReplyData {
-  content: string;
-}
+// Helper to format user display name with "Garaad" prefix
+export const getUserDisplayName = (user: { first_name?: string; last_name?: string; username: string } | null | undefined): string => {
+  if (!user) return "Garaad Xubin";
+  // User request: Show ONLY first name (not full name), prefixed with Garaad
+  const name = user.first_name ? user.first_name : user.username;
+  return `Garaad ${name.trim()}`;
+};
 
 // User Profile & Gamification types
 export interface UserProfile extends User {
@@ -149,7 +148,7 @@ export interface CommunityState {
   selectedCategory: CommunityCategory | null;
   userProfile: UserProfile | null;
   notifications: Notification[];
-  pinnedRoomIds: number[];
+  pinnedCategoryIds: string[];
 
   // UI State
   loading: {
@@ -233,7 +232,10 @@ export const BADGE_LEVELS: Record<string, Badge> = {
   },
 };
 
-export const REACTION_ICONS: Record<ReactionType, string> = {
+// Basic types
+export type ReactionType = string; // Was 'like' | 'fire' | 'insight', now any string for full emoji support
+
+export const REACTION_ICONS: Record<string, string> = {
   like: "👍",
   fire: "🔥",
   insight: "💡",
@@ -311,6 +313,8 @@ export const SOMALI_UI_TEXT = {
   allRooms: "Dhammaan qolalka",
   pinRoom: "Xir qolka",
   unpinRoom: "Ka fur qolka",
+  pinCategory: "Xir qaybta",
+  unpinCategory: "Ka fur qaybta",
   frequentlyUsed: "Mar walba la isticmaalo",
   smileysPeople: "Dhoola cadeyn & Dad",
   animalsNature: "Xayawaan & Dabeecad",

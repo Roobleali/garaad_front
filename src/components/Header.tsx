@@ -16,7 +16,6 @@ import useSWR from "swr";
 import NotificationPanel from "./Notifications";
 import Logo from "./ui/Logo";
 import { API_BASE_URL } from "@/lib/constants";
-import { ThemeToggle } from "./ThemeToggle";
 
 const AuthDialog = dynamic(() => import("@/components/auth/AuthDialog").then(mod => mod.AuthDialog), {
   loading: () => <div className="h-10 w-24 bg-gray-100 animate-pulse rounded-md" />,
@@ -143,11 +142,11 @@ export function Header() {
     () =>
       user
         ? [
-          { name: "Hoy", href: "/home", icon: Home },
+          { name: "Guriga", href: "/home", icon: Home },
           { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
           { name: "Bulshada", href: "/community", icon: Users },
         ]
-        : [{ name: "Hoy", href: "/", icon: Home }],
+        : [{ name: "Guriga", href: "/", icon: Home }],
     [user]
   );
 
@@ -218,7 +217,6 @@ export function Header() {
             {user && <NotificationPanel />}
 
             <div className="flex items-center gap-3">
-              <ThemeToggle />
               {user ? <ProfileDropdown /> : <AuthDialog />}
             </div>
           </div>

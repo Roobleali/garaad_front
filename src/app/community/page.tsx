@@ -13,11 +13,13 @@ import CommunityWebSocket from '@/services/communityWebSocket';
 import { CategoryList } from '@/components/community/CategoryList';
 import { PostList } from '@/components/community/PostList';
 import { InlinePostInput } from '@/components/community/InlinePostInput';
+import { UserProfileModal } from '@/components/community/UserProfileModal';
 import { AlertCircle, Menu, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SOMALI_UI_TEXT } from '@/types/community';
+import { SOMALI_UI_TEXT, getUserDisplayName } from '@/types/community';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import Image from 'next/image';
+import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
 
 export default function CommunityPage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -34,6 +36,7 @@ export default function CommunityPage() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const wsRef = useRef<CommunityWebSocket | null>(null);
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     // Initialize theme based on document class
     useEffect(() => {
@@ -128,28 +131,49 @@ export default function CommunityPage() {
                     loading={loading.categories}
                 />
             </div>
+
+            {/* User Profile Footer */}
+            {isAuthenticated && userProfile && (
+                <div className="border-t border-gray-100 dark:border-white/5 bg-white dark:bg-black">
+                    <div
+                        className="flex items-center gap-3 p-6 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group"
+                        onClick={() => {
+                            setSelectedUserId(userProfile.id);
+                            setIsProfileModalOpen(true);
+                        }}
+                    >
+                        <AuthenticatedAvatar
+                            src={userProfile.profile_picture}
+                            alt={userProfile.username}
+                            fallback={userProfile.username[0]}
+                            className="w-10 h-10 ring-2 ring-gray-100 dark:ring-white/10 group-hover:ring-primary/20 transition-all"
+                        />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold truncate dark:text-white">
+                                {getUserDisplayName(userProfile)}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate">
+                                {SOMALI_UI_TEXT.profile}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 
     return (
         <div className="flex h-screen bg-white dark:bg-black overflow-hidden">
-            {/* Sidebar: Category List (Campuses) - Desktop Only */}
             <div className="hidden lg:flex w-80 border-r border-gray-100 dark:border-white/5 flex-col bg-white dark:bg-black">
-                <div className="h-20 px-8 flex items-center gap-4">
-                    <div className="relative w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg shadow-primary/10 border border-gray-100 dark:border-white/5">
+                <div className="h-20 ml-0 pl-0 px-8 flex items-center justify-center">
+                    <div className="relative w-32 h-12 pl-0 px-8  overflow-hidden flex-shrink-0">
                         <Image
                             src="/logo.png"
                             alt="Garaad Logo"
                             fill
-                            sizes="40px"
-                            className="object-cover"
+                            sizes="128px"
+                            className="object-contain"
                         />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black dark:text-white tracking-tight leading-none">
-                            {SOMALI_UI_TEXT.community}
-                        </h1>
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">Platform</p>
                     </div>
                 </div>
                 {categoryList}

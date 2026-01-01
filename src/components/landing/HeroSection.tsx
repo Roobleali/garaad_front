@@ -91,7 +91,7 @@ export function HeroSection() {
                         className="w-full sm:w-auto text-lg h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg hover:shadow-primary/25 transition-all transform hover:-translate-y-1"
                         onClick={() => router.push(isAuthenticated ? "/courses" : "/welcome")}
                     >
-                        {isAuthenticated ? "Sii wad Barashada" : "Bilow Hadda"}
+                        {isAuthenticated ? "Sii wad Barashada" : "Bilow Hadda - Waa Bilaash"}
                     </Button>
 
 

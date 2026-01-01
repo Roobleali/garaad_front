@@ -83,6 +83,13 @@ export const categoryService = {
   getCategoryDetails: async (categoryId: string) => {
     return apiCall(`community/categories/${categoryId}/`);
   },
+
+  // Toggle pin status
+  togglePinCategory: async (categoryId: string) => {
+    return apiCall(`community/categories/${categoryId}/toggle_pin/`, {
+      method: "POST",
+    });
+  },
 };
 
 // Post Management APIs
@@ -191,11 +198,35 @@ export const profileService = {
     preferred_language?: "so" | "en";
     email_notifications?: boolean;
     mention_notifications?: boolean;
+    profile_picture?: File; // Add support for image file
+    first_name?: string;
+    last_name?: string;
+    bio?: string;
   }) => {
-    return apiCall("community/profiles/me/", {
-      method: "PATCH",
-      body: JSON.stringify(profileData),
-    });
+    // If there's a file, we must use FormData
+    if (profileData.profile_picture) {
+      const formData = new FormData();
+      if (profileData.preferred_language) formData.append('preferred_language', profileData.preferred_language);
+      if (profileData.email_notifications !== undefined) formData.append('email_notifications', String(profileData.email_notifications));
+      if (profileData.mention_notifications !== undefined) formData.append('mention_notifications', String(profileData.mention_notifications));
+      if (profileData.first_name) formData.append('first_name', profileData.first_name);
+      if (profileData.last_name) formData.append('last_name', profileData.last_name);
+      if (profileData.bio) formData.append('bio', profileData.bio);
+
+      // Append the file properly
+      formData.append('profile_picture', profileData.profile_picture);
+
+      return apiCall("community/profiles/me/", {
+        method: "PATCH",
+        body: formData,
+      });
+    } else {
+      // Standard JSON update
+      return apiCall("community/profiles/me/", {
+        method: "PATCH",
+        body: JSON.stringify(profileData),
+      });
+    }
   },
 };
 
