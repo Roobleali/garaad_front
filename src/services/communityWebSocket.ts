@@ -16,7 +16,7 @@ export class CommunityWebSocket {
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000;
 
-    connect(categoryId: string | null, dispatch: AppDispatch) {
+    connect(categoryId: string | null = null, dispatch: AppDispatch) {
         if (typeof window === "undefined") return;
 
         const authService = AuthService.getInstance();
@@ -26,7 +26,18 @@ export class CommunityWebSocket {
             return;
         }
 
+        // If categoryId is null, we connect to "global" which receives private notifications
         const roomName = categoryId || "global";
+
+        // Don't reconnect if already connected to the same room
+        if (this.ws && this.currentCategoryId === categoryId && this.ws.readyState === WebSocket.OPEN) {
+            return;
+        }
+
+        // If switching rooms, disconnect first
+        if (this.ws) {
+            this.ws.close();
+        }
 
         this.dispatch = dispatch;
         this.currentCategoryId = categoryId;
@@ -37,12 +48,12 @@ export class CommunityWebSocket {
             const formattedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
             // Connect to community WebSocket
             const url = `${formattedBaseUrl}${roomName}/?token=${token}`;
-            console.log(`Connecting to WebSocket: ${url}`);
+            console.log(`[WS] Connecting to: ${url}`);
 
             this.ws = new WebSocket(url);
 
             this.ws.onopen = () => {
-                console.log(`WebSocket connected to category_${categoryId}`);
+                console.log(`[WS] Connected to ${roomName}`);
                 this.reconnectAttempts = 0;
             };
 
@@ -55,9 +66,11 @@ export class CommunityWebSocket {
                 }
             };
 
-            this.ws.onclose = () => {
-                console.log(`WebSocket disconnected from category_${categoryId}`);
-                this.attemptReconnect();
+            this.ws.onclose = (event) => {
+                console.log(`[WS] Disconnected from ${roomName} (Code: ${event.code})`);
+                if (event.code !== 1000) { // 1000 is normal closure
+                    this.attemptReconnect();
+                }
             };
 
             this.ws.onerror = (error) => {

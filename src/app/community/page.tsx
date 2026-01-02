@@ -45,7 +45,6 @@ export default function CommunityPage() {
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const wsRef = useRef<CommunityWebSocket | null>(null);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -143,21 +142,14 @@ export default function CommunityPage() {
         }
     }, [categories, selectedCategory, dispatch]);
 
-    // Maintain constant WebSocket connection for real-time notifications
+    // Category change effect (room switching for category events)
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        if (!wsRef.current) {
-            wsRef.current = new CommunityWebSocket();
-        }
-
-        // Connect to current category or global
-        wsRef.current.connect(selectedCategory?.id || null, dispatch);
-
-        return () => {
-            // Only disconnect if specifically desired, for now we keep it simple
-            // and reconnect on category changes
-        };
+        // Note: For now we are using a global connection in ClientLayout
+        // If we want to join specific category rooms for real-time post updates while browsing,
+        // we can still use a secondary connection or update the global one.
+        // For simplicity, notifications work globally via 'global' room.
     }, [dispatch, selectedCategory, isAuthenticated]);
 
     // Fetch posts when category changes

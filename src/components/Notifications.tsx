@@ -108,26 +108,56 @@ const formatTimeAgo = (dateString: string) => {
   return date.toLocaleDateString("so-SO");
 };
 
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import communityService from "@/services/community";
-import { UserProfile } from "@/types/community";
+import { UserProfile, Notification as CommunityNotification } from "@/types/community";
 import AuthenticatedAvatar from "./ui/authenticated-avatar";
 import { getMediaUrl } from "@/lib/utils";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
+import { markNotificationRead, markAllNotificationsAsRead, selectUnreadNotificationCount } from "@/store/features/communitySlice";
+import { useRouter } from "next/navigation";
+import { getUserDisplayName } from "@/types/community";
 
 export default function NotificationPanel() {
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { notification, mutate } = useNotification();
+  const communityNotifications = useSelector((state: RootState) => state.community.notifications);
+  const communityUnreadCount = useSelector(selectUnreadNotificationCount);
+
   const [dismissed, setDismissed] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<'notifications' | 'users'>('notifications');
   const [enabledUsers, setEnabledUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  const visibleNotifications: Notification[] =
+  const visibleGamificationNotifications: Notification[] =
     notification?.filter((n: Notification) => !dismissed.includes(n.id)) || [];
 
-  const unreadCount = visibleNotifications.filter((n) => !n.is_read).length;
+  const gamificationUnreadCount = visibleGamificationNotifications.filter((n) => !n.is_read).length;
+  const totalUnreadCount = gamificationUnreadCount + communityUnreadCount;
+
+  // Combine and sort notifications
+  const allNotifications = useMemo(() => {
+    const combined = [
+      ...visibleGamificationNotifications.map(n => ({ ...n, source: 'gamification' as const })),
+      ...communityNotifications.map(n => ({
+        id: n.id,
+        type: 'social' as const, // Map community notifications to consistent icon
+        title: n.title,
+        message: n.message,
+        is_read: n.is_read,
+        created_at: n.created_at,
+        source: 'community' as const,
+        raw: n
+      }))
+    ];
+
+    return combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [visibleGamificationNotifications, communityNotifications]);
 
   const handleOpen = async () => {
-    await mutate(); // refetch notifications
+    await mutate(); // refetch gamification notifications
     fetchEnabledUsers();
   };
 
@@ -153,12 +183,12 @@ export default function NotificationPanel() {
         <PopoverTrigger asChild>
           <Button variant="outline" size="icon" className="relative">
             <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
+            {totalUnreadCount > 0 && (
               <Badge
                 variant="destructive"
-                className="absolute text-gray-200 text-md  -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
+                className="absolute text-white -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-bold"
               >
-                {unreadCount > 9 ? "9+" : unreadCount}
+                {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
               </Badge>
             )}
           </Button>
@@ -174,9 +204,9 @@ export default function NotificationPanel() {
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Ogeysiisyo</h3>
-                {unreadCount > 0 && (
+                {totalUnreadCount > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    {unreadCount} cusub
+                    {totalUnreadCount} cusub
                   </Badge>
                 )}
               </div>
@@ -206,26 +236,38 @@ export default function NotificationPanel() {
             <div className="flex-1 overflow-y-auto">
               {activeTab === 'notifications' ? (
                 <ScrollArea className="h-full">
-                  {visibleNotifications.length === 0 ? (
+                  {allNotifications.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                       <BellOff className="h-12 w-12 text-muted-foreground/50 mb-4" />
                       <p className="text-sm text-muted-foreground">Ogeysiis cusub ma jiro</p>
                     </div>
                   ) : (
-                    <div className="divide-y">
-                      {visibleNotifications.map((notif) => {
+                    <div className="divide-y divide-gray-100 dark:divide-white/5">
+                      {allNotifications.map((notif) => {
+                        const isCommunity = 'source' in notif && notif.source === 'community';
                         const IconComponent = getNotificationIcon(notif.type);
                         const colorClass = getNotificationColor(notif.type);
+
                         return (
                           <div
                             key={notif.id}
-                            className={`p-4 transition-colors hover:bg-muted/50 cursor-pointer relative group ${!notif.is_read ? "bg-blue-50/50" : ""
+                            className={`p-4 transition-colors hover:bg-muted/50 cursor-pointer relative group ${!notif.is_read ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
                               }`}
+                            onClick={() => {
+                              if (isCommunity && notif.source === 'community') {
+                                if (!notif.is_read) dispatch(markNotificationRead(notif.id));
+                                router.push(`/community?post=${notif.raw.post_id}`);
+                              }
+                            }}
                           >
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDismiss(notif.id);
+                                if (isCommunity && notif.source === 'community') {
+                                  dispatch(markNotificationRead(notif.id)); // Using markRead as dismiss for community
+                                } else {
+                                  handleDismiss(Number(notif.id));
+                                }
                               }}
                               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
                             >
@@ -233,13 +275,23 @@ export default function NotificationPanel() {
                             </button>
 
                             <div className="flex gap-3">
-                              <div className={`flex-shrink-0 p-2 rounded-full h-fit ${colorClass}`}>
-                                <IconComponent className="h-4 w-4" />
-                              </div>
+                              {isCommunity && notif.source === 'community' && notif.raw.sender ? (
+                                <AuthenticatedAvatar
+                                  src={getMediaUrl(notif.raw.sender.profile_picture, 'profile_pics')}
+                                  alt={notif.raw.sender.username}
+                                  fallback={notif.raw.sender.username[0]}
+                                  size="sm"
+                                  className="flex-shrink-0"
+                                />
+                              ) : (
+                                <div className={`flex-shrink-0 p-2 rounded-full h-fit ${colorClass}`}>
+                                  <IconComponent className="h-4 w-4" />
+                                </div>
+                              )}
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Badge variant="outline" className="text-[10px] h-4">
-                                    {getTypeLabel(notif.type)}
+                                    {isCommunity && notif.source === 'community' ? notif.raw.notification_type_display : getTypeLabel(notif.type)}
                                   </Badge>
                                 </div>
                                 <h4 className="font-medium text-sm leading-tight mb-1">
@@ -316,15 +368,18 @@ export default function NotificationPanel() {
               )}
             </div>
 
-            {visibleNotifications.length > 0 && activeTab === 'notifications' && (
+            {allNotifications.length > 0 && activeTab === 'notifications' && (
               <div className="p-3 border-t bg-muted/30">
                 <Button
                   variant="ghost"
                   size="sm"
                   className="w-full text-xs font-medium"
-                  onClick={() => setDismissed(visibleNotifications.map((n) => n.id))}
+                  onClick={() => {
+                    setDismissed(visibleGamificationNotifications.map((n) => n.id));
+                    dispatch(markAllNotificationsAsRead());
+                  }}
                 >
-                  Dhammaan ka saar
+                  Dhammaan ka saar / Akhri
                 </Button>
               </div>
             )}
