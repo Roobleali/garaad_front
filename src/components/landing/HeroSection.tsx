@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { Sparkles, Zap, Trophy, Star, Github } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Reveal } from "./Reveal";
 
 export function HeroSection() {
     const router = useRouter();

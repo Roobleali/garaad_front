@@ -719,30 +719,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Referral Code Input */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="referralCode"
-                    className="text-sm font-medium text-slate-700"
-                  >
-                    Koodka La Wareejiyo (ikhtiyaari)
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="referralCode"
-                      type="text"
-                      placeholder="Geli koodka"
-                      value={userData.referralCode || ""}
-                      onChange={(e) =>
-                        setUserData({ ...userData, referralCode: e.target.value })
-                      }
-                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-
-
                 {/* Promo Code Input */}
                 <div className="space-y-2">
                   <Label
