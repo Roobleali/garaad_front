@@ -78,7 +78,7 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
 
         const requestId = `req_del_rep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         // 1. Instantly remove from UI for better UX
-        dispatch(removeOptimisticReply({ postId, tempId: replyId }));
+        dispatch(removeOptimisticReply({ postId, tempId: replyId, request_id: requestId }));
 
         // 2. Sync with server in background
         try {

@@ -51,23 +51,8 @@ export default function Home() {
       <Header />
       <main>
         <div className="relative">
-          {/* Above the fold - Hero is Client Component for animations/user-state */}
           <HeroSection />
-
           <CourseGrid />
-
-          <Suspense fallback={<SectionSkeleton />}>
-            <DynamicGuidedPathsSection />
-          </Suspense>
-
-          <Suspense fallback={<SectionSkeleton />}>
-            <DynamicLearningLevelsSection />
-          </Suspense>
-
-          <Suspense fallback={<SectionSkeleton />}>
-            <DynamicDownloadApp />
-          </Suspense>
-
           <FooterSection />
         </div>
       </main>

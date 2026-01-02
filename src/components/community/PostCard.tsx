@@ -52,25 +52,17 @@ export function PostCard({ post, userProfile }: PostCardProps) {
         const activeReaction = post.user_reactions.find(r => r !== type);
 
         // If switching reaction (e.g. was 'like', now 'fire'), remove the old one first
+        const requestId = `req_react_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         if (activeReaction) {
-            dispatch(toggleReactionOptimistic({ postId: post.id, type: activeReaction, isAdding: false }));
+            dispatch(toggleReactionOptimistic({ postId: post.id, type: activeReaction, isAdding: false, request_id: requestId }));
         }
 
         const isAdding = !post.user_reactions.includes(type);
 
-        const requestId = `req_react_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         // 1. Immediately update UI (Toggle the clicked one)
-        dispatch(toggleReactionOptimistic({ postId: post.id, type, isAdding }));
+        dispatch(toggleReactionOptimistic({ postId: post.id, type, isAdding, request_id: requestId }));
 
         // 2. Send to server (will sync via WebSocket)
-        // If switching, we technically send two requests: remove old, add new. 
-        // Or backend handles 'set' logic? 
-        // Current backend 'reactToPost' toggles. So if we want to switch, 
-        // we might rely on backend to handle "if exists, delete, then add new"? 
-        // Or we invoke it twice? 
-        // Let's rely on the fact that if we click a new one, we want to toggle it on. 
-        // But we MUST also toggle OFF the old one if it exists and is different.
-
         if (activeReaction) {
             dispatch(reactToPost({ postId: post.id, type: activeReaction, requestId })); // Toggle off old
         }
@@ -83,7 +75,7 @@ export function PostCard({ post, userProfile }: PostCardProps) {
 
         const requestId = `req_del_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         // 1. Instantly remove from UI for better UX
-        dispatch(removeOptimisticPost(post.id));
+        dispatch(removeOptimisticPost({ postId: post.id, request_id: requestId }));
 
         // 2. Sync with server in background
         try {

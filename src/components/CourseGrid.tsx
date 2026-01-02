@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils";
 const courses = [
   {
     title: "Xisaab",
-    description: "Xisaabta aasaasiga ah, Algebra, iyo Geometry oo lagu baranayo qaab casri ah.",
-    icon: Calculator,
+    description: "Xisaabta aasaasiga ah iyo Algebra.",
     color: "from-[#d18ffd]/10 to-[#d18ffd]/20",
     iconColor: "text-[#d18ffd]",
     glow: "shadow-[#d18ffd]/20",
@@ -15,8 +14,7 @@ const courses = [
   },
   {
     title: "Falanqeyn Xogeed",
-    description: "Baro falanqaynta xogta (Data Analysis) iyo sida looga soo saaro macluumaad muhiim ah.",
-    icon: BarChart3,
+    description: "Baro falanqaynta xogta (Data Analysis).",
     color: "from-[#f0ff00]/5 to-[#f0ff00]/10",
     iconColor: "text-[#d4e000]",
     glow: "shadow-[#f0ff00]/20",
@@ -24,8 +22,7 @@ const courses = [
   },
   {
     title: "Cilmiga Kombiyuutarka",
-    description: "Sayniska Kombuyutarka, Algorithm-yada, iyo aasaaska software-ka.",
-    icon: Binary,
+    description: "Algorithm-yada iyo aasaaska software-ka.",
     color: "from-[#d18ffd]/10 to-[#d18ffd]/20",
     iconColor: "text-[#d18ffd]",
     glow: "shadow-[#d18ffd]/20",
@@ -33,8 +30,7 @@ const courses = [
   },
   {
     title: "Sirdoonka Macmalka ah",
-    description: "Barnaamij Sameynta & AI - Mustaqbalka tiknoolajiyadda oo Af-Soomaali ah.",
-    icon: Brain,
+    description: "Barnaamij Sameynta iyo AI.",
     color: "from-[#f0ff00]/5 to-[#f0ff00]/10",
     iconColor: "text-[#d4e000]",
     glow: "shadow-[#f0ff00]/20",
@@ -42,8 +38,7 @@ const courses = [
   },
   {
     title: "Injineeriyadda",
-    description: "Sayniska & Injineernimada, Fiisikiska, iyo qaababka wax loo dhiso.",
-    icon: Wrench,
+    description: "Fiisikiska iyo qaababka wax loo dhiso.",
     color: "from-[#d18ffd]/10 to-[#d18ffd]/20",
     iconColor: "text-[#d18ffd]",
     glow: "shadow-[#d18ffd]/20",
@@ -60,12 +55,6 @@ export function CourseGrid() {
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-[#f0ff00]/5 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 mb-20 space-y-6 text-center lg:text-left">
-          <div
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d18ffd]/10 border border-[#d18ffd]/20 text-[#d18ffd] text-xs font-black uppercase tracking-widest mb-4"
-          >
-            <Sparkles size={12} className="animate-pulse" />
-            <span>Koorsooyinka Tayada Leh</span>
-          </div>
 
           <div className="max-w-3xl">
             <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black text-foreground tracking-tight leading-[1.05]">
@@ -92,15 +81,6 @@ export function CourseGrid() {
               <div className="absolute inset-0 rounded-3xl sm:rounded-[3rem] bg-gradient-to-br from-white/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
               <div className="relative space-y-8 h-full flex flex-col">
-                <div className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-lg",
-                  "bg-gradient-to-br",
-                  course.color,
-                  course.glow,
-                  "group-hover:scale-110 group-hover:rotate-6"
-                )}>
-                  <course.icon size={30} className={course.iconColor} />
-                </div>
 
                 <div className="space-y-4 flex-grow">
                   <h3 className="text-2xl font-black text-foreground leading-tight group-hover:text-[#d18ffd] transition-colors">
@@ -127,23 +107,6 @@ export function CourseGrid() {
             </div>
           ))}
 
-          {/* Call to action card */}
-          <div
-            className="group relative p-8 sm:p-10 rounded-3xl sm:rounded-[3rem] border border-dashed border-[#d18ffd]/30 bg-[#d18ffd]/5 flex flex-col items-center justify-center text-center gap-6"
-          >
-            <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-[#d18ffd] shadow-md group-hover:scale-110 transition-transform">
-              <Sparkles size={32} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-black text-foreground">Ma haysaa su'aal?</h3>
-              <p className="text-sm text-muted-foreground font-medium px-4">
-                Nagala soo xiriir haddii aad u baahan tahay caawimaad ku saabsan xulashada koorsada saxda ah.
-              </p>
-            </div>
-            <button className="px-8 py-3 rounded-full bg-[#d18ffd] text-white text-sm font-black uppercase tracking-widest hover:bg-[#b870f0] transition-colors shadow-lg shadow-[#d18ffd]/20 active:scale-95 transform">
-              Nala hadal
-            </button>
-          </div>
         </div>
       </div>
     </section>

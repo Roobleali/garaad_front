@@ -97,12 +97,14 @@ export const createPost = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      // Generate a unique requestId for this action
-      const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const result = await communityService.post.createPost(categoryId, { ...postData, requestId });
-      return { ...result, tempId, requestId };
+      // Use the request_id provided by the component (for optimistic matching) or generate one
+      const request_id = postData.requestId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const result = await communityService.post.createPost(categoryId, { ...postData, requestId: request_id });
+      return { ...result, tempId, request_id };
     } catch (error: any) {
-      return rejectWithValue({ error: handleApiError(error), tempId });
+      // On failure, pass back the same info for cleanup
+      const request_id = postData.requestId;
+      return rejectWithValue({ error: handleApiError(error), tempId, request_id });
     }
   }
 );
@@ -130,9 +132,9 @@ export const deletePost = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const finalRequestId = requestId || `req_del_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      await communityService.post.deletePost(postId, finalRequestId);
-      return { postId, requestId: finalRequestId };
+      const final_request_id = requestId || `req_del_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await communityService.post.deletePost(postId, final_request_id);
+      return { postId, request_id: final_request_id };
     } catch (error: any) {
       return rejectWithValue(handleApiError(error));
     }
@@ -147,7 +149,9 @@ export const reactToPost = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      return await communityService.post.reactToPost(postId, type, requestId);
+      const final_request_id = requestId || `req_react_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const result = await communityService.post.reactToPost(postId, type, final_request_id);
+      return { ...result, postId, request_id: final_request_id };
     } catch (error: any) {
       return rejectWithValue({ error: handleApiError(error), postId, type });
     }
@@ -162,11 +166,12 @@ export const createReply = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const requestId = `req_rep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const reply = await communityService.reply.createReply(postId, { ...replyData, requestId });
-      return { postId, reply, tempId, requestId };
+      const request_id = replyData.requestId || `req_rep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const reply = await communityService.reply.createReply(postId, { ...replyData, requestId: request_id });
+      return { postId, reply, tempId, request_id };
     } catch (error: any) {
-      return rejectWithValue({ error: handleApiError(error), postId, tempId });
+      const request_id = replyData.requestId;
+      return rejectWithValue({ error: handleApiError(error), postId, tempId, request_id });
     }
   }
 );
@@ -194,9 +199,9 @@ export const deleteReply = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const finalRequestId = requestId || `req_del_rep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      await communityService.reply.deleteReply(replyId, finalRequestId);
-      return { postId, replyId, requestId: finalRequestId };
+      const final_request_id = requestId || `req_del_rep_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      await communityService.reply.deleteReply(replyId, final_request_id);
+      return { postId, replyId, request_id: final_request_id };
     } catch (error: any) {
       return rejectWithValue(handleApiError(error));
     }
@@ -285,9 +290,9 @@ const communitySlice = createSlice({
     },
 
     // OPTIMISTIC: Remove failed post
-    removeOptimisticPost: (state, action: PayloadAction<string>) => {
-      const post = state.posts.find(p => p.id.toString() === action.payload);
-      state.posts = state.posts.filter(p => p.id.toString() !== action.payload);
+    removeOptimisticPost: (state, action: PayloadAction<{ postId: string; request_id?: string }>) => {
+      const post = state.posts.find(p => p.id.toString() === action.payload.postId);
+      state.posts = state.posts.filter(p => p.id.toString() !== action.payload.postId);
 
       // Decrement category post count if we found the post
       if (post) {
@@ -296,13 +301,17 @@ const communitySlice = createSlice({
           category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
         }
       }
+
+      if (action.payload.request_id) {
+        state.pendingRequestIds.push(action.payload.request_id);
+      }
     },
 
     // OPTIMISTIC: Toggle reaction immediately
-    toggleReactionOptimistic: (state, action: PayloadAction<{ postId: string; type: ReactionType; isAdding: boolean }>) => {
+    toggleReactionOptimistic: (state, action: PayloadAction<{ postId: string; type: ReactionType; isAdding: boolean; request_id?: string }>) => {
       const post = state.posts.find(p => p.id === action.payload.postId);
       if (post) {
-        const { type, isAdding } = action.payload;
+        const { type, isAdding, request_id } = action.payload;
 
         if (isAdding) {
           post.reactions_count[type] += 1;
@@ -312,6 +321,10 @@ const communitySlice = createSlice({
         } else {
           post.reactions_count[type] = Math.max(0, post.reactions_count[type] - 1);
           post.user_reactions = post.user_reactions.filter(r => r !== type);
+        }
+
+        if (request_id) {
+          state.pendingRequestIds.push(request_id);
         }
       }
     },
@@ -329,11 +342,14 @@ const communitySlice = createSlice({
     },
 
     // OPTIMISTIC: Remove failed reply
-    removeOptimisticReply: (state, action: PayloadAction<{ postId: string; tempId: string }>) => {
+    removeOptimisticReply: (state, action: PayloadAction<{ postId: string; tempId: string; request_id?: string }>) => {
       const post = state.posts.find(p => p.id === action.payload.postId);
       if (post) {
         post.replies = post.replies.filter(r => r.id.toString() !== action.payload.tempId);
         post.replies_count = Math.max(0, post.replies_count - 1);
+        if (action.payload.request_id) {
+          state.pendingRequestIds.push(action.payload.request_id);
+        }
       }
     },
 
@@ -538,9 +554,9 @@ const communitySlice = createSlice({
           // If not found (maybe not added optimistically), add it
           state.posts.unshift(action.payload);
         }
-        // Cleanup requestId
-        if (action.payload.requestId) {
-          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.requestId);
+        // Cleanup request_id
+        if (action.payload.request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.request_id);
         }
       })
       .addCase(createPost.pending, (state, action) => {
@@ -549,8 +565,8 @@ const communitySlice = createSlice({
       })
       .addCase(createPost.rejected, (state, action) => {
         // Remove optimistic post on failure
-        const { tempId, postData } = action.meta.arg as any || {};
-        const requestId = postData?.requestId;
+        const { tempId, postData, request_id } = action.meta.arg as any || {};
+        const requestId = request_id || postData?.requestId;
 
         if (tempId) {
           // Find post to get category before removing
@@ -565,7 +581,7 @@ const communitySlice = createSlice({
           }
         }
 
-        // Cleanup requestId
+        // Cleanup request_id
         if (requestId) {
           state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
         }
@@ -583,7 +599,7 @@ const communitySlice = createSlice({
     // Delete Post
     builder
       .addCase(deletePost.fulfilled, (state, action) => {
-        const { postId, requestId } = action.payload;
+        const { postId, request_id } = action.payload;
         // Find post to get category before removing (if it was in list)
         const post = state.posts.find(p => p.id === postId);
         state.posts = state.posts.filter(p => p.id !== postId);
@@ -595,20 +611,24 @@ const communitySlice = createSlice({
           }
         }
 
-        // Cleanup requestId
-        if (requestId) {
-          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
+        // Cleanup request_id
+        if (request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== request_id);
         }
       });
 
     // React to Post - Sync with server response
     builder
       .addCase(reactToPost.fulfilled, (state, action) => {
-        const post = state.posts.find(p => p.id === action.meta.arg.postId);
+        const post = state.posts.find(p => p.id === action.payload.postId);
         if (post && action.payload) {
           // Sync with server truth
           post.reactions_count = action.payload.reactions_count || post.reactions_count;
           post.user_reactions = action.payload.user_reactions || post.user_reactions;
+        }
+        // Cleanup request_id
+        if (action.payload.request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.request_id);
         }
       })
       .addCase(reactToPost.rejected, (state, action) => {
@@ -638,22 +658,22 @@ const communitySlice = createSlice({
             post.replies[index] = action.payload.reply;
           }
         }
-        // Cleanup requestId
-        if (action.payload.requestId) {
-          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.requestId);
+        // Cleanup request_id
+        if (action.payload.request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.request_id);
         }
       })
       .addCase(createReply.rejected, (state, action) => {
         // Remove optimistic reply on failure
-        const { postId, tempId, requestId } = action.payload as any || {};
+        const { postId, tempId, request_id } = action.payload as any || {};
         const post = state.posts.find(p => p.id === postId);
         if (post && tempId) {
           post.replies = post.replies.filter(r => r.id.toString() !== tempId);
           post.replies_count = Math.max(0, post.replies_count - 1);
         }
-        // Cleanup requestId
-        if (requestId) {
-          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
+        // Cleanup request_id
+        if (request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== request_id);
         }
       });
 
@@ -674,16 +694,16 @@ const communitySlice = createSlice({
     // Delete Reply
     builder
       .addCase(deleteReply.fulfilled, (state, action) => {
-        const { postId, replyId, requestId } = action.payload;
+        const { postId, replyId, request_id } = action.payload;
         const post = state.posts.find(p => p.id === postId);
         if (post) {
           post.replies = post.replies.filter(r => r.id !== replyId);
           post.replies_count = Math.max(0, post.replies_count - 1);
         }
 
-        // Cleanup requestId
-        if (requestId) {
-          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
+        // Cleanup request_id
+        if (request_id) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== request_id);
         }
       });
 

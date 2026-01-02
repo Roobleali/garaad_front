@@ -31,34 +31,9 @@ export function HeroSection() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.03)_0%,transparent_70%)]" />
             </div>
 
-            {/* Floating Icons Animation */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[15%] left-[10%] animate-bounce delay-1000 opacity-20">
-                    <Sparkles className="w-12 h-12 text-yellow-400" />
-                </div>
-                <div className="absolute top-[25%] right-[15%] animate-pulse delay-700 opacity-20">
-                    <Zap className="w-10 h-10 text-blue-500" />
-                </div>
-                <div className="absolute bottom-[20%] left-[15%] animate-bounce delay-500 opacity-20">
-                    <Trophy className="w-14 h-14 text-primary" />
-                </div>
-                <div className="absolute bottom-[30%] right-[10%] animate-pulse delay-200 opacity-20">
-                    <Star className="w-8 h-8 text-purple-500" />
-                </div>
-            </div>
 
             <div className="relative z-10 max-w-5xl mx-auto py-6 sm:py-10 text-center space-y-8 sm:space-y-12">
 
-                {/* Community Badge */}
-                <div className="flex justify-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 backdrop-blur-sm cursor-pointer hover:bg-blue-100/50 transition-colors"
-                        onClick={() => window.open('https://github.com/Garaadorg', '_blank')}>
-                        <Github className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                            Wan ku faaneyna inan nahay Open Source | Xiddig na sii GitHub-ka
-                        </span>
-                    </div>
-                </div>
 
                 {/* Main Content */}
                 <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
@@ -78,9 +53,8 @@ export function HeroSection() {
                     </h1>
 
                     {/* Description */}
-                    <p className="text-base sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium px-4">
-                        Ku baro <span className="text-foreground font-semibold">Xisaabta, Fiisikiska, iyo Tiknoolajiyadda</span> afkaaga hooyo.
-                        Casharo heer sare ah oo u furan ardayda iyo horumariyeyaasha.
+                    <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium px-4">
+                        Barashada <span className="text-foreground font-semibold">Xisaabta iyo Tiknoolajiyadda</span> afkaaga hooyo.
                     </p>
                 </div>
 

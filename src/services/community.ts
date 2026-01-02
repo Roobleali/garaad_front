@@ -107,6 +107,10 @@ export const postService = {
       formData.append("category", postData.category);
       formData.append("content", postData.content);
 
+      if (postData.requestId) {
+        formData.append("requestId", postData.requestId);
+      }
+
       postData.images.forEach((image, index) => {
         formData.append(`images`, image);
       });
