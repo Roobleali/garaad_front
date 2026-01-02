@@ -31,8 +31,7 @@ export default function ClientLayout({
 
           // Initialize Global WebSocket for real-time notifications
           const { CommunityWebSocket } = await import("@/services/communityWebSocket");
-          const ws = new CommunityWebSocket();
-          ws.connect(null, dispatch as any); // Connect to 'global' room
+          CommunityWebSocket.getInstance().connect(null, dispatch as any); // Connect to 'global' room
         }
       } else {
         dispatch(logout());

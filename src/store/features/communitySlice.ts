@@ -516,8 +516,27 @@ const communitySlice = createSlice({
 
     // WEBSOCKET: Add new notification in real-time
     addNotification: (state, action: PayloadAction<Notification>) => {
+      // Check for duplicates
+      if (state.notifications.some(n => n.id === action.payload.id)) {
+        return;
+      }
       // Add to beginning of notifications array
       state.notifications.unshift(action.payload);
+    },
+
+    // WEBSOCKET: Sync read status
+    handleWebSocketNotificationRead: (state, action: PayloadAction<{ notification_id: string }>) => {
+      const notification = state.notifications.find(n => n.id === action.payload.notification_id);
+      if (notification) {
+        notification.is_read = true;
+      }
+    },
+
+    // WEBSOCKET: Sync all read
+    handleWebSocketAllNotificationsRead: (state) => {
+      state.notifications.forEach(n => {
+        n.is_read = true;
+      });
     },
 
     // Mark all notifications as read
@@ -790,10 +809,19 @@ const communitySlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading.notifications = false;
+        const newNotifications = action.payload.data.results || action.payload.data;
+
         if (action.payload.reset) {
-          state.notifications = action.payload.data.results || action.payload.data;
+          // Instead of overwriting, merge to preserve notifications added via WebSocket
+          // while this request was flying
+          const existingIds = new Set(newNotifications.map((n: any) => n.id));
+          const webSocketOnly = state.notifications.filter(n => !existingIds.has(n.id));
+          state.notifications = [...webSocketOnly, ...newNotifications];
         } else {
-          state.notifications.push(...(action.payload.data.results || action.payload.data));
+          // Append for pagination
+          const existingIds = new Set(state.notifications.map(n => n.id));
+          const filtered = newNotifications.filter((n: any) => !existingIds.has(n.id));
+          state.notifications.push(...filtered);
         }
         state.pagination.notifications.hasMore = !!action.payload.data.next;
       })
@@ -851,6 +879,8 @@ export const {
   setPinnedCategories,
   loadPinnedCategoriesFromStorage,
   addNotification,
+  handleWebSocketNotificationRead,
+  handleWebSocketAllNotificationsRead,
   markAllNotificationsAsRead: markAllNotificationsAsReadAction,
 } = communitySlice.actions;
 

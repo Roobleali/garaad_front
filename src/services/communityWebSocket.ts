@@ -6,15 +6,27 @@ import {
     handleWebSocketReactionUpdate,
     handleWebSocketReply,
     addNotification,
+    handleWebSocketNotificationRead,
+    handleWebSocketAllNotificationsRead,
 } from "@/store/features/communitySlice";
 
 export class CommunityWebSocket {
+    private static instance: CommunityWebSocket | null = null;
     private ws: WebSocket | null = null;
     private dispatch: AppDispatch | null = null;
     private currentCategoryId: string | null = null;
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000;
+
+    private constructor() { }
+
+    public static getInstance(): CommunityWebSocket {
+        if (!CommunityWebSocket.instance) {
+            CommunityWebSocket.instance = new CommunityWebSocket();
+        }
+        return CommunityWebSocket.instance;
+    }
 
     connect(categoryId: string | null = null, dispatch: AppDispatch) {
         if (typeof window === "undefined") return;
@@ -36,6 +48,7 @@ export class CommunityWebSocket {
 
         // If switching rooms, disconnect first
         if (this.ws) {
+            console.log(`[WS] Switching room from ${this.currentCategoryId || 'global'} to ${roomName}`);
             this.ws.close();
         }
 
@@ -86,22 +99,18 @@ export class CommunityWebSocket {
 
         switch (data.type) {
             case "post_created":
-                // New post from another user
                 this.dispatch(handleWebSocketPost({ ...data.post, request_id: data.request_id }));
                 break;
 
             case "post_updated":
-                // Post updated by another user
                 this.dispatch(handleWebSocketPost({ ...data.post, request_id: data.request_id }));
                 break;
 
             case "post_deleted":
-                // Post deleted by another user
                 this.dispatch(handleWebSocketPostDeleted({ post_id: data.post_id, request_id: data.request_id }));
                 break;
 
             case "reaction_updated":
-                // Reaction changed (sync truth)
                 this.dispatch(handleWebSocketReactionUpdate({
                     post_id: data.post_id,
                     reactions_count: data.reactions_count,
@@ -110,7 +119,6 @@ export class CommunityWebSocket {
                 break;
 
             case "reply_created":
-                // New reply from another user
                 this.dispatch(handleWebSocketReply({
                     postId: data.post_id,
                     reply: data.reply,
@@ -119,7 +127,6 @@ export class CommunityWebSocket {
                 break;
 
             case "reply_updated":
-                // Reply updated by another user
                 this.dispatch(handleWebSocketReply({
                     postId: data.post_id,
                     reply: data.reply,
@@ -128,7 +135,6 @@ export class CommunityWebSocket {
                 break;
 
             case "reply_deleted":
-                // Reply deleted by another user
                 this.dispatch(handleWebSocketReply({
                     postId: data.post_id,
                     reply_id: data.reply_id,
@@ -138,7 +144,16 @@ export class CommunityWebSocket {
 
             case "notification_created":
                 // New notification for the current user
+                console.log("[WS] Received notification:", data.notification);
                 this.dispatch(addNotification(data.notification));
+                break;
+
+            case "notification_read":
+                this.dispatch(handleWebSocketNotificationRead({ notification_id: data.notification_id }));
+                break;
+
+            case "all_notifications_read":
+                this.dispatch(handleWebSocketAllNotificationsRead());
                 break;
 
             default:
@@ -167,9 +182,6 @@ export class CommunityWebSocket {
         this.currentCategoryId = null;
         this.reconnectAttempts = 0;
     }
-
-    // Send is not needed - we use HTTP POST for all mutations
-    // WebSocket is ONLY for receiving sync events
 }
 
 export default CommunityWebSocket;
