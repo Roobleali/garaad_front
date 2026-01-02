@@ -85,19 +85,19 @@ export const TwitterLikePost: React.FC<TwitterLikePostProps> = ({
         const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
         if (diffInMinutes < 1) return 'hadda';
-        if (diffInMinutes < 60) return `${diffInMinutes}m`;
+        if (diffInMinutes < 60) return `${diffInMinutes} Daqiiqo`;
 
         const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `${diffInHours}h`;
+        if (diffInHours < 24) return `${diffInHours}S`; // Saacadood
 
         const diffInDays = Math.floor(diffInHours / 24);
-        if (diffInDays < 7) return `${diffInDays}d`;
+        if (diffInDays < 7) return `${diffInDays}M`; // Maalmood
 
         const diffInWeeks = Math.floor(diffInDays / 7);
-        if (diffInWeeks < 4) return `${diffInWeeks}w`;
+        if (diffInWeeks < 4) return `${diffInWeeks}us`;
 
         const diffInMonths = Math.floor(diffInDays / 30);
-        return `${diffInMonths}mo`;
+        return `${diffInMonths}bil`;
     };
 
     const handleLike = () => {
