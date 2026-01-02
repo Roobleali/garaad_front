@@ -18,6 +18,7 @@ import { AlertCircle, Menu, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SOMALI_UI_TEXT, getUserDisplayName } from '@/types/community';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
 
@@ -33,10 +34,18 @@ export default function CommunityPage() {
     } = useSelector((state: RootState) => state.community);
 
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const wsRef = useRef<CommunityWebSocket | null>(null);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+    // Redirect to home if not authenticated
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push('/');
+        }
+    }, [isAuthenticated, router]);
 
     // Initialize theme based on document class
     useEffect(() => {
@@ -103,20 +112,7 @@ export default function CommunityPage() {
         );
     }
 
-    if (!isAuthenticated) {
-        return (
-            <div className="min-h-screen bg-slate-50 dark:bg-black flex items-center justify-center p-4">
-                <div className="text-center max-w-sm bg-white dark:bg-slate-900 p-8 rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800">
-                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <AlertCircle className="h-8 w-8 text-red-500" />
-                    </div>
-                    <h2 className="text-2xl font-black mb-4 dark:text-white">Ma leha galid</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium italic">{SOMALI_UI_TEXT.authError}</p>
-                    <Button onClick={() => window.location.href = '/login'} className="w-full h-12 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-primary/20">Tag bogga galidda</Button>
-                </div>
-            </div>
-        );
-    }
+    if (!isAuthenticated) return null;
 
     const categoryList = (
         <div className="flex flex-col h-full bg-gray-50/50 dark:bg-black/50">

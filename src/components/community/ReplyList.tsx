@@ -13,7 +13,7 @@ import {
     deleteReply,
     removeOptimisticReply,
 } from "@/store/features/communitySlice";
-import { getMediaUrl } from "@/lib/utils";
+import { getMediaUrl, formatSomaliRelativeTime } from "@/lib/utils";
 import AuthenticatedAvatar from "@/components/ui/authenticated-avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -133,7 +133,7 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                     {replies.map((reply) => {
                         const isPending = reply.id?.toString().startsWith("temp-") || false;
                         const isOwnReply = userProfile?.id === reply.author?.id;
-                        const timeAgo = reply.created_at ? formatDistanceToNow(new Date(reply.created_at), { addSuffix: true }) : SOMALI_UI_TEXT.now;
+                        const timeAgo = formatSomaliRelativeTime(reply.created_at);
 
                         return (
                             <div

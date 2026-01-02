@@ -16,7 +16,7 @@ import {
     deletePost,
     removeOptimisticPost,
 } from "@/store/features/communitySlice";
-import { getMediaUrl, cn } from "@/lib/utils";
+import { getMediaUrl, cn, formatSomaliRelativeTime } from "@/lib/utils";
 import AuthenticatedAvatar from "@/components/ui/authenticated-avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Trash2, Loader2, Plus, Smile } from "lucide-react";
@@ -104,20 +104,7 @@ export function PostCard({ post, userProfile }: PostCardProps) {
         }
     }, [showReplies]);
 
-    const formatSomaliDate = (dateString: string) => {
-        if (!dateString) return SOMALI_UI_TEXT.now;
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-        if (diffInSeconds < 60) return "hadda";
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} daqiiqo ka hor`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} saacadood ka hor`;
-        if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} maalmood ka hor`;
-        return date.toLocaleDateString('so-SO');
-    };
-
-    const timeAgo = post.created_at ? formatSomaliDate(post.created_at) : SOMALI_UI_TEXT.now;
+    const timeAgo = formatSomaliRelativeTime(post.created_at);
 
     return (
         <div className={cn(

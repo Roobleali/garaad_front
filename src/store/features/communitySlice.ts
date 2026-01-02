@@ -279,6 +279,9 @@ const communitySlice = createSlice({
       if (category) {
         category.posts_count = (category.posts_count || 0) + 1;
       }
+      if (action.payload.request_id) {
+        state.pendingRequestIds.push(action.payload.request_id);
+      }
     },
 
     // OPTIMISTIC: Remove failed post
@@ -319,6 +322,9 @@ const communitySlice = createSlice({
       if (post) {
         post.replies.push(action.payload.reply);
         post.replies_count += 1;
+        if (action.payload.reply.request_id) {
+          state.pendingRequestIds.push(action.payload.reply.request_id);
+        }
       }
     },
 
@@ -336,11 +342,14 @@ const communitySlice = createSlice({
       const { request_id, id, category } = action.payload;
 
       // If this client initiated the request, ignore the WebSocket echo to prevent duplication
+      // This is a short-term filter for messages arriving *during* the HTTP request
       if (request_id && state.pendingRequestIds.includes(request_id)) {
         return;
       }
 
-      const index = state.posts.findIndex(p => p.id === id);
+      // Robust check: Is there any post with this ID or this REQUEST_ID?
+      // Matches both real IDs and optimistic temp IDs if they share the same requestId
+      const index = state.posts.findIndex(p => p.id === id || (request_id && p.request_id === request_id));
       if (index !== -1) {
         // Update existing post (authoritative sync)
         state.posts[index] = { ...state.posts[index], ...action.payload };
@@ -409,9 +418,10 @@ const communitySlice = createSlice({
 
       if (reply) {
         // Handle Creation or Update
-        const index = post.replies.findIndex(r => r.id === reply.id);
+        // Check by ID or requestId for robust duplication prevention
+        const index = post.replies.findIndex(r => r.id === reply.id || (request_id && r.request_id === request_id));
         if (index !== -1) {
-          post.replies[index] = reply;
+          post.replies[index] = { ...post.replies[index], ...reply };
         } else {
           post.replies.push(reply);
           post.replies_count += 1;
@@ -539,7 +549,9 @@ const communitySlice = createSlice({
       })
       .addCase(createPost.rejected, (state, action) => {
         // Remove optimistic post on failure
-        const tempId = (action.meta.arg as any)?.tempId; // Assuming tempId is in meta.arg for rejected
+        const { tempId, postData } = action.meta.arg as any || {};
+        const requestId = postData?.requestId;
+
         if (tempId) {
           // Find post to get category before removing
           const post = state.posts.find(p => p.id.toString() === tempId);
@@ -551,6 +563,11 @@ const communitySlice = createSlice({
               category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
             }
           }
+        }
+
+        // Cleanup requestId
+        if (requestId) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
         }
       });
 
@@ -621,14 +638,22 @@ const communitySlice = createSlice({
             post.replies[index] = action.payload.reply;
           }
         }
+        // Cleanup requestId
+        if (action.payload.requestId) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== action.payload.requestId);
+        }
       })
       .addCase(createReply.rejected, (state, action) => {
         // Remove optimistic reply on failure
-        const { postId, tempId } = action.payload as any;
+        const { postId, tempId, requestId } = action.payload as any || {};
         const post = state.posts.find(p => p.id === postId);
         if (post && tempId) {
           post.replies = post.replies.filter(r => r.id.toString() !== tempId);
           post.replies_count = Math.max(0, post.replies_count - 1);
+        }
+        // Cleanup requestId
+        if (requestId) {
+          state.pendingRequestIds = state.pendingRequestIds.filter(id => id !== requestId);
         }
       });
 

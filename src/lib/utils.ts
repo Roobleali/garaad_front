@@ -59,3 +59,38 @@ export function getMediaUrl(
 
   return finalUrl;
 }
+
+/**
+ * Formats a date string into a relative Somali time string in uppercase
+ * e.g., "20 SAACAD KA HOR", "HADDA"
+ */
+export function formatSomaliRelativeTime(dateString?: string): string {
+  if (!dateString) return "HADDA";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "HADDA";
+
+  if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes} DAQIIQO KA HOR`;
+  }
+
+  if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours} SAACAD KA HOR`;
+  }
+
+  if (diffInSeconds < 604800) {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} MAALMOOD KA HOR`;
+  }
+
+  if (diffInSeconds < 2419200) {
+    const weeks = Math.floor(diffInSeconds / 604800);
+    return `${weeks} ASBUUC KA HOR`;
+  }
+
+  return date.toLocaleDateString("so-SO").toUpperCase();
+}
