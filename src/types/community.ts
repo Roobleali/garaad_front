@@ -63,6 +63,10 @@ export interface CreatePostData {
 }
 
 // Create reply data
+export interface CreateReplyData {
+  content: string;
+}
+
 // Helper to format user display name with "Garaad" prefix
 export const getUserDisplayName = (user: { first_name?: string; last_name?: string; username: string } | null | undefined): string => {
   if (!user) return "Garaad Xubin";

@@ -34,10 +34,12 @@ export class CommunityWebSocket {
         this.currentCategoryId = categoryId;
 
         try {
-            const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "wss://api.garaad.org/ws/community/";
-            // Connect to community WebSocket
-            const url = `${wsUrl}?token=${token}`;
-            console.log(`Connecting to WebSocket: ${categoryId}`);
+            const baseUrl = process.env.NEXT_PUBLIC_WS_URL || "wss://api.garaad.org/ws/community/";
+            // Ensure baseUrl ends in a slash if adding categoryId
+            const formattedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+            // Connect to community WebSocket with categoryId in path
+            const url = `${formattedBaseUrl}${categoryId}/?token=${token}`;
+            console.log(`Connecting to WebSocket: ${url}`);
 
             this.ws = new WebSocket(url);
 

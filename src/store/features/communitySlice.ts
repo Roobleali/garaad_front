@@ -358,19 +358,10 @@ const communitySlice = createSlice({
     },
 
     // WEBSOCKET: Handle reaction update
-    handleWebSocketReactionUpdate: (state, action: PayloadAction<{ post_id: string; reaction_type: ReactionType; is_adding: boolean }>) => {
+    handleWebSocketReactionUpdate: (state, action: PayloadAction<{ post_id: string; reactions_count: Record<string, number> }>) => {
       const post = state.posts.find(p => p.id === action.payload.post_id);
       if (post) {
-        const { reaction_type, is_adding } = action.payload;
-        if (is_adding) {
-          post.reactions_count[reaction_type] = (post.reactions_count[reaction_type] || 0) + 1;
-          if (!post.user_reactions.includes(reaction_type)) {
-            post.user_reactions.push(reaction_type);
-          }
-        } else {
-          post.reactions_count[reaction_type] = Math.max(0, (post.reactions_count[reaction_type] || 0) - 1);
-          post.user_reactions = post.user_reactions.filter(r => r !== reaction_type);
-        }
+        post.reactions_count = action.payload.reactions_count;
       }
     },
 
@@ -635,7 +626,7 @@ const communitySlice = createSlice({
 
           // Check if sets are equal size and content
           const isSameSet = serverSet.size === localSet.size &&
-            [...serverSet].every(id => localSet.has(id as string));
+            action.payload.pinned_categories.every((id: any) => localSet.has(id as string));
 
           if (!isSameSet) {
             state.pinnedCategoryIds = action.payload.pinned_categories;

@@ -118,7 +118,7 @@ export class AuthService {
   private user: User | null = null;
   private baseURL: string =
     typeof window !== 'undefined' && window.location.hostname === 'localhost'
-      ? "http://localhost:8000"
+      ? "https://api.garaad.org"
       : process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
   private refreshTimeout: NodeJS.Timeout | null = null;
   private isRefreshing = false;
