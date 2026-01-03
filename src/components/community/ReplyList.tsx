@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LinkifiedText } from "@/components/ui/linkified-text";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import {
@@ -179,9 +180,9 @@ export function ReplyList({ postId, replies, userProfile }: ReplyListProps) {
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-xs dark:text-gray-200 whitespace-pre-wrap">
-                                        {reply.content}
-                                    </p>
+                                    <div className="text-xs dark:text-gray-200 whitespace-pre-wrap">
+                                        <LinkifiedText text={reply.content} />
+                                    </div>
                                 </div>
                             </div>
                         );

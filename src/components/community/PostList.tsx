@@ -50,8 +50,8 @@ export function PostList({
     }
 
     return (
-        <ScrollArea className="flex-1">
-            <div className="max-w-3xl mx-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="max-w-3xl mx-auto p-4 space-y-4 pb-20">
                 {showInlineInput && categoryId && (
                     <InlinePostInput categoryId={categoryId} />
                 )}
@@ -75,6 +75,6 @@ export function PostList({
                     </div>
                 )}
             </div>
-        </ScrollArea>
+        </div>
     );
 }

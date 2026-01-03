@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
+import { LinkifiedText } from "@/components/ui/linkified-text";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store/store";
 import {
@@ -180,15 +181,10 @@ export function PostCard({ post, userProfile, initiallyShowReplies = false, targ
                 )}
             </div>
 
-            {/* Content */}
             <div className="mb-4">
-                <p className="text-[15px] dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
-                    {post.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) => (
-                        part.match(/^https?:\/\//)
-                            ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>{part}</a>
-                            : part
-                    ))}
-                </p>
+                <div className="text-[15px] dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+                    <LinkifiedText text={post.content} />
+                </div>
             </div>
 
             {/* Images */}
