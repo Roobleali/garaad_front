@@ -131,6 +131,7 @@ export class CommunityWebSocket {
                     this.dispatch(handleWebSocketReply({
                         postId: data.post_id,
                         reply: data.reply,
+                        replies_count: data.replies_count,
                         request_id: data.request_id
                     }));
                     break;
@@ -147,6 +148,7 @@ export class CommunityWebSocket {
                     this.dispatch(handleWebSocketReply({
                         postId: data.post_id,
                         reply_id: data.reply_id,
+                        replies_count: data.replies_count,
                         request_id: data.request_id
                     }));
                     break;

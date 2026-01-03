@@ -439,9 +439,10 @@ const communitySlice = createSlice({
       postId: string;
       reply?: CommunityReply;
       reply_id?: string;
+      replies_count?: number;
       request_id?: string
     }>) => {
-      const { postId, reply, reply_id, request_id } = action.payload;
+      const { postId, reply, reply_id, replies_count, request_id } = action.payload;
 
       // Ignore if we initiated the request
       if (request_id && state.pendingRequestIds.includes(request_id)) {
@@ -453,21 +454,25 @@ const communitySlice = createSlice({
 
       if (reply) {
         // Handle Creation or Update
-        // Check by ID or requestId for robust duplication prevention
         const index = post.replies.findIndex(r => r.id === reply.id || (request_id && r.request_id === request_id));
         if (index !== -1) {
           post.replies[index] = { ...post.replies[index], ...reply };
         } else {
           post.replies.push(reply);
-          post.replies_count += 1;
+          // Use authoritative count if server provided it, otherwise increment
+          post.replies_count = replies_count !== undefined ? replies_count : post.replies_count + 1;
         }
       } else if (reply_id) {
         // Handle Deletion
         const exists = post.replies.some(r => r.id === reply_id);
         if (exists) {
           post.replies = post.replies.filter(r => r.id !== reply_id);
-          post.replies_count = Math.max(0, post.replies_count - 1);
         }
+        // Always use authoritative count if server provided it, otherwise decrement
+        post.replies_count = replies_count !== undefined ? replies_count : Math.max(0, post.replies_count - 1);
+      } else if (replies_count !== undefined) {
+        // Handle standalone count update if needed
+        post.replies_count = replies_count;
       }
     },
 
@@ -659,11 +664,15 @@ const communitySlice = createSlice({
     builder
       .addCase(deletePost.fulfilled, (state, action) => {
         const { postId, request_id } = action.payload;
+
+        // Check if an optimistic action already handled the count
+        const isOptimistic = request_id && state.pendingRequestIds.includes(request_id);
+
         // Find post to get category before removing (if it was in list)
         const post = state.posts.find(p => p.id === postId);
         state.posts = state.posts.filter(p => p.id !== postId);
 
-        if (post) {
+        if (post && !isOptimistic) {
           const category = state.categories.find(c => c.id === post.category);
           if (category) {
             category.posts_count = Math.max(0, (category.posts_count || 0) - 1);
@@ -754,10 +763,16 @@ const communitySlice = createSlice({
     builder
       .addCase(deleteReply.fulfilled, (state, action) => {
         const { postId, replyId, request_id } = action.payload;
+
+        // Check if an optimistic action already handled the count
+        const isOptimistic = request_id && state.pendingRequestIds.includes(request_id);
+
         const post = state.posts.find(p => p.id === postId);
         if (post) {
           post.replies = post.replies.filter(r => r.id !== replyId);
-          post.replies_count = Math.max(0, post.replies_count - 1);
+          if (!isOptimistic) {
+            post.replies_count = Math.max(0, post.replies_count - 1);
+          }
         }
 
         // Cleanup request_id
