@@ -51,7 +51,6 @@ import { useSoundManager } from "@/hooks/use-sound-effects";
 import {
   stepTitles,
   goals,
-  learningApproach,
   topics,
   topicLevelsByTopic,
   learningGoals
@@ -61,10 +60,13 @@ export default function Page() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState<Record<number, number | string>>({});
-  const [selectedTopic, setSelectedTopic] = useState<string>("math");
+  const [selectedTopic, setSelectedTopic] = useState<string>("saas_challenge");
   const [topicLevels, setTopicLevels] = useState<Record<string, string>>({
-    math: "beginner",
-    programming: "beginner",
+    saas_challenge: "beginner",
+    web_development: "beginner",
+    ai_python: "beginner",
+    ui_ux_design: "beginner",
+    math_engineering: "beginner",
   });
   const [userData, setUserData] = useState({
     name: "",
@@ -77,8 +79,8 @@ export default function Page() {
   const [actualError, setActualError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { playSound } = useSoundManager();
-  const steps = [goals, learningApproach, topics, null, learningGoals];
-  const progress = (currentStep / (steps.length + 2)) * 100;
+  const steps = [goals, topics, null, learningGoals];
+  const progress = (currentStep / (steps.length + 1)) * 100;
 
   // Redux hooks
   const dispatch = useDispatch<AppDispatch>();
@@ -183,11 +185,11 @@ export default function Page() {
     // Play toggle-on sound when an option is selected
     playSound("toggle-on");
 
-    if (currentStep === 2) {
+    if (currentStep === 1) {
       // Topic selection step
       setSelectedTopic(value as string);
       setSelections((prev) => ({ ...prev, [currentStep]: value }));
-    } else if (currentStep === 3) {
+    } else if (currentStep === 2) {
       // Level selection step
       // Store the level for the currently selected topic
       setTopicLevels((prev) => ({
@@ -246,7 +248,7 @@ export default function Page() {
       }
 
       // Check if all selections are made
-      if (Object.keys(selections).length < 5) {
+      if (Object.keys(selections).length < 4) {
         setActualError("Fadlan buuxi dhammaan su'aalaha");
         return;
       }
@@ -261,10 +263,9 @@ export default function Page() {
         age: Number.parseInt(userData.age),
         onboarding_data: {
           goal: String(selections[0]).trim(),
-          preferred_study_time: String(selections[1]).trim(),
-          topic: String(selections[2]).trim(),
-          math_level: String(selections[3]).trim(),
-          minutes_per_day: Number.parseInt(String(selections[4]).split(" ")[0]),
+          topic: String(selections[1]).trim(),
+          math_level: String(selections[2]).trim(),
+          minutes_per_day: Number.parseInt(String(selections[3])),
         },
         ...(userData.referralCode ? { referral_code: userData.referralCode.trim() } : {}),
         ...(userData.promoCode ? { promo_code: userData.promoCode.trim() } : {}),
@@ -439,7 +440,7 @@ export default function Page() {
             )}
 
             {/* Options Grid */}
-            {currentStep < 2 && (
+            {currentStep === 0 && (
               <div className="grid gap-3">
                 {currentOptions &&
                   currentOptions.map((option: Option) => (
@@ -486,7 +487,7 @@ export default function Page() {
               </div>
             )}
 
-            {currentStep === 2 && (
+            {currentStep === 1 && (
               <div className="grid gap-3">
                 {currentOptions &&
                   currentOptions.map((option: Option) => (
@@ -533,7 +534,7 @@ export default function Page() {
               </div>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <>
                 <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <p className="text-slate-700 font-medium">
@@ -579,7 +580,7 @@ export default function Page() {
               </>
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <div className="grid gap-3">
                 {learningGoals.map((option: Option) => (
                   <div key={option.id}>
@@ -625,7 +626,7 @@ export default function Page() {
               </div>
             )}
 
-            {currentStep === 5 && (
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -725,13 +726,13 @@ export default function Page() {
                     htmlFor="promoCode"
                     className="text-sm font-medium text-slate-700"
                   >
-                    Promo Code (Ikhtiyaari)
+                    Koodka Dalacsiinta (Ikhtiyaari)
                   </Label>
                   <div className="relative">
                     <Input
                       id="promoCode"
                       type="text"
-                      placeholder="Geli promo code"
+                      placeholder="Geli koodka"
                       value={userData.promoCode || ""}
                       onChange={(e) =>
                         setUserData({ ...userData, promoCode: e.target.value })
@@ -748,44 +749,42 @@ export default function Page() {
               <Button
                 className={cn(
                   "w-full rounded-lg py-6 font-semibold transition-colors",
-                  currentStep === 6
-                    ? " text-white"
-                    : currentStep === 5
-                      ? userData.email &&
-                        userData.password &&
-                        userData.name &&
-                        userData.age
+                  currentStep === 4
+                    ? userData.email &&
+                      userData.password &&
+                      userData.name &&
+                      userData.age
+                      ? " text-white"
+                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                    : currentStep === 2
+                      ? topicLevels[selectedTopic]
                         ? " text-white"
                         : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                      : currentStep === 3
-                        ? topicLevels[selectedTopic]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                        : selections[currentStep]
-                          ? " text-white"
-                          : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                      : selections[currentStep]
+                        ? " text-white"
+                        : "bg-slate-200 text-slate-500 cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (currentStep === 5) {
+                  if (currentStep === 4) {
                     if (!isLoading) {
                       handleSubmit(e);
                     }
                   } else {
-                    if (currentStep === 3 && !topicLevels[selectedTopic]) {
+                    if (currentStep === 2 && !topicLevels[selectedTopic]) {
                       // Don't continue if no level is selected for the current topic
                       return;
                     }
                     if (
-                      (currentStep !== 3 && selections[currentStep]) ||
-                      (currentStep === 3 && topicLevels[selectedTopic])
+                      (currentStep !== 2 && selections[currentStep]) ||
+                      (currentStep === 2 && topicLevels[selectedTopic])
                     ) {
                       handleContinue();
                     }
                   }
                 }}
-                type={currentStep === 5 ? "submit" : "button"}
+                type={currentStep === 4 ? "submit" : "button"}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -793,7 +792,7 @@ export default function Page() {
                     <Loader2 className="animate-spin mr-2 h-5 w-5" />
                     <span>Waa la socodaa...</span>
                   </div>
-                ) : currentStep === 5 ? (
+                ) : currentStep === 4 ? (
                   "Gudbi"
                 ) : (
                   "Sii wad"

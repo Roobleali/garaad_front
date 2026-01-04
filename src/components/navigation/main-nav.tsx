@@ -13,18 +13,6 @@ const navigationItems = [
         name: 'Koorsooyinka',
         href: '/courses',
     },
-    {
-        name: 'Horumarinta',
-        href: '/progress',
-    },
-    {
-        name: 'Kuwa Horreysa',
-        href: '/leaderboard',
-    },
-    {
-        name: 'Abaalmarinta',
-        href: '/rewards',
-    },
 ];
 
 export function MainNav() {

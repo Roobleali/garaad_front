@@ -41,41 +41,15 @@ export const ProfileDropdown: React.FC = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 rounded-full hover:bg-gray-100 transition-colors"
+          className="relative h-9 w-9 rounded-full hover:bg-gray-100 transition-colors border border-gray-200"
         >
-          <Menu className="h-5 w-5 text-gray-600" />
-          <span className="sr-only">Open menu</span>
+          <User className="h-5 w-5 text-gray-600" />
+          <span className="sr-only">Open account menu</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="end" sideOffset={8}>
         <div className="flex flex-col space-y-1 p-2">
-          <div className="md:hidden">
-            <Link
-              href="/home"
-              onClick={handleLinkClick}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-            >
-              <Home className="h-4 w-4" />
-              Guriga
-            </Link>
-            <Link
-              href="/courses"
-              onClick={handleLinkClick}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-            >
-              <FolderDot className="h-4 w-4" />
-              Koorsooyinka
-            </Link>
-            <Link
-              href="/community"
-              onClick={handleLinkClick}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-            >
-              <Users className="h-4 w-4" />
-              Bulshada
-            </Link>
-            <Separator className="my-1" />
-          </div>
+
 
           <div className="px-2 py-1.5">
             {/* <p className="text-sm font-medium text-gray-900">Menu</p> */}

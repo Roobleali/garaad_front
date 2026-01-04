@@ -36,7 +36,7 @@ export default function ActivityTracker({
             <Card className={`border-red-200 ${className}`}>
                 <CardContent className="p-4">
                     <div className="text-sm text-red-600">
-                        Activity tracking error: {error}
+                        Cillad ayaa dhacday: {error}
                     </div>
                 </CardContent>
             </Card>
@@ -93,10 +93,10 @@ export default function ActivityTracker({
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Zap className={`w-5 h-5 ${isTracking ? "text-yellow-500" : "text-gray-400"}`} />
-                    Activity Status
+                    Heerka Hawsha
                     {isTracking && (
                         <Badge variant="secondary" className="text-xs">
-                            Tracking
+                            Waa la socdaa
                         </Badge>
                     )}
                 </CardTitle>
@@ -109,7 +109,7 @@ export default function ActivityTracker({
                         <Zap className="w-5 h-5 text-yellow-500" />
                     </div>
                     <div className="text-right">
-                        <div className="text-sm text-gray-600">Max Streak</div>
+                        <div className="text-sm text-gray-600">Istriigga ugu sarreeya</div>
                         <div className="font-semibold">{activityData.streak.max_streak}</div>
                     </div>
                 </div>
@@ -117,7 +117,7 @@ export default function ActivityTracker({
                 {/* Today's Activity Status */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Today&apos;s Activity</span>
+                        <span className="text-sm font-medium">Hawsha Maanta</span>
                         <Badge className={getStatusColor(activityData.activity.status)}>
                             <div className="flex items-center gap-1">
                                 {getStatusIcon(activityData.activity.status)}
@@ -128,7 +128,7 @@ export default function ActivityTracker({
 
                     {activityData.activity.problems_solved > 0 && (
                         <div className="text-sm text-gray-600">
-                            Problems solved: {activityData.activity.problems_solved}
+                            Su'aalaha la xalliyay: {activityData.activity.problems_solved}
                         </div>
                     )}
                 </div>
@@ -138,19 +138,19 @@ export default function ActivityTracker({
                     <div className="space-y-3 pt-3 border-t">
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Last Active</span>
+                                <span className="text-gray-600">Markii u dambaysay</span>
                                 <span className="font-medium">
                                     {formatTime(activityData.user.last_active)}
                                 </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Last Login</span>
+                                <span className="text-gray-600">Soo galkii u dambeyay</span>
                                 <span className="font-medium">
                                     {formatDate(activityData.user.last_login)}
                                 </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Activity Date</span>
+                                <span className="text-gray-600">Taariikhda Hawsha</span>
                                 <span className="font-medium">
                                     {formatDate(activityData.activity_date)}
                                 </span>
@@ -160,9 +160,9 @@ export default function ActivityTracker({
                         {/* Progress Bar for Daily Activity */}
                         <div className="space-y-1">
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Daily Progress</span>
+                                <span className="text-gray-600">Horumarka Maalinlaha ah</span>
                                 <span className="font-medium">
-                                    {activityData.activity.problems_solved} problems
+                                    {activityData.activity.problems_solved} su'aalood
                                 </span>
                             </div>
                             <Progress

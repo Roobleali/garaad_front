@@ -238,7 +238,7 @@ export default function CommunityPage() {
                     <div className="relative w-32 h-12 pl-0 px-8  overflow-hidden flex-shrink-0">
                         <Image
                             src="/logo.png"
-                            alt="Garaad Logo"
+                            alt="Astaanta Garaad"
                             fill
                             sizes="128px"
                             className="object-contain"
@@ -328,7 +328,7 @@ export default function CommunityPage() {
                                     size="icon"
                                     onClick={toggleTheme}
                                     className="rounded-full w-10 h-10 hover:bg-gray-100 dark:hover:bg-white/5 transition-all active:scale-90"
-                                    title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                                    title={isDarkMode ? 'Habka Iftiinka' : 'Habka Mugdiga'}
                                 >
                                     {isDarkMode ? <Sun className="h-5 w-5 text-yellow-500" /> : <Moon className="h-5 w-5 text-gray-500" />}
                                 </Button>

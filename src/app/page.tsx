@@ -1,30 +1,37 @@
 import { Header } from "@/components/Header";
-import dynamic from "next/dynamic";
 import { FooterSection } from "@/components/sections/FooterSection";
-import { CourseGrid } from "@/components/CourseGrid";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { WhyGaraadSection } from "@/components/landing/WhyGaraadSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { CommunityCTASection } from "@/components/landing/CommunityCTASection";
+import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { SectionSkeleton } from "@/components/landing/SkeletonLoader";
 import { Suspense } from "react";
-import { Reveal } from "@/components/landing/Reveal";
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Garaad STEM | Baro Xisaabta, Fiisigiska iyo Tiknoolajiyadda Afkaaga',
-  description: 'Baro xirfadihii ugu dambeeyay ee STEM (Xisaabta, Fiisigiska, iyo AI) adiga oo adeegsanaya afka Soomaaliga. Ku soo biir platform-ka ugu weyn STEM Soomaaliya.',
+  title: "Garaad | Baro, Tartan, oo Guulayso - #1 Goobta STEM Soomaaliya",
+  description:
+    "Garaad waa hoyga aqoonta casriga ah. Baro Xisaabta, Fiisigiska, iyo Tiknoolajiyada adiga oo isticmaalaya Af-Soomaali hufan—macalin la'aan iyo tartan furan. Ku biir kumanaan arday Soomaaliyeed ah.",
+  keywords: [
+    "Garaad",
+    "STEM Soomaali",
+    "Xisaab Soomaali",
+    "Fiisigis Soomaali",
+    "Baro Soomaali",
+    "Waxbarasho",
+    "Xisaab",
+    "Fiisikis",
+  ],
+  openGraph: {
+    title: "Garaad | Baro, Tartan, oo Guulayso",
+    description:
+      "Garaad waa hoyga aqoonta casriga ah. Baro Xisaabta, Fiisigiska, iyo Tiknoolajiyada adiga oo isticmaalaya Af-Soomaali hufan.",
+    type: "website",
+    locale: "so_SO",
+    url: "https://garaad.org",
+  },
 };
-
-// Dynamically import only necessary heavy sections
-const DynamicGuidedPathsSection = dynamic(
-  () => import("@/components/sections/GuidedPathsSection").then((mod) => mod.GuidedPathsSection)
-);
-
-const DynamicLearningLevelsSection = dynamic(
-  () => import("@/components/sections/LearningLevelsSection").then((mod) => mod.LearningLevelsSection)
-);
-
-const DynamicDownloadApp = dynamic(
-  () => import("@/components/sections/DownloadApp").then((mod) => mod.default)
-);
 
 export default function Home() {
   return (
@@ -36,42 +43,44 @@ export default function Home() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "EducationalOrganization",
-            "name": "Garaad STEM",
-            "url": "https://garaad.so",
-            "logo": "https://garaad.so/logo.png",
-            "description": "Garaad waa goob waxbarasho oo lagu barto STEM afka Soomaaliga.",
-            "sameAs": [
+            name: "Garaad STEM",
+            url: "https://garaad.org",
+            logo: "https://garaad.org/logo.png",
+            description:
+              "Garaad waa hoyga aqoonta casriga ah. Baro Xisaabta, Fiisigiska, iyo Tiknoolajiyada adiga oo isticmaalaya Af-Soomaali hufan.",
+            address: {
+              "@type": "PostalAddress",
+              addressCountry: "SO",
+            },
+            sameAs: [
               "https://www.linkedin.com/company/garaad",
               "https://x.com/Garaadstem",
-              "http://facebook.com/Garaadstem"
-            ]
-          })
+              "https://facebook.com/Garaadstem",
+            ],
+          }),
         }}
       />
+
       <Header />
+
       <main>
-        <div className="relative">
-          <HeroSection />
-          <div className="space-y-12 sm:space-y-20 pb-20">
-            <Reveal>
-              <CourseGrid />
-            </Reveal>
+        <HeroSection />
 
-            <Suspense fallback={<SectionSkeleton />}>
-              <DynamicGuidedPathsSection />
-            </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <WhyGaraadSection />
+        </Suspense>
 
-            <Suspense fallback={<SectionSkeleton />}>
-              <DynamicLearningLevelsSection />
-            </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <TestimonialsSection />
+        </Suspense>
 
-            <Suspense fallback={<SectionSkeleton />}>
-              <DynamicDownloadApp />
-            </Suspense>
-          </div>
-          <FooterSection />
-        </div>
+        <Suspense fallback={<SectionSkeleton />}>
+          <CommunityCTASection />
+        </Suspense>
       </main>
+
+      <FooterSection />
+      <WhatsAppFloat />
     </div>
   );
 }

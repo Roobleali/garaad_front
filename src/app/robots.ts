@@ -26,9 +26,7 @@ export default function robots(): MetadataRoute.Robots {
           "/about",
           "/dashboard",
           "/profile",
-          "/progress",
-          "/leaderboard",
-          "/rewards",
+
           "/subscribe",
           "/welcome",
           "/online-somali*",
@@ -63,9 +61,7 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",
           "/dashboard/",
           "/profile/",
-          "/progress/",
-          "/leaderboard/",
-          "/rewards/",
+
           "/subscribe/",
           "/welcome/",
           "/verify-email/",
@@ -129,9 +125,7 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",
           "/dashboard/",
           "/profile/",
-          "/progress/",
-          "/leaderboard/",
-          "/rewards/",
+
           "/subscribe/",
           "/welcome/",
           "/verify-email/",
@@ -195,9 +189,7 @@ export default function robots(): MetadataRoute.Robots {
           "/admin/",
           "/dashboard/",
           "/profile/",
-          "/progress/",
-          "/leaderboard/",
-          "/rewards/",
+
           "/subscribe/",
           "/welcome/",
           "/verify-email/",

@@ -1,67 +1,61 @@
-import { Activity, Globe, BookOpen, Network, Brain, Calculator, BarChart, Atom, Code, Puzzle, Sunrise, SunDim, Moon, Clock, Clock1, Clock11, Clock12 } from "lucide-react";
+import { Target, Rocket, Code, Clock, BookOpen, Briefcase, GraduationCap, Laptop, Palette, BarChart, Database, BrainCircuit } from "lucide-react";
 import React from "react";
 
 export const stepTitles = [
-    "Waa maxey hadafkaaga ugu weyn?",
-    "Waqtigee kuugu habboon inad waxbarato?",
-    "Maadada aad ugu horayn rabto inaad barato?",
-    "Heerkaaga waxbarashada?",
-    "Immisa daqiiqo ayad rabtaa inad Wax-barato maalin walba?",
+    "Waa maxey hadafkaaga?",
+    "Maadada aad rabto inaad barato?",
+    "Heerkaaga?",
+    "Immisa daqiiqo ayad rabtaa inad wax-barato maalin walba?",
     "Fadlan geli Xogtaaga:",
 ];
 
 export const goals = [
-    { id: "Horumarinta xirfadaha", text: "Horumarinta xirfadaha", badge: "Hal adkaanta hal daal ma leh", icon: React.createElement(Activity, { className: "w-5 h-5" }) },
-    { id: "La socoshada cilmiga", text: "La socoshada cilmiga", badge: "Aqoon la'aan waa iftiin la'aan", icon: React.createElement(Globe, { className: "w-5 h-5" }) },
-    { id: "Guul dugsiyeedka", text: "Guul dugsiyeedka", badge: "Wax barashadu waa ilays", icon: React.createElement(BookOpen, { className: "w-5 h-5" }) },
-    { id: "Waxbarashada ilmahayga", text: "Waxbarashada ilmahayga", badge: "Ubadku waa mustaqbalka", icon: React.createElement(Network, { className: "w-5 h-5" }) },
-    { id: "Caawinta ardaydayda", text: "Caawinta ardaydayda", badge: "Macallin waa waalidka labaad", icon: React.createElement(Brain, { className: "w-5 h-5" }) },
-];
-
-export const learningApproach = [
-    { id: "morning", text: "Aroorti Subaxda inta aan quraacaynayo", badge: "قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ (الزمر: 9)", icon: React.createElement(Sunrise, { className: "w-5 h-5" }) },
-    { id: "afternoon", text: " Waqtiga Nasashasha intaan Khadaynayo.", badge: "وَقُل رَّبِّ زِدْنِي عِلْمًا (طه: 114)", icon: React.createElement(SunDim, { className: "w-5 h-5" }) },
-    { id: "evening", text: "Habeenki ah ka dib cashada ama Kahor intan seexanin", badge: "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ (المجادلة: 11)", icon: React.createElement(Moon, { className: "w-5 h-5" }) },
-    { id: "flexible", text: "Waqti kale oo maalintayda ah", badge: "فَاسْأَلُوا أَهْلَ الذِّكْرِ إِن كُنْتُمْ لَا تَعْلَمُونَ (النحل: 43)", icon: React.createElement(SunDim, { className: "w-5 h-5" }) },
+    { id: "build_project", text: "Dhis Project (Web, App, AI)", badge: "Noqo mid wax dhisaya", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
+    { id: "learn_programming", text: "Baro Programming", badge: "Baro luqadaha ugu dambeeyay", icon: React.createElement(Code, { className: "w-5 h-5" }) },
+    { id: "improve_stem", text: "Kobci STEM (Xisaab, Saynis)", badge: "Aqoon la'aan waa iftiin la'aan", icon: React.createElement(Target, { className: "w-5 h-5" }) },
+    { id: "exam_preparation", text: "Imtixaan u diyaar garow", badge: "Hubi guushaada imtixaanka", icon: React.createElement(GraduationCap, { className: "w-5 h-5" }) },
+    { id: "career_growth", text: "Kobci Xirfaddaada", badge: "Hel shaqooyin caalami ah", icon: React.createElement(Briefcase, { className: "w-5 h-5" }) },
 ];
 
 export const topics = [
-    { id: "math", text: "Xisaabta", badge: "Xisaab iyo xikmad waa walaalo", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-    { id: "data-analysis", text: "Xogta Falanqeynta", badge: "Fahan xogta iyo muhiimkeeda", icon: React.createElement(BarChart, { className: "w-5 h-5" }) },
-    { id: "science", text: "Saynis & Injineernimo", badge: "Wax kasta cilmi baa lagu gaaraa", icon: React.createElement(Atom, { className: "w-5 h-5" }) },
-    { id: "programming", text: "Samaynta Barnaamijyada", badge: "Dhis Barnaamijyo tayo leh", icon: React.createElement(Code, { className: "w-5 h-5" }) },
-    { id: "logical-reasoning", text: "Fikirka iyo Xalinta", badge: "Xalinta mushkiladahu maskaxda ayay koriyaan", icon: React.createElement(Brain, { className: "w-5 h-5" }) },
-    { id: "puzzles", text: "Tijaabooyinka (puzzles)", badge: "Ku tababar maskaxdaada xalinta mushkiladaha", icon: React.createElement(Puzzle, { className: "w-5 h-5" }) },
+    { id: "saas_challenge", text: "SaaS & Startup Challenge", badge: "Dhis ganacsi 5 usbuuc gudahood", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
+    { id: "web_development", text: "Next.js & Software Development", badge: "Noqo Web Developer xirfadle ah", icon: React.createElement(Laptop, { className: "w-5 h-5" }) },
+    { id: "ai_python", text: "Artificial Intelligence & Python", badge: "Baro mustaqbalka tignoolajiyada", icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }) },
+    { id: "ui_ux_design", text: "UI/UX & Product Design", badge: "Naqshadeey alaabo qurux badan", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
+    { id: "math_engineering", text: "Mathematics & Engineering", badge: "Dhis aasaas adag oo STEM ah", icon: React.createElement(Target, { className: "w-5 h-5" }) },
 ];
 
 export const topicLevelsByTopic = {
-    math: [
-        { title: "Xisaabta aasaasiga ah", description: "Waxaan doonayaa inaan ka bilaabo aasaaska xisaabta si aan u fahmo", example: "2,000 + 500 = ?", level: "Arithmetic", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Aljebra aasaasiga ah", description: "Waxaan fahmi karaa isticmaalka xarfaha iyo calaamadaha xisaabta", example: "x + 5 = 12", level: "Basic Algebra", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Aljebra sare", description: "Waxaan si fiican u fahmi karaa xiriirka xisaabta iyo jaantuskeeda", example: "y = 2x + 1", level: "Algebra", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Calculus", description: "Waxaan fahmi karaa isbedelka iyo cabbirka xisaabta", example: "dy/dx (x²)", level: "Calculus", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Xisaabta nolol maalmeedka", description: "Waxaan ku dabbiqi karaa xisaabta arrimaha nolol maalmeedka", example: "Haddii alaab qiimaheedu yahay $50, cashuurta (VAT) 15% tahay, waa maxay qiimaha guud?", level: "Real-World Algebra", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
+    "saas_challenge": [
+        { title: "Bilow Cusub (Genesis)", description: "Waxaan rabaa inaan ka bilaabo eber ilaa aan ka dhiso MVP ugu horreeya.", example: "Waxaan rabaa inaan barto sida fikrad loogu beddelo SaaS.", level: "beginner", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
+        { title: "Dhisidda (Builder)", description: "Waxaan garanayaa aasaaska, waxaan rabaa inaan barto scale-ka iyo users-ka.", example: "Sida loo sameeyo payment integration iyo user management.", level: "intermediate", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
+        { title: "Ballaarinta (Scaling)", description: "Waxaan diyaar u ahay inaan ganacsiga gaarsiiyo heer caalami.", example: "Marketing automation iyo database optimization.", level: "advanced", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
     ],
-    "data-analysis": [
-        { title: "Ururinta Xogta Aasaasiga ah", description: "Sida loo ururiyo xog laga soo qaado ilaha kala duwan", example: "CSV ka soo dejiso iibkii bishii hore.", level: "Basic", icon: React.createElement(BarChart, { className: "w-5 h-5" }) },
+    web_development: [
+        { title: "Barashada Aasaaska", description: "Waxaan rabaa inaan barto HTML, CSS iyo JavaScript aasaaska ah.", example: "Dhisida hal bog (landing page) oo qurxoon.", level: "beginner", icon: React.createElement(Code, { className: "w-5 h-5" }) },
+        { title: "Next.js Mastery", description: "Waxaan rabaa inaan dhisidda web apps casri ah oo leh React iyo Next.js.", example: "Dhisida web app leh routing iyo APIs.", level: "intermediate", icon: React.createElement(Laptop, { className: "w-5 h-5" }) },
+        { title: "Full-Stack Engineer", description: "Inaan isku xiro Frontend, Backend iyo Database si hufan.", example: "Dhisida dashboard dhamaystiran oo data leh.", level: "advanced", icon: React.createElement(Database, { className: "w-5 h-5" }) },
     ],
-    science: [
-        { title: "Aasaaska Sayniska", description: "Fahamka erayada aasaasiga ah", example: "Sharax sida tamartu u beddesho qaabab kale.", level: "Basic", icon: React.createElement(Atom, { className: "w-5 h-5" }) },
+    ai_python: [
+        { title: "Python Fundamentals", description: "Inaan barto luuqadda ugu caansan AI ee Python.", example: "Qoraalka scripts-ka si loo automate-gareeyo hawlaha.", level: "beginner", icon: React.createElement(Code, { className: "w-5 h-5" }) },
+        { title: "Data Analysis", description: "Sida loo falanqeeyo xogta iyo sida loo sawiro (Visualization).", example: "Isticmaalka Pandas iyo Matplotlib.", level: "intermediate", icon: React.createElement(BarChart, { className: "w-5 h-5" }) },
+        { title: "AI and Machine Learning", description: "Tababarka moodooyinka AI iyo dhisidda smart apps.", example: "Isticmaalka OpenAI API ama TensorFlow.", level: "advanced", icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }) },
     ],
-    programming: [
-        { title: "Barnaamijyada Aasaasiga ah", description: "Isticmaalka variables, shuruudaha if, iyo loops.", example: "Qor function dib u celinaysa string.", level: "Basic", icon: React.createElement(Code, { className: "w-5 h-5" }) },
+    ui_ux_design: [
+        { title: "Aasaaska Visual Design", description: "Barashada midabada, typography iyo layout-ka.", example: "Naqshadaynta logo iyo user interface fudud.", level: "beginner", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
+        { title: "UX Research & Wiring", description: "Sida loo fahmo isticmaalaha iyo dhisidda wireframes.", example: "Dhisida prototype lagu tijaabinayo user flow.", level: "intermediate", icon: React.createElement(BookOpen, { className: "w-5 h-5" }) },
+        { title: "Product Design", description: "Dhisida product design system oo dhamaystiran.", example: "Naqshadaynta mobile app oo dhan (High-fidelity).", level: "advanced", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
     ],
-    "logical-reasoning": [
-        { title: "Fikirka Aasaasiga ah", description: "Xallinta syllogism-yada", example: "Dhisto deducation: All X are Y; Z is X; therefore Z is Y.", level: "Basic", icon: React.createElement(Brain, { className: "w-5 h-5" }) },
-    ],
-    puzzles: [
-        { title: "Sudoku", description: "Buuxi shax 9x9 ah", example: "Xalliso Sudoku heer fudud.", level: "Basic", icon: React.createElement(Puzzle, { className: "w-5 h-5" }) },
+    math_engineering: [
+        { title: "Foundation Math", description: "Xoojinta aasaaska xisaabta iyo caqliga (Logic).", example: "Aljebra iyo Geometry muhiimka ah.", level: "beginner", icon: React.createElement(Target, { className: "w-5 h-5" }) },
+        { title: "Engineering Physics", description: "Fahamka adduunka iyo tignoolajiyada dhexdeeda.", example: "Xallinta mashaakilaadka injineernimada.", level: "intermediate", icon: React.createElement(Target, { className: "w-5 h-5" }) },
+        { title: "Calculus & Beyond", description: "Xisaabta sare ee loo isticmaalo NASA iyo AI.", example: "Falanqaynta algorithms-ka kakan.", level: "advanced", icon: React.createElement(Target, { className: "w-5 h-5" }) },
     ],
 };
 
 export const learningGoals = [
-    { id: "5 daqiiqo?", text: "5 daqiiqo?", badge: "Talaabo yar, guul weyn", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
-    { id: "10 daqiiqo?", text: "10 daqiiqo?", badge: "Waqtigaaga si fiican u isticmaal", icon: React.createElement(Clock1, { className: "w-5 h-5" }) },
-    { id: "15 daqiiqo?", text: "15 daqiiqo?", badge: "Adkaysi iyo dadaal", icon: React.createElement(Clock11, { className: "w-5 h-5" }) },
-    { id: "20 daqiiqo?", text: "20 daqiiqo?", badge: "Waxbarasho joogto ah", icon: React.createElement(Clock12, { className: "w-5 h-5" }) },
+    { id: "10_min", text: "10 daqiiqo maalin walba", badge: "Talaabo yar, guul weyn", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
+    { id: "20_min", text: "20 daqiiqo maalin walba", badge: "Waqtigaaga si fiican u isticmaal", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
+    { id: "30_min", text: "30 daqiiqo maalin walba", badge: "Adkaysi iyo dadaal", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
+    { id: "60_min", text: "1 saac maalin walba", badge: "Waxbarasho joogto ah", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
 ];

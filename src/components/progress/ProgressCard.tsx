@@ -99,7 +99,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ progress, rewards })
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Adigar Progress</CardTitle>
+                <CardTitle>Horumarka Af-Garad</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* Overall Stats */}
@@ -107,17 +107,17 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ progress, rewards })
                     <div className="flex flex-col items-center space-y-1">
                         <Trophy className="h-6 w-6 text-yellow-500" />
                         <span className="text-2xl font-bold">{totalPoints}</span>
-                        <span className="text-sm text-muted-foreground">Points</span>
+                        <span className="text-sm text-muted-foreground">Dhibco</span>
                     </div>
                     <div className="flex flex-col items-center space-y-1">
                         <Star className="h-6 w-6 text-blue-500" />
                         <span className="text-2xl font-bold">{badges.length}</span>
-                        <span className="text-sm text-muted-foreground">Badges</span>
+                        <span className="text-sm text-muted-foreground">Bilado</span>
                     </div>
                     <div className="flex flex-col items-center space-y-1">
                         <Flame className="h-6 w-6 text-orange-500" />
                         <span className="text-2xl font-bold">{currentStreak}</span>
-                        <span className="text-sm text-muted-foreground">Day Streak</span>
+                        <span className="text-sm text-muted-foreground">Istriigga Maalmaha</span>
                     </div>
                 </div>
 
@@ -132,7 +132,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ progress, rewards })
                                         <span className="font-semibold text-lg">{courseName}</span>
                                     </div>
                                     <span className="text-sm text-muted-foreground">
-                                        {courseData.completedLessons}/{courseData.totalLessons} lessons
+                                        {courseData.completedLessons}/{courseData.totalLessons} casharood
                                     </span>
                                 </div>
                                 <Progress
@@ -200,7 +200,7 @@ export const ProgressCard: React.FC<ProgressCardProps> = ({ progress, rewards })
                 {/* Recent Badges */}
                 {badges.length > 0 && (
                     <div className="space-y-2">
-                        <h3 className="text-sm font-medium">Recent Badges</h3>
+                        <h3 className="text-sm font-medium">Biladihii u dambeeyay</h3>
                         <div className="flex flex-wrap gap-2">
                             {badges.slice(0, 3).map((badge) => (
                                 <Badge

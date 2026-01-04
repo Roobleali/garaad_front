@@ -36,24 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.6,
     },
-    {
-      url: `${baseUrl}/progress`,
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/leaderboard`,
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/rewards`,
-      lastModified: currentDate,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
+
     {
       url: `${baseUrl}/subscribe`,
       lastModified: currentDate,
