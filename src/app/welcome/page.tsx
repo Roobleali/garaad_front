@@ -410,8 +410,8 @@ export default function Page() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-2 py-6">
-      <Card className="w-full max-w-2xl shadow-lg border-0 overflow-hidden px-0">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-2 py-6">
+      <Card className="w-full max-w-2xl shadow-lg border-0 md:border border-border overflow-hidden px-0 bg-card">
         <CardContent className="p-0">
           {/* Progress bar */}
           <Progress value={progress} className="h-1 rounded-none" />
@@ -419,7 +419,7 @@ export default function Page() {
           <div className="p-4 md:p-6">
             {/* Step Title and Start Over Button */}
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">
+              <h2 className="text-2xl font-bold text-foreground">
                 {currentStep <= steps.length
                   ? stepTitles[currentStep]
                   : "Fadlan geli Xogtaada"}
@@ -427,7 +427,7 @@ export default function Page() {
               {currentStep > 0 && (
                 <button
                   onClick={handleStartOver}
-                  className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Bilow cusub
@@ -435,13 +435,12 @@ export default function Page() {
               )}
             </div>
 
-            {/* Display error if it exists */}
             {actualError && (
-              <Alert className="mb-6 border-rose-200 bg-rose-50 text-rose-800">
-                <AlertTitle className="text-rose-900 flex items-center gap-2 font-medium">
+              <Alert variant="destructive" className="mb-6">
+                <AlertTitle className="flex items-center gap-2 font-medium">
                   Khalad ayaa dhacay <span className="text-xl">⚠️</span>
                 </AlertTitle>
-                <AlertDescription className="text-rose-800">
+                <AlertDescription>
                   {actualError}
                 </AlertDescription>
 
@@ -468,14 +467,14 @@ export default function Page() {
                             " hover:shadow-sm",
                             selections[currentStep] === option.id
                               ? "border-primary bg-primary/5"
-                              : "border-slate-200",
+                              : "border-border bg-card hover:border-primary/50",
                             option.disabled && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center">
                             <div className="text-primary">{option.icon}</div>
                           </div>
-                          <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-slate-700">
+                          <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-foreground">
                             {option.text}
                           </div>
                           {option.disabled && (
@@ -515,14 +514,14 @@ export default function Page() {
                             "hover:border-primary/50 hover:shadow-sm",
                             selections[currentStep] === option.id
                               ? "border-primary bg-primary/5"
-                              : "border-slate-200",
+                              : "border-border bg-card",
                             option.disabled && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center">
                             <div className="text-primary">{option.icon}</div>
                           </div>
-                          <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-slate-700">
+                          <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-foreground">
                             {option.text}
                           </div>
                           {option.disabled && (
@@ -545,8 +544,8 @@ export default function Page() {
 
             {currentStep === 2 && (
               <>
-                <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <p className="text-slate-700 font-medium">
+                <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-foreground font-medium">
                     Heerkaaga{" "}
                     {topics.find((t) => t.id === selectedTopic)?.text ||
                       selectedTopic}
@@ -566,19 +565,19 @@ export default function Page() {
                             "hover:border-primary/50 hover:shadow-sm",
                             topicLevels[selectedTopic] === level.level
                               ? "border-primary bg-primary/5"
-                              : "border-slate-200"
+                              : "border-border bg-card"
                           )}
                         >
-                          <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center mb-3">
+                          <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center mb-3">
                             <div className="text-primary">{level.icon}</div>
                           </div>
-                          <h3 className="font-bold text-lg mb-2 text-slate-800">
+                          <h3 className="font-bold text-lg mb-2 text-foreground">
                             {level.title}
                           </h3>
-                          <p className="text-slate-600 text-sm mb-3">
+                          <p className="text-muted-foreground text-sm mb-3">
                             {level.description}
                           </p>
-                          <div className="p-3 bg-slate-50 rounded-lg font-mono text-sm text-slate-700 border border-slate-200">
+                          <div className="p-3 bg-muted/50 rounded-lg font-mono text-sm text-foreground border border-border">
                             {level.example}
                           </div>
                         </div>
@@ -607,14 +606,14 @@ export default function Page() {
                           "hover:border-primary/50 hover:shadow-sm",
                           selections[currentStep] === option.id
                             ? "border-primary bg-primary/5"
-                            : "border-slate-200",
+                            : "border-border bg-card",
                           option.disabled && "opacity-50 cursor-not-allowed"
                         )}
                       >
-                        <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center">
                           <div className="text-primary">{option.icon}</div>
                         </div>
-                        <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-slate-700">
+                        <div className="flex-1 text-left px-4 text-sm md:text-base font-medium text-foreground">
                           {option.text}
                         </div>
                         {option.disabled && (
@@ -641,7 +640,7 @@ export default function Page() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="firstName"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-foreground"
                     >
                       Magacaaga
                     </Label>
@@ -654,7 +653,7 @@ export default function Page() {
                         onChange={(e) =>
                           setUserData({ ...userData, name: e.target.value })
                         }
-                        className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        className="w-full p-3 h-auto rounded-xl border-border bg-card focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                         disabled={isLoading}
                       />
                     </div>
@@ -663,7 +662,7 @@ export default function Page() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="age"
-                      className="text-sm font-medium text-slate-700"
+                      className="text-sm font-medium text-foreground"
                     >
                       Da`da
                     </Label>
@@ -678,7 +677,7 @@ export default function Page() {
                         onChange={(e) =>
                           setUserData({ ...userData, age: e.target.value })
                         }
-                        className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                        className="w-full p-3 h-auto rounded-xl border-border bg-card focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                         disabled={isLoading}
                       />
                     </div>
@@ -688,7 +687,7 @@ export default function Page() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-foreground"
                   >
                     Emailkaaga
                   </Label>
@@ -701,7 +700,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, email: e.target.value })
                       }
-                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-border bg-card focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                       disabled={isLoading}
                     />
                   </div>
@@ -710,7 +709,7 @@ export default function Page() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="password"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-foreground"
                   >
                     Passwordkaaga
                   </Label>
@@ -723,7 +722,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, password: e.target.value })
                       }
-                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-border bg-card focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                       disabled={isLoading}
                     />
                   </div>
@@ -733,7 +732,7 @@ export default function Page() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="promoCode"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-foreground"
                   >
                     Koodka Dalacsiinta (Ikhtiyaari)
                   </Label>
@@ -746,7 +745,7 @@ export default function Page() {
                       onChange={(e) =>
                         setUserData({ ...userData, promoCode: e.target.value })
                       }
-                      className="w-full p-3 h-auto rounded-xl border-slate-200 focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300"
+                      className="w-full p-3 h-auto rounded-xl border-border bg-card focus:border-primary focus:ring-primary/20 text-base shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                       disabled={isLoading}
                     />
                   </div>
@@ -763,15 +762,15 @@ export default function Page() {
                       userData.password &&
                       userData.name &&
                       userData.age
-                      ? " text-white"
-                      : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                      ? "text-primary-foreground"
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
                     : currentStep === 2
                       ? topicLevels[selectedTopic]
-                        ? " text-white"
-                        : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                        ? "text-primary-foreground"
+                        : "bg-muted text-muted-foreground cursor-not-allowed"
                       : selections[currentStep]
-                        ? " text-white"
-                        : "bg-slate-200 text-slate-500 cursor-not-allowed",
+                        ? "text-primary-foreground"
+                        : "bg-muted text-muted-foreground cursor-not-allowed",
                   isLoading && "opacity-70 cursor-wait"
                 )}
                 onClick={(e) => {
