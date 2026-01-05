@@ -20,7 +20,7 @@ import { PostList } from '@/components/community/PostList';
 import { InlinePostInput } from '@/components/community/InlinePostInput';
 import { UserProfileModal } from '@/components/community/UserProfileModal';
 import { NotificationDropdown } from '@/components/community/NotificationCenter';
-import { AlertCircle, Menu, Moon, Sun, Bell } from 'lucide-react';
+import { AlertCircle, Menu, Moon, Sun, Bell, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SOMALI_UI_TEXT, getUserDisplayName } from '@/types/community';
@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
+import ReferralModal from '@/components/referrals/ReferralModal';
 
 export default function CommunityPage() {
     const dispatch = useDispatch<AppDispatch>();
@@ -50,6 +51,7 @@ export default function CommunityPage() {
     const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const [pendingScrollPostId, setPendingScrollPostId] = useState<string | null>(null);
     const [pendingScrollReplyId, setPendingScrollReplyId] = useState<string | null>(null);
+    const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
     // Logic for handling notification click
     const handleNotificationClick = (notification: any) => {
@@ -298,6 +300,17 @@ export default function CommunityPage() {
                             </div>
 
                             <div className="flex items-center gap-2">
+                                {/* Referral Icon */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIsReferralModalOpen(true)}
+                                    className="rounded-full w-10 h-10 hover:bg-primary/10 dark:hover:bg-primary/10 transition-all active:scale-90"
+                                    title="Share the Opportunity"
+                                >
+                                    <GraduationCap className="h-5 w-5 text-primary" />
+                                </Button>
+
                                 {/* Notification Bell */}
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -374,6 +387,10 @@ export default function CommunityPage() {
                 isOpen={isProfileModalOpen}
                 onClose={() => setIsProfileModalOpen(false)}
                 userId={selectedUserId}
+            />
+            <ReferralModal
+                isOpen={isReferralModalOpen}
+                onClose={() => setIsReferralModalOpen(false)}
             />
         </div>
     );

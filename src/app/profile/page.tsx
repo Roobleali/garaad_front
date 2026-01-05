@@ -31,6 +31,8 @@ import {
   TrendingUp,
   Flame,
   Sparkles,
+  GraduationCap,
+  DollarSign,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { getMediaUrl } from "@/lib/utils";
@@ -38,6 +40,7 @@ import AuthenticatedAvatar from '@/components/ui/authenticated-avatar';
 import { useDispatch } from "react-redux";
 import { setUser } from "@/store/features/authSlice";
 import { API_BASE_URL } from "@/lib/constants";
+import { getReferralDashboard, type ReferralDashboard } from "@/services/referral";
 
 import { DashboardProfile } from "@/services/auth";
 
@@ -60,6 +63,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
   const [dashboardProfile, setDashboardProfile] = useState<DashboardProfile | null>(null);
+  const [referralData, setReferralData] = useState<ReferralDashboard | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -113,6 +117,19 @@ export default function ProfilePage() {
     };
 
     fetchProfileData();
+  }, []);
+
+  // Fetch referral data
+  useEffect(() => {
+    const fetchReferralData = async () => {
+      try {
+        const data = await getReferralDashboard();
+        setReferralData(data);
+      } catch (err) {
+        console.error("Failed to load referral data:", err);
+      }
+    };
+    fetchReferralData();
   }, []);
 
   // Fetch progress
@@ -280,33 +297,6 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {/* Quick Stats */}
-                <div className="px-6 py-6 border-t border-gray-100 dark:border-gray-700">
-                  <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-center p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20">
-                        <Flame className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">{dashboardProfile?.streak?.current || 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Maalin</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                        <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">{dashboardProfile?.xp || 0}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">XP</div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20">
-                        <Trophy className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                      </div>
-                      <div className="text-sm font-bold text-gray-900 dark:text-white">{dashboardProfile?.league?.name || "Liig"}</div>
-                      <div className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Horyaal</div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Community Badge */}
                 {dashboardProfile?.community_profile && (
                   <div className="mx-6 mb-6 p-4 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
@@ -340,100 +330,165 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Right: Progress & Lessons */}
+            {/* Right: Referral Management */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Progress Card */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center">
-                    <div className="bg-blue-600 text-white rounded-lg p-2 mr-3">
-                      <TrendingUp className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                        Horumarintaada
-                      </h2>
-                      <p className="text-sm text-gray-500">Sidee ayaad u socodaa</p>
-                    </div>
-                  </div>
-                  <div className="bg-blue-600 text-white rounded-lg px-3 py-1">
-                    <span className="font-medium text-sm">
-                      {completedPercentage}%
-                    </span>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Casharrada</span>
-                    <span className="text-sm text-gray-500">{lessonsCompleted} ee {progressItems}</span>
-                  </div>
-                  <Progress value={completedPercentage} className="h-2 bg-gray-200" />
-                </div>
-
-                {/* Stats Grid */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-semibold text-blue-600">{lessonsCompleted}</div>
-                    <div className="text-xs text-gray-500">Dhameeyey</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-semibold text-gray-600">{progressItems - lessonsCompleted}</div>
-                    <div className="text-xs text-gray-500">Haray</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-semibold text-gray-400">{Math.floor(completedPercentage / 10)}</div>
-                    <div className="text-xs text-gray-500">Sharaf</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lessons List */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <BookOpen className="h-5 w-5 mr-2 text-blue-500" />
-                  Casharka oo dhan
-                </h3>
-
-                <div className="space-y-3">
-                  {progress && progress.length > 0 ? progress.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm ${item.status === "completed" ? "bg-green-500" : "bg-gray-400"
-                          }`}>
-                          {item.status === "completed" ? (
-                            <CheckCircle2 className="h-5 w-5" />
-                          ) : (
-                            index + 1
-                          )}
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">{item.lesson_title}</h4>
-                          <p className="text-sm text-gray-500">Casharka #{index + 1}</p>
-                        </div>
+              {/* Referral Stats Overview */}
+              {referralData && (
+                <>
+                  {/* Main Earnings Card */}
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-xl p-8 text-white">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className="text-2xl font-black mb-2">Abaalmarinta Casuumada</h2>
+                        <p className="text-emerald-100 text-sm">Dakhliga aad ka heshay casuumadaada</p>
                       </div>
-                      <Badge
-                        variant={item.status === "completed" ? "default" : "secondary"}
-                        className={`${item.status === "completed"
-                          ? "bg-green-500 text-white"
-                          : "bg-yellow-400 text-gray-900"
-                          }`}
-                      >
-                        {item.status === "completed" ? "La dhameeyey" : "Socda"}
-                      </Badge>
+                      <GraduationCap className="h-12 w-12 text-white/30" />
                     </div>
-                  )) : (
-                    <div className="text-center text-gray-400 py-8">
-                      <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                      <p>Wali cashar ma jiro.</p>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <DollarSign className="h-6 w-6" />
+                          <span className="text-sm font-medium text-emerald-100">Wadarta Dakhliga</span>
+                        </div>
+                        <div className="text-4xl font-black">${referralData.total_earnings.toFixed(2)}</div>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Users className="h-6 w-6" />
+                          <span className="text-sm font-medium text-emerald-100">Dadka la Casuumay</span>
+                        </div>
+                        <div className="text-4xl font-black">{referralData.total_referred}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Referral Link Card */}
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Link-kaaga Casuumada</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                        <code className="flex-1 text-sm font-mono text-gray-600 dark:text-gray-300 truncate">
+                          {referralData.referral_link}
+                        </code>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(referralData.referral_link);
+                            alert('Link-ka ayaa la koobiyeeyay! 🎉');
+                          }}
+                          className="shrink-0"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Koobiyee
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => {
+                            const message = `Ku soo biir Garaad oo wax la baro! ${referralData.referral_link}`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                          }}
+                          className="bg-[#25D366] hover:bg-[#20bd5a] text-white"
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          WhatsApp
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            const message = `Ku soo biir Garaad oo wax la baro! ${referralData.referral_link}`;
+                            window.open(`https://t.me/share/url?url=${encodeURIComponent(referralData.referral_link)}&text=${encodeURIComponent(message)}`, '_blank');
+                          }}
+                          className="bg-[#0088cc] hover:bg-[#0077b3] text-white"
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Telegram
+                        </Button>
+                      </div>
+
+                      <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                        <p className="text-sm text-emerald-800 dark:text-emerald-300 font-medium italic text-center">
+                          {referralData.motivational_message || "Sii wad casuumada saaxiibbadaada oo hel dakhli dheeraad ah!"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Referred Users List */}
+                  {referralData.referred_users && referralData.referred_users.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <Users className="h-5 w-5 mr-2 text-emerald-600" />
+                        Dadka aad Casuuntay ({referralData.referred_users.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {referralData.referred_users.map((ref) => (
+                          <div key={ref.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
+                                  {ref.first_name?.[0]}{ref.last_name?.[0]}
+                                </span>
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900 dark:text-white">{ref.first_name} {ref.last_name}</h4>
+                                <p className="text-sm text-gray-500">@{ref.username}</p>
+                              </div>
+                            </div>
+                            <Badge className="bg-emerald-500 text-white">
+                              Active
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-              </div>
+
+                  {/* Recent Rewards */}
+                  {referralData.recent_rewards && referralData.recent_rewards.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <Trophy className="h-5 w-5 mr-2 text-yellow-600" />
+                        Abaalmarinnada ugu Dambeeyay
+                      </h3>
+                      <div className="space-y-3">
+                        {referralData.recent_rewards.map((reward) => (
+                          <div key={reward.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                                <DollarSign className="h-5 w-5 text-yellow-700 dark:text-yellow-400" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-gray-900 dark:text-white">${reward.amount} USD</h4>
+                                <p className="text-sm text-gray-500">{new Date(reward.created_at).toLocaleDateString('so-SO')}</p>
+                              </div>
+                            </div>
+                            <Badge variant={reward.status === 'paid' ? 'default' : 'secondary'} className={reward.status === 'paid' ? 'bg-green-500 text-white' : ''}>
+                              {reward.status === 'paid' ? 'La bixiyay' : 'Sugaya'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty State */}
+                  {(!referralData.referred_users || referralData.referred_users.length === 0) && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 border border-gray-200 dark:border-gray-700 text-center">
+                      <GraduationCap className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Bilow Casuumada Maanta!</h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6">
+                        U dir link-kaaga saaxiibbadaada oo bilow in aad dakhli ka hesho marwalba oo ay koorso iibsadaan.
+                      </p>
+                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Dir Link-ka Hadda
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

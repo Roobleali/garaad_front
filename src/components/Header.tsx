@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { usePathname, useRouter } from "next/navigation";
-import { FolderDot, Home, X, Users, Menu, User, LogOut, LogIn } from "lucide-react";
+import { FolderDot, Home, X, Users, Menu, User, LogOut, LogIn, Gift, GraduationCap } from "lucide-react";
 import clsx from "clsx";
 import StreakDisplay from "./StreakDisplay";
 import { useMemo, useCallback, useState, useEffect } from "react";
@@ -17,6 +17,7 @@ import { API_BASE_URL } from "@/lib/constants";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { ProfileDropdown } from "./layout/ProfileDropdown";
+import ReferralModal from "./referrals/ReferralModal";
 
 const AuthDialog = dynamic(
   () => import("@/components/auth/AuthDialog").then((mod) => mod.AuthDialog),
@@ -90,6 +91,7 @@ export function Header() {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   const {
     data: streakData,
@@ -226,7 +228,21 @@ export function Header() {
             )}
 
             <div className="hidden md:flex items-center gap-3">
-              {user && <NotificationPanel />}
+              {user && (
+                <>
+                  <button
+                    onClick={() => setIsReferralModalOpen(true)}
+                    className="relative p-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 transition-all group overflow-hidden border border-primary/10"
+                    title="Share the Opportunity"
+                  >
+                    <GraduationCap className="w-5 h-5 text-primary group-hover:scale-110 transition-transform relative z-10" />
+                    <span className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                  </button>
+
+                  <NotificationPanel />
+                </>
+              )}
               <ThemeToggle />
               {user ? (
                 <ProfileDropdown />
@@ -304,6 +320,23 @@ export function Header() {
             <div className="px-6 py-4 space-y-1">
               {user ? (
                 <>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsReferralModalOpen(true);
+                    }}
+                    className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary hover:from-primary/20 hover:to-primary/10 transition-all w-full text-left border border-primary/20 shadow-sm"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-primary/20 flex items-center justify-center shadow-sm">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black">Casuun Saaxiibbadaada</span>
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-green-600 dark:text-green-400">Hel 20% Commission</span>
+                    </div>
+                    <div className="ml-auto w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                  </button>
+
                   <Link
                     href="/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -350,6 +383,12 @@ export function Header() {
           </div>
         </div>
       )}
+
+      {/* Referral Modal */}
+      <ReferralModal
+        isOpen={isReferralModalOpen}
+        onClose={() => setIsReferralModalOpen(false)}
+      />
     </>
   );
 }

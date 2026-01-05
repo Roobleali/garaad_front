@@ -80,6 +80,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+import { Toaster } from "@/components/ui/Toaster";
+
 export default function RootLayout({
   children,
 }: {
@@ -120,6 +122,7 @@ export default function RootLayout({
                 {children}
               </Suspense>
             </ClientLayout>
+            <Toaster />
             <Analytics />
           </Providers>
         </ErrorBoundary>
@@ -127,3 +130,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -13,6 +13,7 @@ import {
     Home,
     Pin,
     PinOff,
+    GraduationCap,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
@@ -20,6 +21,8 @@ import { togglePinRoom } from "@/store/features/communitySlice";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LockedRoomDialog } from "./LockedRoomDialog";
+import ReferralModal from "../referrals/ReferralModal";
+import Link from "next/link";
 
 export function ChannelSidebar({
     campuses,
@@ -43,6 +46,7 @@ export function ChannelSidebar({
     const dispatch = useDispatch<AppDispatch>();
     const { pinnedRoomIds } = useSelector((state: RootState) => state.community);
     const [lockedRoomTarget, setLockedRoomTarget] = useState<CampusRoom | null>(null);
+    const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
     const handleRoomClick = (room: CampusRoom) => {
         if (room.is_locked) {
@@ -105,24 +109,25 @@ export function ChannelSidebar({
     return (
         <div className="w-60 flex flex-col bg-[#F2F3F5] dark:bg-[#2B2D31] select-none h-full border-r border-[#E3E5E8] dark:border-[#1E1F22]">
             {/* Header */}
-            <div
-                className="h-12 px-4 flex items-center shadow-sm border-b border-black/10 dark:text-white hover:bg-black/5 dark:hover:bg-[#35373C] cursor-pointer transition-colors relative"
-                onClick={onClearCampus}
-            >
-                <div className="flex items-center gap-2 overflow-hidden">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <img src="/favicon.ico" alt="G" className="w-5 h-5" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                        <span className="truncate font-black text-sm tracking-tight leading-none uppercase">
-                            {selectedCampus?.name_somali || SOMALI_UI_TEXT.community}
-                        </span>
-                        <span className="text-[10px] font-bold text-primary tracking-widest leading-none mt-0.5 uppercase">
-                            PLATFORM
-                        </span>
+            <Link href="/" className="block">
+                <div
+                    className="h-12 px-4 flex items-center shadow-sm border-b border-black/10 dark:text-white hover:bg-black/5 dark:hover:bg-[#35373C] cursor-pointer transition-colors relative"
+                >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <img src="/favicon.ico" alt="G" className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="truncate font-black text-sm tracking-tight leading-none uppercase">
+                                {selectedCampus?.name_somali || SOMALI_UI_TEXT.community}
+                            </span>
+                            <span className="text-[10px] font-bold text-primary tracking-widest leading-none mt-0.5 uppercase">
+                                PLATFORM
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Link>
 
             {/* Content */}
             <ScrollArea className="flex-1">
@@ -201,9 +206,20 @@ export function ChannelSidebar({
                             </div>
                         </div>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:hover:text-[#DBDEE1] transition-colors border-none">
-                        <Settings className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-gray-500 hover:text-primary dark:hover:text-primary transition-colors border-none"
+                            onClick={() => setIsReferralModalOpen(true)}
+                            title="Share the Opportunity"
+                        >
+                            <GraduationCap className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-500 hover:text-gray-700 dark:hover:text-[#DBDEE1] transition-colors border-none">
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* XP Progress Bar (Skool style) */}
@@ -226,6 +242,11 @@ export function ChannelSidebar({
                 onClose={() => setLockedRoomTarget(null)}
                 room={lockedRoomTarget}
                 userProfile={userProfile}
+            />
+
+            <ReferralModal
+                isOpen={isReferralModalOpen}
+                onClose={() => setIsReferralModalOpen(false)}
             />
         </div>
     );
