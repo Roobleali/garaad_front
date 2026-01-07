@@ -1,12 +1,14 @@
-"use client";
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Users, Rocket, Coins, CheckCircle2 } from "lucide-react";
+import { Users, Rocket, Coins, CheckCircle2, GraduationCap, Heart } from "lucide-react";
 import { baseURL } from "@/config";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "@/store/features/authSlice";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface BackendSignup {
     first_name: string;
+    last_name: string;
     date_joined: string;
 }
 
@@ -16,20 +18,50 @@ interface Signup {
     icon: React.ReactNode;
 }
 
-const ACTIVITIES = [
-    { text: "kusoo biiray Garaad family", icon: <Users className="w-4 h-4 text-primary" /> },
-    { text: "bilaabay SaaS Challenge", icon: <Rocket className="w-4 h-4 text-primary" /> },
-    { text: "noqday Premium User", icon: <Coins className="w-4 h-4 text-emerald-500" /> },
-    { text: "bilaabay barashada Coding-ka", icon: <Rocket className="w-4 h-4 text-primary" /> },
-    { text: "dhameeyay lesson-kii u horeeyay", icon: <CheckCircle2 className="w-4 h-4 text-blue-500" /> },
-    { text: "helay dhibco xirfadeed", icon: <Coins className="w-4 h-4 text-amber-500" /> }
+const UNIVERSITIES = [
+    "Mogadishu University",
+    "SIMAD University",
+    "Jaamacadda Banaadir",
+    "Somali National University",
+    "Hormuud University",
+    "Jamhuriya University",
+    "Zamzam University",
+    "Hargeisa University",
+    "Amoud University",
+    "Puntland State University"
 ];
 
+const ACTIVITIES = [
+    { text: "ayaa hadda ku soo biiray bulshada!", icon: <Users className="w-6 h-6 text-primary" /> },
+    { text: "ayaa bilaabay barashada Coding-ka!", icon: <Rocket className="w-6 h-6 text-primary" /> },
+    { text: "ayaa helay access-ka Garaad!", icon: <GraduationCap className="w-6 h-6 text-primary" /> },
+    { text: "ayaa hadda galay fadhiga waxbarashada!", icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" /> },
+    { text: "ayaa noqday Premium User!", icon: <Heart className="w-6 h-6 text-rose-500" /> }
+];
+
+const SESSION_LIMIT_KEY = "garaad_social_proof_count";
+const MAX_NOTIFICATIONS_PER_SESSION = 10;
+
 export function SocialProof() {
+    const user = useSelector(selectCurrentUser);
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [signups, setSignups] = useState<BackendSignup[]>([]);
     const [currentSignup, setCurrentSignup] = useState<Signup | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [hasFetched, setHasFetched] = useState(false);
+
+    // Normalize pathname
+    const normalizedPath = pathname?.replace(/\/$/, "") || "/";
+    const isAllowedPage = normalizedPath === "" || normalizedPath === "/" || normalizedPath === "/welcome";
+    const shouldShow = !user && isAllowedPage;
+
+    // Reset logic for developer testing
+    useEffect(() => {
+        if (searchParams.get("reset_proof") === "true") {
+            sessionStorage.removeItem(SESSION_LIMIT_KEY);
+        }
+    }, [searchParams]);
 
     const fetchSignups = useCallback(async () => {
         try {
@@ -39,77 +71,78 @@ export function SocialProof() {
                 setSignups(data);
             }
         } catch (error) {
-            console.error("Failed to fetch social proof:", error);
+            console.error("[SocialProof] Error fetching:", error);
         }
     }, []);
 
     const showNext = useCallback(() => {
+        const sessionCount = parseInt(sessionStorage.getItem(SESSION_LIMIT_KEY) || "0");
+        if (sessionCount >= MAX_NOTIFICATIONS_PER_SESSION) return;
+
         if (signups.length === 0) return;
 
+        // Pick a random recent signup
         const randomSignup = signups[Math.floor(Math.random() * signups.length)];
         const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
 
+        // Use real names from the backend
+        const fullName = `${randomSignup.first_name} ${randomSignup.last_name || ""}`.trim();
+
         setCurrentSignup({
-            name: randomSignup.first_name,
+            name: fullName || "Arday Garaad",
             activity: randomActivity.text,
             icon: randomActivity.icon
         });
 
-        setIsVisible(true);
+        updateStats();
 
-        // Hide after 6 seconds
-        setTimeout(() => {
-            setIsVisible(false);
-        }, 6000);
+        function updateStats() {
+            setIsVisible(true);
+            sessionStorage.setItem(SESSION_LIMIT_KEY, (sessionCount + 1).toString());
+            setTimeout(() => setIsVisible(false), 8000); // Show for 8 seconds
+        }
     }, [signups]);
 
     useEffect(() => {
-        // Initial delay: 2 minutes (120,000 ms) as per user request
-        const initialDelay = 120000;
+        if (!shouldShow) return;
 
         const initialTimer = setTimeout(() => {
-            fetchSignups().then(() => {
-                setHasFetched(true);
-            });
-        }, initialDelay);
+            fetchSignups().then(() => setHasFetched(true));
+        }, 8000);
 
         return () => clearTimeout(initialTimer);
-    }, [fetchSignups]);
+    }, [fetchSignups, shouldShow]);
 
     useEffect(() => {
-        if (!hasFetched || signups.length === 0) return;
+        if (!shouldShow || !hasFetched || signups.length === 0) return;
 
-        // Show first one immediately after fetch
         showNext();
 
-        // Loop with random intervals (30-60 seconds)
         const interval = setInterval(() => {
-            if (!isVisible) {
-                showNext();
-            }
-        }, Math.floor(Math.random() * (60000 - 30000 + 1) + 30000));
+            if (!isVisible) showNext();
+        }, Math.floor(Math.random() * (90000 - 45000 + 1) + 45000));
 
         return () => clearInterval(interval);
-    }, [hasFetched, signups, showNext, isVisible]);
+    }, [hasFetched, signups, showNext, isVisible, shouldShow]);
 
-    if (!currentSignup) return null;
+    if (!shouldShow || !currentSignup) return null;
 
     return (
         <div
             className={cn(
-                "fixed bottom-6 left-6 z-50 transition-all duration-700 ease-out transform",
-                isVisible ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
+                "fixed bottom-8 left-8 z-50 transition-all duration-700 ease-out transform pointer-events-none",
+                isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-16 opacity-0 scale-95"
             )}
         >
-            <div className="glassmorphism flex items-center gap-3 p-3 px-4 rounded-2xl bg-card/80 dark:bg-zinc-900/80 border border-border/50 shadow-2xl max-w-[280px]">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="glassmorphism flex items-center gap-5 p-5 px-6 rounded-3xl bg-card/95 dark:bg-zinc-900/95 border-2 border-primary/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] max-w-[400px] backdrop-blur-xl ring-1 ring-white/20">
+                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-xl">
                     {currentSignup.icon}
                 </div>
-                <div className="flex-col">
-                    <p className="text-xs font-semibold text-foreground leading-tight">
-                        Soo dhawow <span className="text-primary">{currentSignup.name}</span>!
+                <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-black text-foreground leading-tight flex items-center gap-2">
+                        <span className="text-primary tracking-tight">🎯 {currentSignup.name}</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed font-bold">
                         {currentSignup.activity}
                     </p>
                 </div>

@@ -81,6 +81,7 @@ export const viewport: Viewport = {
 };
 
 import { Toaster } from "@/components/ui/Toaster";
+import { OverlayElements } from "@/components/landing/OverlayElements";
 
 export default function RootLayout({
   children,
@@ -121,6 +122,7 @@ export default function RootLayout({
               <Suspense fallback={<Loader className="spin " />}>
                 {children}
               </Suspense>
+              <OverlayElements />
             </ClientLayout>
             <Toaster />
             <Analytics />
