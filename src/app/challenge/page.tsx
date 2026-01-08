@@ -10,7 +10,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Tartanka SaaS - 5 Toddobaad",
-    description: "Dhis Ganacsigaaga SaaS & AI business 5 toddobaad gudahood.",
+    description: "SaaS & AI Business. 5 Toddobaad.",
     keywords: [
         "Tartanka dhisidda software-ka",
         "Barashada IT-ga casriga ah",

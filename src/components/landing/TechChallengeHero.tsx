@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { ArrowRight } from "lucide-react";
 
 export function TechChallengeHero() {
     const router = useRouter();
@@ -73,14 +72,13 @@ export function TechChallengeHero() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-400">
                     <button
                         onClick={handlePrimaryCTA}
-                        className="group relative px-8 py-4 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/50 flex items-center gap-2"
+                        className="group relative px-10 py-5 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/50"
                     >
-                        <span>Bilow Safarkaaga</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        BILOW HADDA
                     </button>
                     <button
                         onClick={handleSecondaryCTA}
-                        className="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-bold rounded-xl border border-white/20 transition-all duration-300 hover:scale-105"
+                        className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-md text-slate-400 font-bold rounded-2xl border border-white/10 transition-all duration-300 hover:scale-105"
                     >
                         Baro Sida uu u Shaqeeyo
                     </button>
@@ -91,7 +89,7 @@ export function TechChallengeHero() {
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10 backdrop-blur-sm bg-white/5">
                         <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
                             <iframe
-                                src="https://player.vimeo.com/video/1152611300?badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0&controls=1&background=0"
+                                src="https://player.vimeo.com/video/1152611300?badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0&controls=0&background=0"
                                 frameBorder="0"
                                 allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}

@@ -76,21 +76,14 @@ export function OurStorySection() {
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-16 md:mb-24">
-                    <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                        <span className="text-sm font-bold text-primary uppercase tracking-wider">
-                            Qisadeena | Our Story
-                        </span>
-                    </div>
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6">
-                        From{" "}
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter">
                         <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                            Mogadishu Hustler
-                        </span>
-                        <br />
-                        to SaaS Builder 🚀
+                            Founder
+                        </span>{" "}
+                        Story
                     </h2>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-                        Safarkii dhabta ahaa ee dhalinyaro Soomaaliyeed oo ka soo bilowday eber ilaa ay ka dhisayaan shirkado SaaS oo faa'iido leh—haddana ku baraya adiga.
+                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-bold uppercase tracking-widest">
+                        Eber ilaa SaaS Builder
                     </p>
                 </div>
 

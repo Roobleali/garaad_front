@@ -50,20 +50,13 @@ export function FAQSection() {
             <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                        <span className="text-sm font-bold text-primary uppercase tracking-wider">
-                            Su'aalaha | FAQ
-                        </span>
-                    </div>
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6">
-                        Ma qabtaa su'aalo?{" "}
-                        <br />
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter">
                         <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                            We Have Answers
+                            Questions
                         </span>
                     </h2>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400">
-                        Everything you need to know about the 5-Week Tech Challenge.
+                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-bold uppercase tracking-widest">
+                        FAQ
                     </p>
                 </div>
 

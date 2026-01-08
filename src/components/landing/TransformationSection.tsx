@@ -129,21 +129,13 @@ export function TransformationSection() {
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-16">
-                    <div className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-                        <span className="text-sm font-bold text-primary uppercase tracking-wider">
-                            Hadafkaaga | Your Mission
-                        </span>
-                    </div>
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6">
-                        The{" "}
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter">
                         <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                             5-Week Transformation
                         </span>
-                        <br />
-                        <span className="text-2xl md:text-3xl">(Isbeddelka 5-ta Toddobaad)</span>
                     </h2>
-                    <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-                        Build and Launch Your First AI-Powered SaaS — From Idea to Paying Customers
+                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-bold uppercase tracking-widest">
+                        Builder to Founder
                     </p>
                 </div>
 
