@@ -503,7 +503,7 @@ export class AuthService {
     }
   }
 
-  private async refreshAccessToken(): Promise<string> {
+  public async refreshAccessToken(): Promise<string> {
     if (this.isRefreshing) {
       console.log("Refresh already in progress, subscribing to existing promise...");
       return new Promise((resolve, reject) => {

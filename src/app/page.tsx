@@ -1,7 +1,6 @@
 import { Header } from "@/components/Header";
 import { FooterSection } from "@/components/sections/FooterSection";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { WhyGaraadSection } from "@/components/landing/WhyGaraadSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { CommunityCTASection } from "@/components/landing/CommunityCTASection";
 import { SectionSkeleton } from "@/components/landing/SkeletonLoader";
@@ -65,9 +64,6 @@ export default function Home() {
       <main>
         <HeroSection />
 
-        <Suspense fallback={<SectionSkeleton />}>
-          <WhyGaraadSection />
-        </Suspense>
 
         <Suspense fallback={<SectionSkeleton />}>
           <TestimonialsSection />

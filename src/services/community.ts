@@ -5,7 +5,7 @@ import type { CreatePostData, CreateReplyData, ReactionType } from "@/types/comm
 const BASE_URL = `${API_BASE_URL}/api/`;
 
 // Helper function for making authenticated API calls
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+const apiCall = async (endpoint: string, options: RequestInit = {}, retryCount = 0) => {
   const authService = AuthService.getInstance();
   const token = await authService.ensureValidToken();
 
@@ -28,6 +28,22 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${BASE_URL}${endpoint}`;
   try {
     const response = await fetch(url, config);
+
+    // If 401 and we haven't retried yet, try refreshing the token
+    if (response.status === 401 && retryCount === 0) {
+      console.log(`401 Unauthorized for ${url}, attempting token refresh...`);
+      try {
+        const newToken = await authService.refreshAccessToken();
+        if (newToken) {
+          console.log("Token refreshed successfully, retrying request...");
+          return apiCall(endpoint, options, retryCount + 1);
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed during 401 retry:", refreshError);
+        // propagate original 401 error or the refresh error?
+        // Let it fall through to existing error handling
+      }
+    }
 
     if (!response.ok) {
       const responseText = await response.text();

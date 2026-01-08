@@ -20,7 +20,7 @@ import { PostList } from '@/components/community/PostList';
 import { InlinePostInput } from '@/components/community/InlinePostInput';
 import { UserProfileModal } from '@/components/community/UserProfileModal';
 import { NotificationDropdown } from '@/components/community/NotificationCenter';
-import { AlertCircle, Menu, Bell, GraduationCap, Settings2 } from 'lucide-react';
+import { AlertCircle, Menu, Bell, GraduationCap, Settings2, BellRing } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
@@ -295,10 +295,10 @@ export default function CommunityPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPushSettingsOpen(true)}
-                className="rounded-full w-8 h-8 lg:w-10 lg:h-10 hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                className="flex-shrink-0 rounded-full w-8 h-8 lg:w-10 lg:h-10 hover:bg-gray-100 dark:hover:bg-white/5 transition-all text-primary dark:text-primary animate-pulse shadow-[0_0_8px_rgba(255,165,0,0.4)]"
                 title="Habaynta Ogeysiisyada"
             >
-                <Settings2 className="h-4 w-4 lg:h-5 lg:w-5 text-gray-500 dark:text-gray-400" />
+                <BellRing className="h-4 w-4 lg:h-5 lg:w-5" />
             </Button>
         </div>
     );
@@ -346,17 +346,21 @@ export default function CommunityPage() {
                                 {categoryList}
                             </SheetContent>
                         </Sheet>
-                        <h1 className="text-lg font-bold dark:text-white">
-                            {SOMALI_UI_TEXT.community}
-                        </h1>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-lg font-bold dark:text-white truncate">
+                                {selectedCategory ? selectedCategory.title : SOMALI_UI_TEXT.community}
+                            </h1>
+                        </div>
                     </div>
-                    {actionIcons}
+                    <div className="flex-shrink-0">
+                        {actionIcons}
+                    </div>
                 </div>
 
                 {selectedCategory ? (
                     <>
                         {/* Header */}
-                        <div className="h-20 px-8 flex items-center justify-between border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-black/80 backdrop-blur-md z-10 sticky top-0">
+                        <div className="hidden lg:flex h-20 px-8 items-center justify-between border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-black/80 backdrop-blur-md z-10 sticky top-0">
                             <div className="min-w-0">
                                 <h2 className="text-xl font-black dark:text-white truncate tracking-tight">{selectedCategory.title}</h2>
                                 <div className="flex items-center gap-2 mt-0.5">

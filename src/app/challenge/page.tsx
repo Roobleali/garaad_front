@@ -9,9 +9,8 @@ import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Bilow Safarkaaga Tech-ga | 5-toddobaad ee Tartanka SaaS - Garaad",
-    description:
-        "Ku soo biir tartanka ugu horreeya ee dhisidda software-ka Soomaaliya. Baro sida loo abuuro meherad SaaS ah oo faa'iido leh 5 toddobaad gudahood. Build and launch your first SaaS business.",
+    title: "Tartanka SaaS - 5 Toddobaad",
+    description: "Dhis Ganacsigaaga SaaS & AI business 5 toddobaad gudahood.",
     keywords: [
         "Tartanka dhisidda software-ka",
         "Barashada IT-ga casriga ah",
@@ -43,9 +42,9 @@ export default function ChallengePage() {
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "Course",
-                        name: "5-Week Tech Challenge | Tartanka Tech-ga",
+                        name: "SaaS & AI Challenge",
                         description:
-                            "Dhis oo bilow meheraddaada SaaS ee ugu horreysa 5 toddobaad gudahood. Build and launch your first AI-powered SaaS business in 5 weeks.",
+                            "Dhis Ganacsigaaga SaaS & AI business 5 toddobaad gudahood.",
                         provider: {
                             "@type": "Organization",
                             name: "Garaad",
