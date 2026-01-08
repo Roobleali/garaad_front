@@ -5,6 +5,7 @@ export interface Category {
   image: string;
   inProgress: boolean;
   courses: Course[];
+  sequence?: number;
 }
 
 export interface Course {

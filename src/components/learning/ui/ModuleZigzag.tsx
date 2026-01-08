@@ -119,9 +119,9 @@ export default function ModuleZigzag({
       {/* Course Modules - Zigzag Pattern */}
       {uniqueModules.map((module, index) => {
         const isCompleted = isModuleCompleted(module.title);
-        const isActive = activeModuleId === module.id; // Use activeModuleId instead of selectedModule
-        const isSelected = selectedModule?.id === module.id; // Track if module is selected
-        const isRightAligned = index % 2 === 1; // Alternate left/right alignment
+        const isActive = activeModuleId === module.id;
+        const isSelected = selectedModule?.id === module.id;
+        const isRightAligned = index % 2 === 1;
 
         return (
           <div
@@ -134,11 +134,11 @@ export default function ModuleZigzag({
               <>
                 {/* Text on the left */}
                 <div className="text-right">
-                  <h3 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900' : 'text-gray-400'
+                  <h3 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-700'
                     }`}>
                     {module.title.split(' ').slice(0, -1).join(' ')}
                   </h3>
-                  <h4 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900' : 'text-gray-400'
+                  <h4 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-700'
                     }`}>
                     {module.title.split(' ').slice(-1).join(' ')}
                   </h4>
@@ -153,14 +153,14 @@ export default function ModuleZigzag({
                         ? 'bg-gradient-to-br from-purple-400 to-purple-600 scale-105'
                         : 'bg-gradient-to-br from-gray-300 to-gray-400 scale-100'
                       }`}>
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center transition-all duration-500">
+                      <div className="w-16 h-16 bg-white dark:bg-black rounded-full flex items-center justify-center transition-all duration-500">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${isCompleted
                           ? 'bg-gradient-to-br from-green-400 to-green-600'
                           : isActive || isSelected
                             ? 'bg-gradient-to-br from-purple-400 to-purple-600'
                             : 'bg-gradient-to-br from-gray-300 to-gray-400'
                           }`}>
-                          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all duration-300">
+                          <div className="w-8 h-8 bg-white dark:bg-black rounded-full flex items-center justify-center transition-all duration-300 shadow-inner">
                             {isCompleted && (
                               <CheckCircle className="w-4 h-4 text-green-600 transition-all duration-300" />
                             )}
@@ -171,21 +171,6 @@ export default function ModuleZigzag({
                         </div>
                       </div>
                     </div>
-                    {/* Status indicator on top */}
-                    {isCompleted && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 transition-all duration-500 ease-in-out">
-                        <div className="w-8 h-8 bg-green-500 rounded-lg rotate-45 flex items-center justify-center shadow-md animate-pulse">
-                          <div className="w-3 h-3 bg-gray-800 rounded-sm transform -rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
-                    {(isActive || isSelected) && !isCompleted && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 transition-all duration-500 ease-in-out">
-                        <div className="w-8 h-8 bg-purple-500 rounded-lg rotate-45 flex items-center justify-center shadow-md animate-pulse">
-                          <div className="w-3 h-3 bg-gray-800 rounded-sm transform -rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </>
@@ -201,14 +186,14 @@ export default function ModuleZigzag({
                         ? 'bg-gradient-to-br from-purple-400 to-purple-600 scale-105'
                         : 'bg-gradient-to-br from-gray-300 to-gray-400 scale-100'
                       }`}>
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center transition-all duration-500">
+                      <div className="w-16 h-16 bg-white dark:bg-black rounded-full flex items-center justify-center transition-all duration-500">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ease-in-out ${isCompleted
                           ? 'bg-gradient-to-br from-green-400 to-green-600'
                           : isActive || isSelected
                             ? 'bg-gradient-to-br from-purple-400 to-purple-600'
                             : 'bg-gradient-to-br from-gray-300 to-gray-400'
                           }`}>
-                          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center transition-all duration-300">
+                          <div className="w-8 h-8 bg-white dark:bg-black rounded-full flex items-center justify-center transition-all duration-300 shadow-inner">
                             {isCompleted && (
                               <CheckCircle className="w-4 h-4 text-green-600 transition-all duration-300" />
                             )}
@@ -219,30 +204,15 @@ export default function ModuleZigzag({
                         </div>
                       </div>
                     </div>
-                    {/* Status indicator on top */}
-                    {isCompleted && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 transition-all duration-500 ease-in-out">
-                        <div className="w-8 h-8 bg-green-500 rounded-lg rotate-45 flex items-center justify-center shadow-md animate-pulse">
-                          <div className="w-3 h-3 bg-gray-800 rounded-sm transform -rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
-                    {(isActive || isSelected) && !isCompleted && (
-                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 transition-all duration-500 ease-in-out">
-                        <div className="w-8 h-8 bg-purple-500 rounded-lg rotate-45 flex items-center justify-center shadow-md animate-pulse">
-                          <div className="w-3 h-3 bg-gray-800 rounded-sm transform -rotate-45"></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
                 {/* Text on the right */}
                 <div>
-                  <h3 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900' : 'text-gray-400'
+                  <h3 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-700'
                     }`}>
                     {module.title.split(' ').slice(0, -1).join(' ')}
                   </h3>
-                  <h4 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900' : 'text-gray-400'
+                  <h4 className={`text-base font-medium transition-colors duration-300 ${isActive || isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-slate-700'
                     }`}>
                     {module.title.split(' ').slice(-1).join(' ')}
                   </h4>
@@ -253,15 +223,14 @@ export default function ModuleZigzag({
         );
       })}
 
-      {/* Fixed Bottom Card - Always visible when modules exist */}
+      {/* Fixed Bottom Action Bar */}
       {uniqueModules.length > 0 && (
-        <div className="fixed bottom-0 md:w-96 left-4 right-4 md:left-auto md:right-1/3 md:transform md:translate-x-1/2 bg-white rounded-t-3xl p-6 shadow-lg border-t border-gray-100 z-50" style={{ maxWidth: '40rem' }}>
-          <h1 className="text-xl font-bold text-gray-900 text-center mb-4">
+        <div className="fixed bottom-0 md:w-96 left-4 right-4 md:left-auto md:right-1/3 md:transform md:translate-x-1/2 bg-white dark:bg-slate-900 rounded-t-3xl p-6 shadow-lg border-t border-gray-100 dark:border-slate-800 z-50" style={{ maxWidth: '40rem' }}>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {selectedModule?.title || uniqueModules[0]?.title || 'Select a module'}
           </h1>
 
           {isLoading ? (
-            // Enhanced Loading State with dynamic colors
             <div className={`w-full rounded-2xl p-4 shadow-lg ${!canStartLesson
               ? 'bg-gradient-to-r from-blue-500 to-blue-600'
               : selectedModuleCompleted
@@ -273,21 +242,18 @@ export default function ModuleZigzag({
               <div className="flex items-center justify-center space-x-3">
                 <div className="relative">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <div className="absolute inset-0 w-5 h-5 border-2 border-transparent border-t-white/60 rounded-full animate-spin" style={{ animationDelay: '0.1s' }}></div>
                 </div>
                 <div className="text-white font-medium">
                   <div className="text-sm">La soo rarayo...</div>
-                  <div className="text-xs opacity-80">Casharka ayaa la dirayaa</div>
                 </div>
               </div>
             </div>
           ) : (
-            // Normal Button State
             <button
               onClick={handleButtonClick}
               disabled={!selectedModule}
               className={`w-full font-semibold py-3 px-6 rounded-2xl shadow-lg transition-all duration-200 transform hover:scale-105 text-base ${!selectedModule
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-300 dark:bg-slate-800 text-gray-500 dark:text-slate-600 cursor-not-allowed'
                 : !canStartLesson
                   ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'
                   : selectedModuleCompleted
@@ -305,7 +271,7 @@ export default function ModuleZigzag({
               ) : !canStartLesson ? (
                 <>
                   <UserPlus className="inline w-4 h-4 mr-2" />
-                  Isdiiwaangeli
+                  KU SOO BIIR
                 </>
               ) : selectedModuleCompleted ? (
                 <>

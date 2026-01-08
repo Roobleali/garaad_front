@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { FooterSection } from "@/components/sections/FooterSection";
-import { TechChallengeHero } from "@/components/landing/TechChallengeHero";
+import { ChallengeHero } from "@/components/landing/ChallengeHero";
 import { OurStorySection } from "@/components/landing/OurStorySection";
 import { TransformationSection } from "@/components/landing/TransformationSection";
 import { FAQSection } from "@/components/landing/FAQSection";
@@ -66,7 +66,7 @@ export default function ChallengePage() {
             <Header />
 
             <main>
-                <TechChallengeHero />
+                <ChallengeHero />
                 <OurStorySection />
                 <TransformationSection />
                 <FAQSection />

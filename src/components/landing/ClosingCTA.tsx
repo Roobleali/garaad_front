@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { Rocket, ArrowRight, Sparkles } from "lucide-react";
+import { Rocket } from "lucide-react";
 
 export function ClosingCTA() {
     const router = useRouter();
@@ -36,7 +36,7 @@ export function ClosingCTA() {
                 </div>
 
                 {/* Headline */}
-                <h2 className="text-5xl sm:text-6xl md:text-7xl font-black mb-8 text-white">
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-8 text-white">
                     Ma diyaar u tahay inaad{" "}
                     <span className="bg-gradient-to-r from-primary via-blue-500 to-purple-500 bg-clip-text text-transparent">
                         bilowdo?

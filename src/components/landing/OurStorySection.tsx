@@ -76,7 +76,7 @@ export function OurStorySection() {
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="text-center mb-16 md:mb-24">
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 uppercase tracking-tighter">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter">
                         <span className="bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
                             Founder
                         </span>{" "}

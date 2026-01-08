@@ -9,7 +9,8 @@ import { AlertCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
 
 import { useCourse } from "@/hooks/useApi";
 import { API_BASE_URL } from "@/lib/constants";
@@ -52,16 +53,18 @@ export default function CourseDetailPage() {
         error,
     } = useCourse(String(categoryId), String(courseSlug));
 
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
     const {
         data: enrollments,
-    } = useSWR<EnrollmentProgress[]>(`${API_BASE_URL}/api/lms/enrollments/`, authFetcher, {
+    } = useSWR<EnrollmentProgress[]>(isAuthenticated ? `${API_BASE_URL}/api/lms/enrollments/` : null, authFetcher, {
         revalidateOnFocus: false,
         dedupingInterval: 600000,
     });
 
     const {
         data: progress,
-    } = useSWR<UserProgress[]>(`${API_BASE_URL}/api/lms/user-progress/`, authFetcher, {
+    } = useSWR<UserProgress[]>(isAuthenticated ? `${API_BASE_URL}/api/lms/user-progress/` : null, authFetcher, {
         revalidateOnFocus: false,
         dedupingInterval: 600000,
     });
@@ -79,6 +82,11 @@ export default function CourseDetailPage() {
     };
 
     const handleModuleClick = (moduleId: number) => {
+        if (!isAuthenticated) {
+            router.push('/welcome');
+            return;
+        }
+
         // Check if the module is completed to determine if it's in review mode
         const courseModule = currentCourse?.modules.find(m => m.id === moduleId);
         const isModuleCompleted = courseModule && progress?.some(
@@ -92,29 +100,33 @@ export default function CourseDetailPage() {
 
     if (error) {
         return (
-            <ProtectedRoute requirePremium={true}>
-                <div className="min-h-screen bg-white">
-                    <div className="max-w-7xl mx-auto p-8">
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Error</AlertTitle>
-                            <AlertDescription>{String(error)}</AlertDescription>
-                        </Alert>
-                    </div>
+            <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
+                <Header />
+                <div className="max-w-7xl mx-auto p-8">
+                    <Alert variant="destructive" className="rounded-3xl border-2">
+                        <AlertCircle className="h-5 w-5" />
+                        <AlertTitle className="font-black">Khalad ayaa dhacay</AlertTitle>
+                        <AlertDescription className="font-bold">{String(error)}</AlertDescription>
+                    </Alert>
                 </div>
-            </ProtectedRoute>
+            </div>
         );
     }
 
     if (isLoading || !currentCourse) {
         return (
-            <ProtectedRoute requirePremium={true}>
-                <div className="min-h-screen bg-white">
-                    <div className="max-w-7xl mx-auto p-8">
-                        <Skeleton className="h-12 w-3/4" />
+            <div className="min-h-screen bg-slate-50 dark:bg-black">
+                <Header />
+                <div className="max-w-7xl mx-auto p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
+                        <div className="space-y-8">
+                            <Skeleton className="h-20 w-3/4 rounded-2xl" />
+                            <Skeleton className="h-40 w-full rounded-2xl" />
+                        </div>
                     </div>
                 </div>
-            </ProtectedRoute>
+            </div>
         );
     }
 
@@ -122,85 +134,81 @@ export default function CourseDetailPage() {
         currentCourse.modules?.flatMap((m) => m.lessons).length || 0;
 
     return (
-        <ProtectedRoute requirePremium={true}>
-            <div className="min-h-screen bg-gray-50">
-                <Header />
-                <div className="max-w-7xl mx-auto p-8 mb-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* Course Info */}
-                        <aside className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white rounded-xl shadow-md border-gray-200 md:sticky md:top-10">
-                            <div className="flex mb-6 border-border border-2 px-4 py-2 rounded-md w-fit">
-                                <div className="relative w-16 h-16">
-                                    <Image
-                                        src={currentCourse.thumbnail || defaultCourseImage}
-                                        alt={currentCourse.title}
-                                        fill
-                                        className="object-contain"
-                                        priority
-                                    />
-                                </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-500">
+            <Header />
+            <div className="max-w-7xl mx-auto p-8 mb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    {/* Course Info */}
+                    <aside className="max-w-sm md:max-w-lg h-fit border-2 p-6 bg-white dark:bg-slate-900 rounded-xl shadow-md border-gray-200 dark:border-slate-800 md:sticky md:top-32">
+                        <div className="flex mb-6 border-border dark:border-slate-800 border-2 px-4 py-2 rounded-md w-fit bg-slate-50 dark:bg-black">
+                            <div className="relative w-16 h-16">
+                                <Image
+                                    src={currentCourse.thumbnail || defaultCourseImage}
+                                    alt={currentCourse.title}
+                                    fill
+                                    className="object-contain"
+                                    priority
+                                />
                             </div>
+                        </div>
 
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                {currentCourse.title}
-                            </h2>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            {currentCourse.title}
+                        </h2>
 
-                            {enrollmentProgress > 0 && (
-                                <CourseProgress progress={enrollmentProgress} />
+                        {enrollmentProgress > 0 && (
+                            <CourseProgress progress={enrollmentProgress} />
+                        )}
+
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                            {currentCourse.description}
+                        </p>
+
+                        <div className="flex justify-start gap-6 text-sm text-gray-700 dark:text-gray-300 font-bold">
+                            <div className="flex items-center gap-1">
+                                <span>📘</span>
+                                <span>{totalLessons} casharo</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <span>🧩</span>
+                                <span>
+                                    {currentCourse?.modules
+                                        .map(
+                                            (mod) =>
+                                                (mod?.lessons ?? []).filter(
+                                                    (lesson) => lesson?.problem
+                                                ).length
+                                        )
+                                        .reduce((acc, curr) => acc + curr, 0) ?? 0}{" "}
+                                    waydiimo
+                                </span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* Learning Path */}
+                    <section className="relative space-y-12">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold mb-4 dark:text-white">Naqshada Barashada</h2>
+                            {enrollmentProgress === 0 && (
+                                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                                    Waxaad arki kartaa naqshada barashada. Si aad u bilowdo casharada, fadlan isdiiwaangeli.
+                                </p>
                             )}
+                        </div>
 
-                            <p className="text-sm text-gray-600 mb-6">
-                                {currentCourse.description}
-                            </p>
-
-                            <div className="flex justify-start gap-6 text-sm text-gray-700">
-                                <div className="flex items-center gap-1">
-                                    <span>📘</span>
-                                    <span>{totalLessons} casharo</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <span>🧩</span>
-                                    <span>
-                                        {currentCourse?.modules
-                                            .map(
-                                                (mod) =>
-                                                    (mod?.lessons ?? []).filter(
-                                                        (lesson) => lesson?.problem
-                                                    ).length
-                                            )
-                                            .reduce((acc, curr) => acc + curr, 0) ?? 0}{" "}
-                                        waydiimo
-                                    </span>
-                                </div>
-                            </div>
-
-
-                        </aside>
-
-                        {/* Learning Path */}
-                        <section className="relative space-y-12">
-                            <div className="text-center mb-12">
-                                <h2 className="text-3xl font-bold mb-4">Naqshada Barashada</h2>
-                                {enrollmentProgress === 0 && (
-                                    <p className="text-gray-600">
-                                        Waxaad arki kartaa naqshada barashada. Si aad u bilowdo casharada, fadlan isdiiwaangeli.
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="relative flex flex-col items-center gap-12">
-                                {currentCourse.modules && (
-                                    <ModuleZigzag
-                                        modules={currentCourse.modules}
-                                        onModuleClick={handleModuleClick}
-                                        progress={progress ?? []}
-                                    />
-                                )}
-                            </div>
-                        </section>
-                    </div>
+                        <div className="relative flex flex-col items-center gap-12">
+                            {currentCourse.modules && (
+                                <ModuleZigzag
+                                    modules={currentCourse.modules}
+                                    onModuleClick={handleModuleClick}
+                                    progress={progress ?? []}
+                                />
+                            )}
+                        </div>
+                    </section>
                 </div>
             </div>
-        </ProtectedRoute>
+        </div>
     );
 }

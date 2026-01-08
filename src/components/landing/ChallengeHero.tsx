@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
-export function TechChallengeHero() {
+export function ChallengeHero() {
     const router = useRouter();
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
@@ -55,7 +55,7 @@ export function TechChallengeHero() {
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                 {/* Main Headline */}
-                <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-6 animate-fade-in-up tracking-tighter">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 animate-fade-in-up tracking-tighter">
                     <span className="text-white">Dhis Ganacsigaaga</span>
                     <br />
                     <span className="bg-gradient-to-r from-primary via-blue-500 to-purple-500 bg-clip-text text-transparent">
@@ -64,7 +64,7 @@ export function TechChallengeHero() {
                 </h1>
 
                 {/* Sub-headline */}
-                <p className="text-xl sm:text-2xl md:text-3xl text-slate-400 font-bold mb-12 animate-fade-in-up delay-200 uppercase tracking-widest">
+                <p className="text-lg sm:text-xl md:text-2xl text-slate-400 font-bold mb-12 animate-fade-in-up delay-200 uppercase tracking-widest">
                     5 Toddobaad Gudahood
                 </p>
 
@@ -89,7 +89,7 @@ export function TechChallengeHero() {
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10 backdrop-blur-sm bg-white/5">
                         <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
                             <iframe
-                                src="https://player.vimeo.com/video/1152611300?badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0&controls=0&background=0"
+                                src="https://player.vimeo.com/video/1152611300?badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0&controls=1&background=0"
                                 frameBorder="0"
                                 allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
                                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
