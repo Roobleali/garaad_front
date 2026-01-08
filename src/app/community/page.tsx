@@ -23,6 +23,7 @@ import { NotificationDropdown } from '@/components/community/NotificationCenter'
 import { AlertCircle, Menu, Bell, GraduationCap, Settings2 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import { getMediaUrl } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SOMALI_UI_TEXT, getUserDisplayName } from '@/types/community';
 import {
@@ -229,7 +230,7 @@ export default function CommunityPage() {
                         }}
                     >
                         <AuthenticatedAvatar
-                            src={userProfile.profile_picture}
+                            src={getMediaUrl(userProfile.profile_picture, 'profile_pics')}
                             alt={userProfile.username}
                             fallback={userProfile.username[0]}
                             className="w-10 h-10 ring-2 ring-gray-100 dark:ring-white/10 group-hover:ring-primary/20 transition-all"

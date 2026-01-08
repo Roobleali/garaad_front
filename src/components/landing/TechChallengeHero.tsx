@@ -9,35 +9,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 export function TechChallengeHero() {
     const router = useRouter();
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-    const [timeLeft, setTimeLeft] = useState({
-        weeks: 5,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-    });
 
-    useEffect(() => {
-        // Calculate time until challenge starts (example: 5 weeks from now)
-        const calculateTimeLeft = () => {
-            const now = new Date();
-            const challengeStart = new Date(now.getTime() + 5 * 7 * 24 * 60 * 60 * 1000);
-            const difference = challengeStart.getTime() - now.getTime();
-
-            if (difference > 0) {
-                setTimeLeft({
-                    weeks: Math.floor(difference / (1000 * 60 * 60 * 24 * 7)),
-                    days: Math.floor((difference / (1000 * 60 * 60 * 24)) % 7),
-                    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                    minutes: Math.floor((difference / 1000 / 60) % 60),
-                });
-            }
-        };
-
-        calculateTimeLeft();
-        const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
-
-        return () => clearInterval(timer);
-    }, []);
 
     const handlePrimaryCTA = () => {
         if (isAuthenticated) {
@@ -95,29 +67,7 @@ export function TechChallengeHero() {
                     <span className="text-white font-semibold">tallaabo tallaabo ah (step-by-step)</span>.
                 </p>
 
-                {/* Countdown Timer */}
-                <div className="flex items-center justify-center gap-4 sm:gap-6 mb-12 animate-fade-in-up delay-300">
-                    {[
-                        { label: "Toddobaad", labelEn: "Weeks", value: timeLeft.weeks },
-                        { label: "Maalmood", labelEn: "Days", value: timeLeft.days },
-                        { label: "Saacadood", labelEn: "Hours", value: timeLeft.hours },
-                        { label: "Daqiiqado", labelEn: "Minutes", value: timeLeft.minutes },
-                    ].map((item, index) => (
-                        <div
-                            key={item.label}
-                            className="flex flex-col items-center p-4 sm:p-6 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 min-w-[80px] sm:min-w-[100px]"
-                        >
-                            <div className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-1">
-                                {String(item.value).padStart(2, "0")}
-                            </div>
-                            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
-                                {item.label}
-                                <br />
-                                <span className="text-[8px] opacity-70">{item.labelEn}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-400">

@@ -9,27 +9,27 @@ import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "5-Week Tech Challenge | Bilow SaaS-kaaga Koowaad - Garaad",
+    title: "Tartanka Tech-ga ee Ugu Horreeya & Ugu Fiican | 5-Week SaaS Challenge - Garaad",
     description:
-        "Ka qaybgal tartanka 5-ta toddobaad oo dhis meheraddaada SaaS ee ugu horreysa. Join the 5-Week Tech Challenge and build your first profitable SaaS business. From idea to paying customers.",
+        "Ka qaybgal tartanka tech-ga ee ugu horreeya Soomaaliya. Baro sida loo dhisayo meherad SaaS ah oo faa'iido leh 5 toddobaad gudahood. Join the first and best Somali tech challenge to build your first SaaS business.",
     keywords: [
-        "SaaS builder",
-        "5-week challenge",
-        "AI business",
-        "tech entrepreneurship",
-        "Somali tech",
-        "online business",
-        "web development",
-        "startup course",
-        "AI integration",
-        "business automation",
+        "Tartanka tech-ga Soomaaliya",
+        "Barashada IT-ga ugu fiican",
+        "Dhisidda SaaS Soomaaliya",
+        "Ganacsiga online-ka",
+        "Somali tech entrepreneurship",
+        "First Somali SaaS course",
+        "Best web development challenge Somalia",
+        "Dhallinyarada iyo Tech-ga",
+        "Garaad Academy challenge",
+        "AI business Somalia",
     ],
     openGraph: {
-        title: "5-Week Tech Challenge | Launch Your First SaaS",
+        title: "Tartanka Tech-ga ee Ugu Horreeya & Ugu Fiican Soomaaliya",
         description:
-            "Dhis oo bilow meheraddaada SaaS ee ugu horreysa 5 toddobaad gudahood. Build and launch your first AI-powered SaaS business in just 5 weeks.",
+            "Halkan ka bilow safarkaaga tech-ga. Dhis oo iibi software-kaaga koowaad 5 toddobaad gudahood. The #1 tech challenge for Somali builders.",
         type: "website",
-        locale: "en_US",
+        locale: "so_SO",
         url: "https://garaad.org/challenge",
     },
 };

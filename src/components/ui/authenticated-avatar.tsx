@@ -45,24 +45,33 @@ const AuthenticatedAvatar: React.FC<AuthenticatedAvatarProps> = ({
         const authService = AuthService.getInstance();
         const token = authService.getToken();
 
+        // Normalize src: Handle relative paths starting with /media/
+        let normalizedSrc = src;
+        if (src.startsWith('/media/')) {
+            normalizedSrc = `https://api.garaad.org${src}`;
+        }
+
         // Cleanup previous blob URL if it exists
         if (currentBlobUrl.current) {
             URL.revokeObjectURL(currentBlobUrl.current);
             currentBlobUrl.current = null;
         }
 
-        // If it's already a full URL and doesn't need authentication, use it directly
-        if (src.startsWith('http') && !src.includes('api.garaad.org/api/media')) {
-            setImageUrl(src);
+        // If it's already a full URL and doesn't belong to the authenticated API domain, use it directly
+        // We check for both /api/media and /media on api.garaad.org
+        const isProtectedMedia = normalizedSrc.includes('api.garaad.org/api/media') || normalizedSrc.includes('api.garaad.org/media');
+
+        if (normalizedSrc.startsWith('http') && !isProtectedMedia) {
+            setImageUrl(normalizedSrc);
             setIsLoading(false);
             setError(false);
             return;
         }
 
         // For authenticated media URLs, fetch with token
-        if (token && src.includes('api.garaad.org/api/media')) {
+        if (token && isProtectedMedia) {
             console.log('AuthenticatedAvatar: Fetching with token', {
-                src,
+                src: normalizedSrc,
                 hasToken: !!token,
                 tokenLength: token.length,
                 tokenStart: token.substring(0, 20) + '...',
@@ -101,7 +110,7 @@ const AuthenticatedAvatar: React.FC<AuthenticatedAvatarProps> = ({
                 'Authorization': `Bearer ${token.substring(0, 20)}...`
             });
 
-            fetch(src, {
+            fetch(normalizedSrc, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -115,8 +124,8 @@ const AuthenticatedAvatar: React.FC<AuthenticatedAvatarProps> = ({
                     return response.blob();
                 })
                 .then(blob => {
+                    const url = URL.createObjectURL(blob);
                     if (isMounted) {
-                        const url = URL.createObjectURL(blob);
                         currentBlobUrl.current = url;
                         console.log('AuthenticatedAvatar: Created blob URL', url);
                         setImageUrl(url);
@@ -137,12 +146,12 @@ const AuthenticatedAvatar: React.FC<AuthenticatedAvatarProps> = ({
                 });
         } else {
             console.log('AuthenticatedAvatar: Using direct URL or no token', {
-                src,
+                src: normalizedSrc,
                 hasToken: !!token,
                 token: token ? token.substring(0, 20) + '...' : 'none'
             });
             // For non-authenticated URLs, use directly
-            setImageUrl(src);
+            setImageUrl(normalizedSrc);
             setIsLoading(false);
             setError(false);
         }
