@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCategories } from "@/hooks/useApi";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, ChevronRight } from "lucide-react";
+import { AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSearchParams } from "next/navigation";
@@ -174,14 +174,21 @@ export default function CoursesPage() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         <div className="space-y-32">
-          {(isLoading ? Array(3).fill(null) : (categories ?? []).filter(cat => cat.courses && cat.courses.length > 0)).map(
+          {(isLoading ? Array(3).fill(null) : (categories ?? [])
+            .filter(cat => cat.courses && cat.courses.length > 0)
+            .sort((a, b) => {
+              const seqA = a?.sequence && a.sequence > 0 ? a.sequence : Infinity;
+              const seqB = b?.sequence && b.sequence > 0 ? b.sequence : Infinity;
+              return seqA - seqB;
+            })
+          ).map(
             (category, idx) => {
               const sortedCourses = isLoading
                 ? Array(4).fill(null)
                 : [...category.courses].sort((a, b) => {
-                  // Primary sort: sequence ascending
-                  const seqA = a?.sequence ?? 0;
-                  const seqB = b?.sequence ?? 0;
+                  // Primary sort: sequence ascending (treat 0 as Infinity to put at end)
+                  const seqA = a?.sequence && a.sequence > 0 ? a.sequence : Infinity;
+                  const seqB = b?.sequence && b.sequence > 0 ? b.sequence : Infinity;
                   if (seqA !== seqB) return seqA - seqB;
 
                   // Secondary sort: created_at ascending (oldest first)
