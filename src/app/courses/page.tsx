@@ -69,6 +69,9 @@ interface Course {
   description?: string;
   lesson_count?: number;
   estimatedHours?: number;
+  sequence?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export default function CoursesPage() {
@@ -176,8 +179,15 @@ export default function CoursesPage() {
               const sortedCourses = isLoading
                 ? Array(4).fill(null)
                 : [...category.courses].sort((a, b) => {
-                  if (a?.is_published === b?.is_published) return 0;
-                  return a?.is_published ? -1 : 1;
+                  // Primary sort: sequence descending
+                  const seqA = a?.sequence ?? 0;
+                  const seqB = b?.sequence ?? 0;
+                  if (seqA !== seqB) return seqB - seqA;
+
+                  // Secondary sort: created_at descending (newest first)
+                  const dateA = a?.created_at ? new Date(a.created_at).getTime() : 0;
+                  const dateB = b?.created_at ? new Date(b.created_at).getTime() : 0;
+                  return dateB - dateA;
                 });
 
               return (
