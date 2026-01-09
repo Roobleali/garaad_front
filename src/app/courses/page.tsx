@@ -159,14 +159,18 @@ export default function CoursesPage() {
             </Alert>
           )}
 
-          <div className="max-w-3xl">
-            <h1 className="text-4xl flex gap-2 sm:text-5xl md:text-7xl font-black mb-8 tracking-tighter animate-fade-in-up">
-              Waddooyinka <span className="bg-gradient-to-r ml-2 from-primary via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                Waxbarashada
+          <div className="max-w-4xl mx-auto text-center md:text-left">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black mb-8 tracking-tighter animate-fade-in-up leading-[1.05]">
+              Waddooyinka <br />
+              <span className="relative inline-block mt-2">
+                <span className="absolute -inset-4 blur-3xl bg-primary/20 opacity-50" />
+                <span className="relative bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  Waxbarashada
+                </span>
               </span>
             </h1>
-            <p className="text-xl flex md:text-2xl text-slate-500 dark:text-slate-400 font-bold mb-10 leading-relaxed max-w-2xl animate-fade-in-up delay-200">
-              Waddooyin isku xiga oo loo maro hanashada STEM-ka iyo Tiknoolajiyadda casriga ah.
+            <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-bold mb-10 leading-relaxed max-w-2xl animate-fade-in-up delay-200">
+              Waddooyin isku xiga oo loo maro hanashada STEM-ka iyo Tiknoolajiyadda casriga ah—oo Af-Soomaali ah.
             </p>
           </div>
         </div>
@@ -177,54 +181,55 @@ export default function CoursesPage() {
           {(isLoading ? Array(3).fill(null) : (categories ?? [])
             .filter(cat => cat.courses && cat.courses.length > 0)
             .sort((a, b) => {
-              const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : Infinity;
-              const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : Infinity;
-              return seqA - seqB;
+              const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : -1;
+              const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : -1;
+              return seqB - seqA;
             })
           ).map(
             (category, idx) => {
               const sortedCourses = isLoading
                 ? Array(4).fill(null)
                 : [...category.courses].sort((a, b) => {
-                  // Primary sort: sequence ascending (treat 0 as Infinity to put at end)
-                  const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : Infinity;
-                  const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : Infinity;
-                  if (seqA !== seqB) return seqA - seqB;
+                  // Primary sort: sequence descending (treat 0 as -1 to put at end)
+                  const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : -1;
+                  const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : -1;
+                  if (seqA !== seqB) return seqB - seqA;
 
                   // Secondary sort: created_at ascending (oldest first)
                   const dateA = a?.created_at ? new Date(a.created_at).getTime() : 0;
                   const dateB = b?.created_at ? new Date(b.created_at).getTime() : 0;
-                  return dateA - dateB;
+                  return dateB - dateA;
                 });
 
               return (
                 <div key={category?.id ?? idx} className="animate-fade-in-up">
                   {/* Category Header */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 pb-8 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-10 group/header">
                       {isLoading ? (
-                        <Skeleton className="w-20 h-20 rounded-3xl" />
+                        <Skeleton className="w-24 h-24 rounded-3xl" />
                       ) : (
-                        <div className="group relative p-4 bg-white dark:bg-slate-900/50 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-primary/20">
+                        <div className="relative p-5 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md transition-all duration-500 group-hover/header:scale-110 group-hover/header:rotate-3 group-hover/header:shadow-primary/30">
                           <CategoryImage src={category.image} alt={category.title} />
-                          <div className="absolute -inset-1 bg-gradient-to-r from-primary to-blue-500 rounded-[2rem] opacity-0 group-hover:opacity-20 blur transition-opacity" />
+                          <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-[3rem] opacity-0 group-hover/header:opacity-100 blur-xl transition-opacity duration-500" />
                         </div>
                       )}
                       <div>
-                        <div className="text-2xl md:text-3xl font-black tracking-tight mb-1">
-                          {isLoading ? (
-                            <Skeleton className="w-56 h-8" />
-                          ) : (
-                            category.title
-                          )}
-                        </div>
-                        <div className="text-lg text-slate-500 dark:text-slate-400 font-bold tracking-wide">
-                          {isLoading ? (
-                            <Skeleton className="w-72 h-6" />
-                          ) : (
-                            category.description
-                          )}
-                        </div>
+                        {isLoading ? (
+                          <div className="space-y-3">
+                            <Skeleton className="w-64 h-10" />
+                            <Skeleton className="w-80 h-6" />
+                          </div>
+                        ) : (
+                          <>
+                            <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-3 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent group-hover/header:translate-x-2 transition-transform duration-300">
+                              {category.title}
+                            </h2>
+                            <p className="text-lg md:text-xl text-slate-500 dark:text-slate-500 font-medium tracking-wide max-w-xl group-hover/header:translate-x-3 transition-transform duration-500">
+                              {category.description}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -292,8 +297,10 @@ export default function CoursesPage() {
                             <Card
                               className="relative h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20 hover:-translate-y-2 transition-all duration-500 rounded-[2.5rem]"
                             >
-                              {/* Glow Effect */}
-                              <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 via-blue-500/20 to-purple-500/20 rounded-[3rem] opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500" />
+                              {/* Deep Glow Effect */}
+                              <div className="absolute -inset-2 bg-gradient-to-br from-primary/30 via-blue-500/30 to-purple-500/30 rounded-[3.5rem] opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-700" />
+
+                              <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                               <div className="relative h-40 bg-slate-50 dark:bg-slate-950 overflow-hidden flex items-center justify-center rounded-t-[2.5rem]">
                                 <CourseImage

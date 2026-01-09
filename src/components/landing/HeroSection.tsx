@@ -16,15 +16,17 @@ export function HeroSection() {
         <section className="relative min-h-[90vh] flex items-center justify-center bg-background px-4 overflow-hidden">
             {/* Advanced background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/25 dark:bg-primary/20 rounded-full blur-[120px] animate-pulse-slow" />
+                <div className="absolute top-[-5%] left-[-5%] w-[30%] h-[30%] bg-primary/20 dark:bg-primary/10 rounded-full blur-[100px] animate-pulse-slow" />
                 <div
-                    className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/25 dark:bg-blue-500/20 rounded-full blur-[120px] animate-pulse-slow"
+                    className="absolute bottom-[-5%] right-[-5%] w-[30%] h-[30%] bg-blue-500/20 dark:bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow"
                     style={{ animationDelay: "1.5s" }}
                 />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.08)_0%,transparent_70%)] opacity-60" />
 
-                {/* Grid Pattern Overlay */}
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05]" />
+                {/* Subtle Radial Gradient */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary-rgb),0.05)_0%,transparent_100%)]" />
+
+                {/* Grid Pattern Overlay with Mask */}
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] dark:opacity-[0.04] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_100%)]" />
 
                 {/* Floating particles/sparkles effect */}
                 <div className="absolute inset-0 opacity-30 dark:opacity-50">
@@ -89,11 +91,11 @@ export function HeroSection() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 px-4 pt-4">
                     <Button
                         size="lg"
-                        className="w-full sm:w-auto text-lg h-14 px-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all transform hover:-translate-y-1"
+                        className="w-full sm:w-auto text-lg h-14 px-12 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-black shadow-lg shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 transition-all duration-300 transform hover:-translate-y-1.5 active:scale-95 group overflow-hidden"
                         onClick={() => router.push(isAuthenticated ? "/courses" : "/welcome")}
                     >
-                        <Play className="w-5 h-5 mr-2" />
-                        {isAuthenticated ? "Sii wad Barashada" : "Hadda Bilow "}
+                        <Play className="w-5 h-5 mr-3 group-hover:animate-pulse" />
+                        <span>{isAuthenticated ? "Sii wad Barashada" : "Hadda Bilow"}</span>
                     </Button>
                 </div>
             </div>

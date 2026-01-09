@@ -41,16 +41,16 @@ export function ChallengeHero() {
     };
 
     return (
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black">
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0A0F1C] transition-colors duration-700">
             {/* Animated Background */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 -left-48 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-slow" />
-                <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl animate-float" />
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-1/4 -left-48 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-pulse-slow" />
+                <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse-slow delay-1000" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[120px] animate-float" />
             </div>
 
-            {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_80%)]" />
+            {/* Improved Grid Pattern Overlay */}
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_90%)]" />
 
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -69,16 +69,17 @@ export function ChallengeHero() {
                 </p>
 
                 {/* CTAs */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in-up delay-400">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16 animate-fade-in-up delay-400">
                     <button
                         onClick={handlePrimaryCTA}
-                        className="group relative px-10 py-5 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/50"
+                        className="group relative px-12 py-5 bg-primary text-white font-black rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_50px_rgba(var(--primary-rgb),0.3)] overflow-hidden"
                     >
-                        BILOW HADDA
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                        <span className="relative">BILOW HADDA</span>
                     </button>
                     <button
                         onClick={handleSecondaryCTA}
-                        className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-md text-slate-400 font-bold rounded-2xl border border-white/10 transition-all duration-300 hover:scale-105"
+                        className="px-12 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-md text-slate-300 font-bold rounded-2xl border border-white/10 transition-all duration-300 hover:scale-105"
                     >
                         Baro Sida uu u Shaqeeyo
                     </button>

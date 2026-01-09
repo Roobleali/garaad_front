@@ -1,12 +1,12 @@
-import { Header } from "@/components/Header";
-import { FooterSection } from "@/components/sections/FooterSection";
-import { ChallengeHero } from "@/components/landing/ChallengeHero";
-import { OurStorySection } from "@/components/landing/OurStorySection";
-import { TransformationSection } from "@/components/landing/TransformationSection";
-import { FAQSection } from "@/components/landing/FAQSection";
-import { ClosingCTA } from "@/components/landing/ClosingCTA";
-import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
+import { Suspense } from "react";
 import { Metadata } from "next";
+import dynamic from "next/dynamic";
+
+const OurStorySection = dynamic(() => import("@/components/landing/OurStorySection").then(mod => mod.OurStorySection), { ssr: true });
+const TransformationSection = dynamic(() => import("@/components/landing/TransformationSection").then(mod => mod.TransformationSection), { ssr: true });
+const FAQSection = dynamic(() => import("@/components/landing/FAQSection").then(mod => mod.FAQSection), { ssr: true });
+const ClosingCTA = dynamic(() => import("@/components/landing/ClosingCTA").then(mod => mod.ClosingCTA), { ssr: true });
+const WhatsAppFloat = dynamic(() => import("@/components/landing/WhatsAppFloat").then(mod => mod.WhatsAppFloat), { ssr: false });
 
 export const metadata: Metadata = {
     title: "Tartanka SaaS - 5 Toddobaad",
