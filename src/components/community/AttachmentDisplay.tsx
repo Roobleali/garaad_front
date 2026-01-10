@@ -146,20 +146,15 @@ export const AttachmentDisplay: React.FC<AttachmentDisplayProps> = ({ attachment
                                 )}
                                 {previewAttachment.file_type?.startsWith('video/') && (
                                     <video
-                                        src={(() => {
-                                            const url = getMediaUrl(previewAttachment.file, 'community_attachments') || '';
-                                            if (url.includes("res.cloudinary.com") && url.includes("/video/upload/")) {
-                                                const isMov = url.toLowerCase().endsWith(".mov") || url.includes(".mov?");
-                                                if (isMov && url.includes("f_auto")) {
-                                                    return url.replace("f_auto,", "").replace(",f_auto", "").replace("f_auto", "");
-                                                }
-                                            }
-                                            return url;
-                                        })()}
+                                        src={getMediaUrl(previewAttachment.file, 'community_attachments')}
                                         controls
                                         className="max-w-full max-h-full rounded-lg shadow-lg"
                                         autoPlay
-                                    />
+                                    >
+                                        <source src={getMediaUrl(previewAttachment.file, 'community_attachments')} type="video/mp4" />
+                                        <source src={getMediaUrl(previewAttachment.file, 'community_attachments')} type="video/quicktime" />
+                                        Your browser does not support the video tag.
+                                    </video>
                                 )}
                             </>
                         )}

@@ -21,21 +21,10 @@ const VideoBlock: React.FC<{
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
-  // Optimize Cloudinary URL if present
+  // Use the video URL as-is from the backend
+  // The backend now handles format optimization correctly
   const optimizedUrl = React.useMemo(() => {
-    if (!videoUrl) return "";
-    if (videoUrl.includes("res.cloudinary.com") && videoUrl.includes("/video/upload/")) {
-      const isMov = videoUrl.toLowerCase().endsWith(".mov") || videoUrl.includes(".mov?");
-      if (!videoUrl.includes("q_auto") && !videoUrl.includes("f_auto")) {
-        // For .mov files, we avoid f_auto to prevent conversion issues
-        const params = isMov ? "q_auto" : "q_auto,f_auto";
-        return videoUrl.replace("/video/upload/", `/video/upload/${params}/`);
-      } else if (isMov && videoUrl.includes("f_auto")) {
-        // Remove f_auto if it's already there for a .mov file
-        return videoUrl.replace("f_auto,", "").replace(",f_auto", "").replace("f_auto", "");
-      }
-    }
-    return videoUrl;
+    return videoUrl || "";
   }, [videoUrl]);
 
   // Generate a poster URL for cleaner loading
@@ -69,7 +58,6 @@ const VideoBlock: React.FC<{
             >
               <video
                 ref={videoRef}
-                src={optimizedUrl}
                 poster={posterUrl}
                 playsInline
                 preload="metadata"
@@ -77,7 +65,14 @@ const VideoBlock: React.FC<{
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
+                onError={(e) => {
+                  console.error("Video error:", e);
+                  console.error("Video URL:", optimizedUrl);
+                }}
               >
+                <source src={optimizedUrl} type="video/mp4" />
+                <source src={optimizedUrl} type="video/quicktime" />
+                <source src={optimizedUrl} />
                 Browser-kaagu ma taageerayo video-ga.
               </video>
 
