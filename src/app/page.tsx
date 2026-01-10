@@ -12,6 +12,11 @@ const CommunityCTASection = dynamic(() => import("@/components/landing/Community
   ssr: true
 });
 
+import { Header } from "@/components/Header";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { FooterSection } from "@/components/sections/FooterSection";
+import { SectionSkeleton } from "@/components/landing/SkeletonLoader";
+
 export const metadata: Metadata = {
   title: "Garaad | Baro, Tartan, oo Guulayso - #1 Goobta STEM Soomaaliya",
   description:
