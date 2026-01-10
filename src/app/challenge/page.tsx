@@ -8,6 +8,10 @@ const FAQSection = dynamic(() => import("@/components/landing/FAQSection").then(
 const ClosingCTA = dynamic(() => import("@/components/landing/ClosingCTA").then(mod => mod.ClosingCTA), { ssr: true });
 const WhatsAppFloat = dynamic(() => import("@/components/landing/WhatsAppFloat").then(mod => mod.WhatsAppFloat));
 
+import { Header } from "@/components/Header";
+import { ChallengeHero } from "@/components/landing/ChallengeHero";
+import { FooterSection } from "@/components/sections/FooterSection";
+
 export const metadata: Metadata = {
     title: "Tartanka SaaS - 5 Toddobaad",
     description: "SaaS & AI Business. 5 Toddobaad.",
