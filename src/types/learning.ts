@@ -109,10 +109,17 @@ export interface ImageContent {
   caption?: string;
 }
 
+export interface VideoContent {
+  url: string;
+  title?: string;
+  description?: string;
+  duration?: number;
+}
+
 export interface LessonContentBlock {
   id: number;
   block_type: BlockType;
-  content: string | TextContent | ImageContent | ProblemContent;
+  content: string | TextContent | ImageContent | VideoContent | ProblemContent;
   order?: number;
   problem?: number;
   options?: Record<string, unknown>;

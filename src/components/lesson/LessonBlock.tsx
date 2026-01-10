@@ -36,13 +36,18 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             );
 
         case "video":
+            const videoContent = block.content as VideoContent;
+            const videoUrl = typeof block.content === 'string' ? block.content : videoContent?.url;
+
+            if (!videoUrl) return null;
+
             return (
-                <div className={cn("relative w-full aspect-video rounded-lg overflow-hidden", className)}>
-                    <iframe
-                        src={block.content as string}
+                <div className={cn("relative w-full aspect-video rounded-lg overflow-hidden bg-black", className)}>
+                    <video
+                        src={videoUrl}
                         className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
+                        controls
+                        playsInline
                     />
                 </div>
             );
