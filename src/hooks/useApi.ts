@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import useSWR from "swr";
 import { Category, Course, Lesson } from "@/types/lms";
 import axios from "axios";
@@ -194,28 +195,71 @@ export function useUserStreak() {
 export function useCourse(categoryId: string, courseSlug: string) {
   const shouldFetch = !!categoryId && !!courseSlug;
 
-  const { data, error, isLoading, mutate } = useSWR(
-    shouldFetch ? ["/course", categoryId, courseSlug] : null,
-    async () => {
-      const coursesRes = await axios.get(
-        `${API_BASE_URL}/api/lms/courses/?category=${categoryId}`
-      );
-      const course: Course | undefined = coursesRes.data.find(
-        (c: Course) => c.slug === courseSlug
-      );
-      if (!course) throw new Error("Course not found");
-
-      const modulesRes = await axios.get(
-        `${API_BASE_URL}/api/lms/lessons/?course=${course.id}`
-      );
-      return { ...course, modules: modulesRes.data as Module[] };
-    }
+  // Fetch the specific course list for this category
+  // Using [URL, courseSlug] as key ensures SWR properly isolates caches for different courses in the same category
+  const {
+    data: courseData,
+    error: courseError,
+    isLoading: isCourseLoading,
+    mutate: mutateCourse,
+  } = useSWR<Course>(
+    shouldFetch
+      ? [`${API_BASE_URL}/api/lms/courses/?category=${categoryId}`, courseSlug]
+      : null,
+    async ([url]: [string, string]) => {
+      const data = await fetcher(url);
+      const found = data.find((c: Course) => c.slug === courseSlug);
+      if (!found) throw new Error("Koorso lama helin");
+      return found;
+    },
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
   );
 
+  // Fetch lessons using the specific course ID
+  const {
+    data: lessonsData,
+    error: lessonsError,
+    isLoading: isLessonsLoading,
+    mutate: mutateLessons,
+  } = useSWR<Lesson[]>(
+    courseData?.id
+      ? `${API_BASE_URL}/api/lms/lessons/?course=${courseData.id}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
+  );
+
+  // Combine data: Map EACH flat lesson to its own module for the zigzag view "simpel"
+  const courseWithModules = useMemo(() => {
+    if (!courseData) return null;
+
+    // Each lesson becomes a module bubble in the zigzag path
+    const syntheticModules = lessonsData
+      ? [...lessonsData]
+        .sort((a, b) => (a.lesson_number || 0) - (b.lesson_number || 0))
+        .map((lesson) => ({
+          id: lesson.id,
+          course_id: courseData.id,
+          title: lesson.title,
+          description: lesson.description || "",
+          order: lesson.lesson_number || 1,
+          lessons: [lesson], // One lesson per bubble
+        }))
+      : [];
+
+    return {
+      ...courseData,
+      modules: syntheticModules as unknown as Module[],
+    };
+  }, [courseData, lessonsData]);
+
   return {
-    course: data as Course & { modules: Module[] },
-    isLoading,
-    error,
-    mutate,
+    course: courseWithModules as unknown as Course,
+    isLoading: isCourseLoading || isLessonsLoading,
+    error: courseError || lessonsError,
+    mutate: () => {
+      mutateCourse();
+      mutateLessons();
+    },
   };
 }

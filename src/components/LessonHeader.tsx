@@ -55,61 +55,15 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   const activeDotRef = useRef<HTMLDivElement>(null);
   // const { streak, isLoading, isError } = useUserStreak();
 
+  /* 
   const fetchStreakData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const authService = AuthService.getInstance();
-      const token = authService.getToken();
-
-      const response = await axios.get(
-        `${API_BASE_URL}/api/streaks//`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setStreakData(response.data);
-      setLoading(false);
-      console.log(response.data);
-      console.log(response.data.username);
-    } catch (err: unknown) {
-      console.error("Error fetching streak data:", err);
-
-      // Handle 401 Unauthorized error
-      if (err && typeof err === 'object' && 'response' in err && err.response && typeof err.response === 'object' && 'status' in err.response && err.response.status === 401) {
-        console.log("401 Unauthorized - clearing session and redirecting to home");
-
-        const authService = AuthService.getInstance();
-
-        // Clear all cookies and localStorage
-        authService.logout();
-
-        // Clear localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.clear();
-        }
-
-        // Redirect to home page
-        if (typeof window !== 'undefined') {
-          window.location.href = '/';
-        }
-
-        return;
-      }
-
-      setError("Lagu guuldaraaystay in la soo raro xogta streak-ga. Fadlan mar kale isku day.");
-    } finally {
-      setLoading(false);
-    }
+    // ...
   };
 
   useEffect(() => {
     fetchStreakData();
   }, []);
+  */
 
   // Whenever currentQuestion changes, scroll the active dot into view
   useEffect(() => {

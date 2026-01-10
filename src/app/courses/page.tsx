@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import { cn } from "@/lib/utils";
 import { API_BASE_URL } from "@/lib/constants";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
 const defaultCourseImage = "/images/placeholder-course.svg";
@@ -30,7 +31,7 @@ const isValidUrl = (url: string) => {
 const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => (
   <div className="relative w-20 h-20">
     <Image
-      src={src && isValidUrl(src) ? src : defaultCategoryImage}
+      src={src && isValidUrl(src) ? optimizeCloudinaryUrl(src) : defaultCategoryImage}
       alt={alt}
       fill
       className="object-contain"
@@ -48,7 +49,7 @@ const CourseImage = ({ src, alt, priority = false }: { src?: string; alt: string
   return (
     <div className="relative w-full h-40 bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
       <Image
-        src={imageSrc}
+        src={optimizeCloudinaryUrl(imageSrc)}
         alt={alt}
         fill
         priority={priority}
@@ -205,32 +206,31 @@ export default function CoursesPage() {
                 <div key={category?.id ?? idx} className="animate-fade-in-up">
                   {/* Category Header */}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 pb-8 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex items-center gap-10 group/header">
+                    <div className="flex items-center gap-10 group/header w-full">
                       {isLoading ? (
-                        <Skeleton className="w-24 h-24 rounded-3xl" />
-                      ) : (
-                        <div className="relative p-5 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md transition-all duration-500 group-hover/header:scale-110 group-hover/header:rotate-3 group-hover/header:shadow-primary/30">
-                          <CategoryImage src={category.image} alt={category.title} />
-                          <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-[3rem] opacity-0 group-hover/header:opacity-100 blur-xl transition-opacity duration-500" />
-                        </div>
-                      )}
-                      <div>
-                        {isLoading ? (
-                          <div className="space-y-3">
-                            <Skeleton className="w-64 h-10" />
-                            <Skeleton className="w-80 h-6" />
+                        <div className="flex items-center gap-10 w-full">
+                          <Skeleton className="w-24 h-24 rounded-[2.5rem]" />
+                          <div className="space-y-4 flex-1">
+                            <Skeleton className="w-64 h-12 rounded-2xl" />
+                            <Skeleton className="w-96 h-6 rounded-xl" />
                           </div>
-                        ) : (
-                          <>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative p-5 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md transition-all duration-500 group-hover/header:scale-110 group-hover/header:rotate-3 group-hover/header:shadow-primary/30">
+                            <CategoryImage src={category.image} alt={category.title} />
+                            <div className="absolute -inset-2 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-[3rem] opacity-0 group-hover/header:opacity-100 blur-xl transition-opacity duration-500" />
+                          </div>
+                          <div>
                             <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-3 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent group-hover/header:translate-x-2 transition-transform duration-300">
                               {category.title}
                             </h2>
                             <p className="text-lg md:text-xl text-slate-500 dark:text-slate-500 font-medium tracking-wide max-w-xl group-hover/header:translate-x-3 transition-transform duration-500">
                               {category.description}
                             </p>
-                          </>
-                        )}
-                      </div>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                   </div>
@@ -251,39 +251,34 @@ export default function CoursesPage() {
                               )}
                             >
                               {isLoading ? (
-                                <Skeleton className="h-40 w-full" />
+                                <div className="space-y-6">
+                                  <Skeleton className="h-40 w-full rounded-[2.5rem]" />
+                                  <div className="p-6 space-y-4">
+                                    <Skeleton className="h-8 w-3/4 rounded-xl" />
+                                    <Skeleton className="h-16 w-full rounded-xl" />
+                                    <div className="flex justify-between items-center pt-4">
+                                      <Skeleton className="h-6 w-1/3 rounded-lg" />
+                                      <Skeleton className="w-10 h-10 rounded-2xl" />
+                                    </div>
+                                  </div>
+                                </div>
                               ) : (
-                                <div className="relative h-40 bg-slate-100 dark:bg-slate-900 flex items-center justify-center grayscale">
-                                  <CourseImage src={course?.thumbnail} alt={course?.title ?? ""} />
-                                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl z-20 border border-white/20">
-                                    Dhowaan
+                                <div className="p-6 flex-1 flex flex-col">
+                                  <h3 className="font-black text-xl mb-3 line-clamp-1 leading-tight text-slate-400 dark:text-slate-600">
+                                    {course?.title}
+                                  </h3>
+                                  {course?.description && (
+                                    <p className="text-sm text-slate-400 dark:text-slate-700 line-clamp-2 mb-4 font-medium">
+                                      {course.description}
+                                    </p>
+                                  )}
+                                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900">
+                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                      <span>Lama helayo (Soon)</span>
+                                    </div>
                                   </div>
                                 </div>
                               )}
-                              <div className="p-6 flex-1 flex flex-col">
-                                {isLoading ? (
-                                  <div className="space-y-4">
-                                    <Skeleton className="h-8 w-3/4" />
-                                    <Skeleton className="h-10 w-full" />
-                                  </div>
-                                ) : (
-                                  <>
-                                    <h3 className="font-black text-xl mb-3 line-clamp-1 leading-tight text-slate-400 dark:text-slate-600">
-                                      {course?.title}
-                                    </h3>
-                                    {course?.description && (
-                                      <p className="text-sm text-slate-400 dark:text-slate-700 line-clamp-2 mb-4 font-medium">
-                                        {course.description}
-                                      </p>
-                                    )}
-                                    <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900">
-                                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <span>Lama helayo (Soon)</span>
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
                             </Card>
                           );
                         }
@@ -369,7 +364,7 @@ export default function CoursesPage() {
             }
           )}
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 }

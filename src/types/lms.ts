@@ -38,14 +38,18 @@ export interface Module {
 
 export interface Lesson {
   id: number;
-  module_id: number;
+  module_id?: number;
+  course_id?: number;
   title: string;
+  slug: string;
   description: string;
   content: string;
   type: "video" | "text" | "quiz";
   order: number;
+  lesson_number?: number;
   progress: number;
   problem?: Problem;
+  content_blocks?: any[];
   language_options: string[];
 }
 

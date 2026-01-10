@@ -15,6 +15,7 @@ import type { RootState } from "@/store";
 import { useCourse } from "@/hooks/useApi";
 import { API_BASE_URL } from "@/lib/constants";
 import AuthService from "@/services/auth";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import useSWR from "swr";
 import { UserProgress } from "@/services/progress";
 
@@ -143,7 +144,7 @@ export default function CourseDetailPage() {
                         <div className="flex mb-6 border-border dark:border-slate-800 border-2 px-4 py-2 rounded-md w-fit bg-slate-50 dark:bg-black">
                             <div className="relative w-16 h-16">
                                 <Image
-                                    src={currentCourse.thumbnail || defaultCourseImage}
+                                    src={optimizeCloudinaryUrl(currentCourse.thumbnail) || defaultCourseImage}
                                     alt={currentCourse.title}
                                     fill
                                     className="object-contain"
@@ -173,13 +174,10 @@ export default function CourseDetailPage() {
                                 <span>🧩</span>
                                 <span>
                                     {currentCourse?.modules
-                                        .map(
-                                            (mod) =>
-                                                (mod?.lessons ?? []).filter(
-                                                    (lesson) => lesson?.problem
-                                                ).length
-                                        )
-                                        .reduce((acc, curr) => acc + curr, 0) ?? 0}{" "}
+                                        ?.flatMap(mod => mod.lessons || [])
+                                        .filter(lesson =>
+                                            lesson.content_blocks?.some(block => block.block_type === 'problem')
+                                        ).length || 0}{" "}
                                     waydiimo
                                 </span>
                             </div>

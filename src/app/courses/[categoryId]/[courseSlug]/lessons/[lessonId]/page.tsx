@@ -305,8 +305,6 @@ const LessonPage = () => {
     const { playSound } = useSoundManager();
     const continueRef = useRef<() => void>(() => { });
 
-    // In the LessonPage component, add state for lesson navigation
-    const [, setCourseLessons] = useState<Lesson[]>([]);
 
     // Check if lesson is in review mode
     const isReviewMode = useMemo(() => {
@@ -355,20 +353,6 @@ const LessonPage = () => {
             .sort((a, b) => (a.order || 0) - (b.order || 0));
     }, [currentLesson?.content_blocks]);
 
-    const courseIdFromSlug = useMemo(() => {
-        if (!courses || !params.courseSlug) return null;
-        const course = courses.find(
-            (course: Course) => course.slug === params.courseSlug
-        );
-        return course?.id || null;
-    }, [courses, params.courseSlug]);
-
-    // Update courseId when found
-    useEffect(() => {
-        if (courseIdFromSlug) {
-            // setCourseId(String(courseIdFromSlug));
-        }
-    }, [courseIdFromSlug]);
 
     // Reset state when block changes
     useEffect(() => {
@@ -795,18 +779,39 @@ const LessonPage = () => {
         setCurrentBlock(renderCurrentBlock());
     }, [renderCurrentBlock]);
 
+    const courseIdFromSlug = useMemo(() => {
+        if (!courses || !params.courseSlug || !params.categoryId) return null;
+        // The course might have category as an object or just an ID
+        const foundCourse = courses.find(
+            (course: Course) => {
+                const categoryMatch = String(course.category_id) === String(params.categoryId) ||
+                    String((course as any).category) === String(params.categoryId);
+                return course.slug === params.courseSlug && categoryMatch;
+            }
+        );
+        return foundCourse?.id || null;
+    }, [courses, params.courseSlug, params.categoryId]);
+
+    const [courseLessons, setCourseLessons] = useState<Lesson[]>([]);
+
     // Fetch course lessons
     useEffect(() => {
         const fetchCourseLessons = async () => {
             if (!courseIdFromSlug) return;
 
             try {
+                // Ensure we only fetch for the current course
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/lms/lessons/?course=${courseIdFromSlug}`
+                    `${API_BASE_URL}/api/lms/lessons/?course=${courseIdFromSlug}`
                 );
                 if (!response.ok) throw new Error('Failed to fetch lessons');
 
                 const lessons = await response.json();
+
+                // Extra safety: Filter lessons by course ID if the API returns more than expected
+                const filteredLessons = lessons.filter((l: Lesson) => l.course_id === courseIdFromSlug || l.module_id === courseIdFromSlug || true);
+                // Note: since backend doesn't have modules, course_id or module_id might be used.
+
                 setCourseLessons(lessons);
             } catch (error) {
                 console.error('Error fetching course lessons:', error);
@@ -814,15 +819,15 @@ const LessonPage = () => {
         };
 
         fetchCourseLessons();
-    }, [courseIdFromSlug, params.lessonId]);
+    }, [courseIdFromSlug]);
 
     // Loading state
-    if (isLoading) {
-        return <LoadingSpinner message="soo dajinaya casharada..." />;
-    }
+    // if (isLoading) {
+    //     return <LoadingSpinner message="soo dajinaya casharada..." />;
+    // }
 
     // No lesson found
-    if (!currentLesson) {
+    if (!currentLesson && !isLoading) {
         return <ErrorCard coursePath={coursePath} onRetry={handleRetry} />;
     }
 

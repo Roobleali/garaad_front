@@ -16,6 +16,7 @@ import Latex from "react-latex-next";
 // import { ProblemContent } from "@/types/lms";
 import { ProblemContent } from "@/types/learning";
 import { useSoundManager } from "@/hooks/use-sound-effects";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 
 // Dynamically import the diagram component
 const DiagramScale = dynamic(() => import("../DiagramScale"), {
@@ -66,7 +67,7 @@ const ProblemBlock: React.FC<{
     useEffect(() => {
       if (content?.img) {
         setImgLoading(true);
-        setImgSrc(content.img);
+        setImgSrc(optimizeCloudinaryUrl(content.img));
       }
     }, [content?.img]);
 

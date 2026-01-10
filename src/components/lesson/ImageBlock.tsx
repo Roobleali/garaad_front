@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter } from "../ui/card";
 
@@ -83,12 +84,11 @@ const ImageBlock: React.FC<{
               {/* Image */}
               <div className="relative aspect-video w-full">
                 <Image
-                  src={section.url}
+                  src={optimizeCloudinaryUrl(section.url)}
                   alt={section.alt}
                   width={content.width || 800}
                   height={content.height || 600}
                   className="object-cover rounded-lg"
-                  unoptimized={process.env.NODE_ENV !== "production"}
                 />
               </div>
 
