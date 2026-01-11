@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface LogoProps {
     className?: string;
@@ -18,9 +20,20 @@ export function Logo({
     width = 200,
     height = 60
 }: LogoProps) {
+    const { theme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    // Prevent hydration mismatch
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDarkMode = mounted && (resolvedTheme === "dark" || theme === "dark");
+    const logoSrc = isDarkMode ? "/logo_darkmode.png" : "/logo.png";
+
     return (
         <Image
-            src="/logo.png"
+            src={logoSrc}
             alt="Garaad"
             width={width}
             height={height}
@@ -35,4 +48,4 @@ export function Logo({
     );
 }
 
-export default Logo; 
+export default Logo;
