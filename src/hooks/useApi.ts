@@ -6,15 +6,32 @@ import { Module } from "@/types/learning";
 import { API_BASE_URL } from "@/lib/constants";
 
 // Add cache configuration
-const swrConfig = {
+function localStorageProvider() {
+  if (typeof window === "undefined") return new Map();
+
+  // Handle SSR/Hydration by initializing with empty map if needed
+  const cacheData = localStorage.getItem("swr-cache");
+  const map = new Map(JSON.parse(cacheData || "[]"));
+
+  // This is a simple implementation. In a real app, you might want to 
+  // throttle the storage update or use a more robust solution.
+  window.addEventListener("beforeunload", () => {
+    try {
+      const appCache = JSON.stringify(Array.from(map.entries()));
+      localStorage.setItem("swr-cache", appCache);
+    } catch (e) {
+      console.error("Failed to save SWR cache to localStorage:", e);
+    }
+  });
+
+  return map;
+}
+
+export const swrConfig = {
   revalidateOnFocus: false,
   revalidateOnReconnect: true,
-  dedupingInterval: 5000,
-  // Add persistent cache
-  provider: () => new Map(),
-  // Add cache persistence
-  persistSize: 1000, // Maximum number of items to persist
-  // Add stale-while-revalidate strategy
+  dedupingInterval: 300000, // 5 minutes by default for read-heavy data
+  provider: localStorageProvider,
   revalidateIfStale: true,
   revalidateOnMount: true,
 };
@@ -41,8 +58,7 @@ const fetcher = async (url: string) => {
 export function useCategories() {
   const { data, error, isLoading, mutate } = useSWR<Category[]>(
     `${API_BASE_URL}/api/lms/categories/`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -76,8 +92,7 @@ export function useModule(courseId: string, moduleId: string) {
     courseId && moduleId
       ? `${API_BASE_URL}/api/lms/courses/${courseId}/modules/${moduleId}/`
       : null,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -94,8 +109,7 @@ export function useLesson(moduleId: string, lessonId: string) {
     moduleId && lessonId
       ? `${API_BASE_URL}/api/lms/modules/${moduleId}/lessons/${lessonId}/`
       : null,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -110,8 +124,7 @@ export function useLesson(moduleId: string, lessonId: string) {
 export function useUserProgress() {
   const { data, error, isLoading, mutate } = useSWR(
     `${API_BASE_URL}/api/lms/user/progress/`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -128,8 +141,7 @@ export function useLeaderboard(
 ) {
   const { data, error, isLoading, mutate } = useSWR(
     `${API_BASE_URL}/api/lms/leaderboard/?time_period=${timePeriod}`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -144,8 +156,7 @@ export function useLeaderboard(
 export function useUserRank() {
   const { data, error, isLoading, mutate } = useSWR(
     `${API_BASE_URL}/api/lms/leaderboard/my_rank/`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -162,8 +173,7 @@ export function useUserRewards(lessonId?: string) {
     lessonId
       ? `${API_BASE_URL}/api/lms/rewards?lesson_id=${lessonId}`
       : `${API_BASE_URL}/api/lms/rewards`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   return {
@@ -178,8 +188,7 @@ export function useUserRewards(lessonId?: string) {
 export function useUserStreak() {
   const { data, error, isLoading, mutate } = useSWR(
     `${API_BASE_URL}/api/streaks/`,
-    fetcher,
-    swrConfig
+    fetcher
   );
 
   console.log("streak:", data);
@@ -211,8 +220,7 @@ export function useCourse(categoryId: string, courseSlug: string) {
       const found = data.find((c: Course) => c.slug === courseSlug);
       if (!found) throw new Error("Koorso lama helin");
       return found;
-    },
-    { revalidateOnFocus: false, dedupingInterval: 300000 }
+    }
   );
 
   // Fetch lessons using the specific course ID
@@ -225,8 +233,7 @@ export function useCourse(categoryId: string, courseSlug: string) {
     courseData?.id
       ? `${API_BASE_URL}/api/lms/lessons/?course=${courseData.id}`
       : null,
-    fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 300000 }
+    fetcher
   );
 
   // Combine data: Map EACH flat lesson to its own module for the zigzag view "simpel"
