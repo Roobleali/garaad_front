@@ -182,20 +182,7 @@ export function useProblem(problemId: number | string | undefined | null) {
   };
 }
 
-// User Streak - DISABLED (API endpoint not available)
-export function useUserStreak() {
-  // const { data, error, isLoading, mutate } = useSWR(
-  //   `${API_BASE_URL}/api/streaks/`,
-  //   fetcher
-  // );
-
-  return {
-    streak: null,
-    isLoading: false,
-    isError: null,
-    mutate: () => { },
-  };
-}
+// User Streak hook removed - API endpoint not available
 
 // Enrollments
 export function useEnrollments() {

@@ -54,17 +54,6 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeDotRef = useRef<HTMLDivElement>(null);
-  // const { streak, isLoading, isError } = useUserStreak();
-
-  /* 
-  const fetchStreakData = async () => {
-    // ...
-  };
-
-  useEffect(() => {
-    fetchStreakData();
-  }, []);
-  */
 
   // Whenever currentQuestion changes, scroll the active dot into view
   useEffect(() => {

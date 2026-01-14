@@ -24,34 +24,30 @@ const VideoBlock: React.FC<{
   // Debug logging
   console.log("VideoBlock content:", { content, videoUrl });
 
-  // Use the video URL as-is from the backend
-  // The backend now handles format optimization correctly
+  // Robustly handle Cloudinary optimized URLs
   const optimizedUrl = React.useMemo(() => {
     if (!videoUrl) return "";
 
-    // For Cloudinary videos, we need to ensure MP4 format for browser compatibility
+    // For Cloudinary videos, we need to ensure MP4 format and proper transformations
     if (videoUrl.includes("res.cloudinary.com") && videoUrl.includes("/video/upload/")) {
-      // Remove the file extension first
-      const urlWithoutExt = videoUrl.replace(/\.[^/.]+$/, "");
+      // 1. Remove any existing extension and specific file extensions that might cause issues
+      let cleanUrl = videoUrl.replace(/\.[^/.]+$/, "");
 
-      // Check if there are already transformations
-      if (urlWithoutExt.includes("/q_auto/") || urlWithoutExt.includes("/f_auto/")) {
-        // Add f_mp4 transformation if not already present
-        if (!urlWithoutExt.includes("f_mp4")) {
-          // Insert f_mp4 after /video/upload/
-          return urlWithoutExt.replace(
-            "/video/upload/",
-            "/video/upload/f_mp4/"
-          ) + ".mp4";
-        }
-        return urlWithoutExt + ".mp4";
-      } else {
-        // No transformations - add f_mp4 transformation
-        return urlWithoutExt.replace(
-          "/video/upload/",
-          "/video/upload/f_mp4/"
-        ) + ".mp4";
+      // 2. Extract parts
+      const [before, after] = cleanUrl.split("/video/upload/");
+
+      // 3. Rebuild with consistent transformation segment
+      // Use f_mp4 for video delivery and q_auto for optimization
+      // We remove existing transformations from the 'after' part if they exist to start fresh
+      let finalAfter = after;
+      if (after.match(/^v\d+\//)) {
+        // It's just a version number, keep it
+      } else if (after.includes("/")) {
+        // It has transformations like 'q_auto/f_auto/', strip them
+        finalAfter = after.substring(after.lastIndexOf("/") + 1);
       }
+
+      return `${before}/video/upload/f_mp4,q_auto/${finalAfter}.mp4`;
     }
 
     return videoUrl;
@@ -64,19 +60,15 @@ const VideoBlock: React.FC<{
   const posterUrl = React.useMemo(() => {
     if (!videoUrl || !videoUrl.includes("res.cloudinary.com")) return undefined;
 
-    // Change extension to .jpg and add so_0 for a poster frame at the start
-    // We use /video/upload/so_0/ to insert so_0 safely
-    if (videoUrl.includes("/video/upload/v")) {
-      // Raw URL without transformations
-      return videoUrl
-        .replace("/video/upload/", "/video/upload/f_auto,q_auto,so_0/")
-        .replace(/\.[^/.]+$/, ".jpg");
-    } else {
-      // Already has transformations, just insert so_0
-      return videoUrl
-        .replace("/video/upload/", "/video/upload/so_0/")
-        .replace(/\.[^/.]+$/, ".jpg");
+    // Use a similar approach to rebuild the URL for an image poster
+    const [before, after] = videoUrl.replace(/\.[^/.]+$/, "").split("/video/upload/");
+    let finalAfter = after;
+    if (!after.match(/^v\d+\//) && after.includes("/")) {
+      finalAfter = after.substring(after.lastIndexOf("/") + 1);
     }
+
+    // so_0 is for start offset 0 (first frame)
+    return `${before}/video/upload/f_auto,q_auto,so_0/${finalAfter}.jpg`;
   }, [videoUrl]);
 
 
