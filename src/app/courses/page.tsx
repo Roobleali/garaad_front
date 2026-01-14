@@ -182,19 +182,19 @@ export default function CoursesPage() {
           {(isLoading ? Array(3).fill(null) : (categories ?? [])
             .filter(cat => cat.courses && cat.courses.length > 0)
             .sort((a, b) => {
-              const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : -1;
-              const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : -1;
-              return seqB - seqA;
+              const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : Number.MAX_SAFE_INTEGER;
+              const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : Number.MAX_SAFE_INTEGER;
+              return seqA - seqB;
             })
           ).map(
             (category, idx) => {
               const sortedCourses = isLoading
                 ? Array(4).fill(null)
                 : [...category.courses].sort((a, b) => {
-                  // Primary sort: sequence descending (treat 0 as -1 to put at end)
-                  const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : -1;
-                  const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : -1;
-                  if (seqA !== seqB) return seqB - seqA;
+                  // Primary sort: sequence ascending (treat 0 as MAX_SAFE_INTEGER to put at end)
+                  const seqA = (a?.sequence && a.sequence > 0) ? a.sequence : Number.MAX_SAFE_INTEGER;
+                  const seqB = (b?.sequence && b.sequence > 0) ? b.sequence : Number.MAX_SAFE_INTEGER;
+                  if (seqA !== seqB) return seqA - seqB;
 
                   // Secondary sort: created_at ascending (oldest first)
                   const dateA = a?.created_at ? new Date(a.created_at).getTime() : 0;
