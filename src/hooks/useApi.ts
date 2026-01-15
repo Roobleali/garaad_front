@@ -4,6 +4,7 @@ import { Category, Course, Lesson } from "@/types/lms";
 import axios from "axios";
 import { Module } from "@/types/learning";
 import { API_BASE_URL } from "@/lib/constants";
+import AuthService from "@/services/auth";
 
 // Add cache configuration
 function localStorageProvider() {
@@ -37,8 +38,7 @@ export const swrConfig = {
 };
 
 const fetcher = async (url: string) => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const token = typeof window !== "undefined" ? AuthService.getInstance().getToken() : null;
 
   const response = await fetch(url, {
     headers: {

@@ -524,9 +524,9 @@ const LessonPage = () => {
                     .filter((b) => b.block_type === "problem" && b.problem)
                     .map((b) => b.problem);
 
-                await authFetcher(
-                    `${API_BASE_URL}/api/lms/lessons/${currentLesson.id}/complete/`,
+                await AuthService.getInstance().makeAuthenticatedRequest(
                     "post",
+                    `/api/lms/lessons/${currentLesson.id}/complete/`,
                     {
                         completed_problems: completedProblemIds,
                         score: isCorrect ? 100 : 0,

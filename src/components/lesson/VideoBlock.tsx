@@ -34,7 +34,12 @@ const VideoBlock: React.FC<{
     // For Cloudinary videos, we need to ensure MP4 format and proper transformations
     if (videoUrl.includes("res.cloudinary.com") && videoUrl.includes("/video/upload/")) {
       let cleanUrl = videoUrl.replace(/\.[^/.]+$/, "");
-      const [before, after] = cleanUrl.split("/video/upload/");
+      const parts = cleanUrl.split("/video/upload/");
+
+      if (parts.length < 2 || !parts[1]) return videoUrl;
+
+      const before = parts[0];
+      const after = parts[1];
 
       const versionMatch = after.match(/(v\d+\/.*)/);
       let finalAfter = after;
