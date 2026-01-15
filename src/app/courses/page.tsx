@@ -125,41 +125,79 @@ export default function CoursesPage() {
       <Header />
 
       {/* Hero Section */}
-      <div className="relative pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden">
-        {/* Animated Background Blobs */}
+      <div className="relative pt-20 pb-12 md:pt-40 md:pb-32 overflow-hidden">
+        {/* Simplified & Clean Background */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 -left-48 w-96 h-96 bg-primary/10 rounded-full blur-[100px] animate-pulse-slow" />
-          <div className="absolute bottom-1/4 -right-48 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] animate-pulse-slow delay-1000" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[120px] animate-float" />
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] animate-pulse-slow" />
+          <div className="absolute -bottom-24 right-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] animate-float opacity-50" />
         </div>
 
-        {/* Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,.02)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_90%)]" />
+        {/* Subtle Grid Overlay */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.01] dark:opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_100%)]" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {showSuccessMessage && (
-            <Alert className="mb-12 bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400 rounded-3xl backdrop-blur-md animate-fade-in-up">
+            <Alert className="mb-12 bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400 rounded-3xl backdrop-blur-md animate-fade-in-up max-w-2xl mx-auto md:mx-0">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
               <AlertTitle className="font-black">Bixinta waa guuleysatay!</AlertTitle>
               <AlertDescription className="font-bold">
-                Mahadsanid! Bixintaada waa la aqbalay. Hadda waad geli kartaa dhammaan casharrada premium-ka ah.
+                Mahadsanid! Hadda waad geli kartaa dhammaan casharrada premium-ka ah.
               </AlertDescription>
             </Alert>
           )}
 
-          <div className="max-w-4xl mx-auto text-center md:text-left">
-            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black mb-8 tracking-tighter animate-fade-in-up leading-[1.05]">
-              Waddooyinka <br />
-              <span className="relative inline-block mt-2">
-                <span className="absolute -inset-4 blur-3xl bg-primary/20 opacity-50" />
-                <span className="relative bg-gradient-to-r from-primary via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  Waxbarashada
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-20">
+            {/* Left Content: Text */}
+            <div className="flex-1 text-center md:text-left space-y-6 md:space-y-8 animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 backdrop-blur-sm">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                  Safar Aqooneed Hufan
                 </span>
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-bold mb-10 leading-relaxed max-w-2xl animate-fade-in-up delay-200">
-              Waddooyin isku xiga oo loo maro hanashada STEM-ka iyo Tiknoolajiyadda casriga ah—oo Af-Soomaali ah.
-            </p>
+              </div>
+
+              <h1 className="text-[clamp(2.5rem,8vw,5rem)] md:text-[clamp(3.5rem,6vw,6rem)] font-black leading-[1.1] tracking-tight">
+                Waddooyinka{" "}
+                <span className="relative inline-block">
+                  <span className="absolute -inset-2 blur-2xl bg-primary/10 opacity-40" />
+                  <span className="relative bg-gradient-to-r from-primary via-blue-500 to-primary bg-clip-text text-transparent">
+                    Waxbarashada
+                  </span>
+                </span>
+              </h1>
+
+              <p className="text-lg sm:text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-2xl">
+                Waddooyin isku xiga oo loo maro hanashada STEM-ka iyo Tiknoolajiyadda casriga ah—oo Af-Soomaali ah.
+              </p>
+            </div>
+
+            {/* Right Content: Optional Visual Element / Stat Card */}
+            <div className="hidden md:flex flex-1 justify-end animate-fade-in-up delay-300">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative bg-white dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-2xl space-y-6 min-w-[320px]">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-end">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Progress</span>
+                      <span className="text-xl font-black text-primary">68%</span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="h-full w-[68%] bg-gradient-to-r from-primary to-blue-500 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">CASHARADA</p>
+                      <p className="text-2xl font-black">124+</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">ARDAYDA</p>
+                      <p className="text-2xl font-black">2.5k</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
