@@ -12,6 +12,7 @@ const publicPaths = [
   "/register",
   "/subscribe",
   "/verify-email",
+  "/reset-password",
   "/loading",
   "/api/payment",
   "/api/payment/success",
