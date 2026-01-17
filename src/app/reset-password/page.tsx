@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, CheckCircle2, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
-import Image from "next/image";
+import { Logo } from "@/components/ui/Logo";
 import Link from "next/link";
 
 export default function ResetPasswordPage() {
@@ -110,15 +110,7 @@ export default function ResetPasswordPage() {
             <Card className="w-full max-w-md shadow-lg border-0">
                 <CardHeader className="text-center space-y-4">
                     <div className="flex justify-center">
-                        <div className="w-32 h-12 relative">
-                            <Image
-                                src="/logo.png"
-                                alt="Garaad Logo"
-                                fill
-                                className="object-contain"
-                                priority
-                            />
-                        </div>
+                        <Logo priority />
                     </div>
                     <CardTitle className="text-2xl font-bold">Bedelka Sirta</CardTitle>
                     <CardDescription>Geli sirtaada cusub qaybaha hoose.</CardDescription>
