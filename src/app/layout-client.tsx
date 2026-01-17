@@ -1,7 +1,7 @@
 "use client";
 
 import { Providers } from "./providers";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/ToasterUI";
 import { inter } from "@/lib/fonts";
 
 export default function RootLayoutClient({

@@ -81,7 +81,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/ToasterUI";
 import { OverlayElements } from "@/components/landing/OverlayElements";
 
 export default function RootLayout({
