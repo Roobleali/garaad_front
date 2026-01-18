@@ -126,11 +126,12 @@ const AuthenticatedAvatar: React.FC<AuthenticatedAvatarProps> = ({
                         console.log('AuthenticatedAvatar: Fetch aborted');
                         return;
                     }
-                    console.error('Failed to load authenticated avatar:', err);
+                    console.warn('Failed to load authenticated avatar, falling back to direct URL:', err);
                     if (isMounted) {
-                        setError(true);
+                        // Fallback: try loading directly without Authorization header
+                        setImageUrl(normalizedSrc);
+                        setError(false);
                         setIsLoading(false);
-                        setImageUrl(null);
                     }
                 });
         } else {

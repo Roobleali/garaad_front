@@ -7,38 +7,14 @@ import axios from "axios";
 import { API_BASE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
+import { useGamificationData } from "@/hooks/useGamificationData";
+
 interface LessonHeaderProps {
   currentQuestion: number;
   totalQuestions: number;
   coursePath: string;
   onDotClick?: (lessonIndex: number) => void;
   completedLessons?: number[];
-}
-
-interface DailyActivity {
-  date: string;
-  day: string;
-  status: "complete" | "none";
-  problems_solved: number;
-  lesson_ids: number[];
-  isToday: boolean;
-}
-
-interface StreakData {
-  userId: string;
-  username: string;
-  current_streak: number;
-  max_streak: number;
-  lessons_completed: number;
-  problems_to_next_streak: number;
-  energy: {
-    current: number;
-    max: number;
-    next_update: string;
-  };
-  dailyActivity: DailyActivity[];
-  xp: number;
-  daily_xp: number;
 }
 
 const LessonHeader: React.FC<LessonHeaderProps> = ({
@@ -48,9 +24,7 @@ const LessonHeader: React.FC<LessonHeaderProps> = ({
   onDotClick,
   completedLessons = [],
 }) => {
-  const [streakData, setStreakData] = useState<StreakData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { streak: streakData, isLoading: loading, hasError: error } = useGamificationData();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeDotRef = useRef<HTMLDivElement>(null);

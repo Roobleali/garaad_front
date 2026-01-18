@@ -42,8 +42,9 @@ const formatDate = (date: Date) =>
 
 const Certificate: React.FC<{
   lessonTitle: string;
+  isCourse?: boolean;
   onContinue: () => void;
-}> = ({ lessonTitle, onContinue }) => {
+}> = ({ lessonTitle, isCourse = false, onContinue }) => {
   const params = useParams<{
     category: string;
     courseSlug: string;
@@ -146,14 +147,16 @@ const Certificate: React.FC<{
             {garaadName}
           </span>
           <span className="block text-base text-gray-700 mb-2">
-            dhamaystirka koorsada
+            dhamaystirka {isCourse ? "koorsada dhammaystiran ee" : "casharka"}
           </span>
-          <span className="block text-xl md:text-2xl font-semibold text-primary mb-2">
-            {courseName}
+          <span className="block text-xl md:text-2xl font-black text-primary mb-2 text-center uppercase tracking-tight">
+            {isCourse ? lessonTitle : courseName}
           </span>
-          <span className="block text-base text-gray-700 mb-2">
-            Casharka: <span className="font-semibold">{lessonTitle}</span>
-          </span>
+          {!isCourse && (
+            <span className="block text-base text-gray-700 mb-2">
+              Casharka: <span className="font-semibold">{lessonTitle}</span>
+            </span>
+          )}
           <span className="block text-base text-gray-700 mb-6 text-center max-w-xl">
             Waad ku mahadsantahay muujinta dabeecad iyo daacadnimo sare.
             Hambalyo guushaada!

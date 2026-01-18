@@ -31,6 +31,8 @@ import CalculatorProblemBlock from "@/components/lesson/CalculatorProblemBlock";
 import { useSoundManager } from "@/hooks/use-sound-effects";
 import { cn } from "@/lib/utils";
 import { API_BASE_URL } from "@/lib/constants";
+import { useGamificationData } from "@/hooks/useGamificationData";
+import RewardSequence from "@/components/RewardSequence";
 
 interface ProblemData {
     id: number;
@@ -231,6 +233,13 @@ const LessonPage = () => {
     // useCourse for breadcrumbs/info
     const { course: currentCourse } = useCourse(params.categoryId as string, params.courseSlug as string);
 
+    // Breadcrumbs courses (already handled by useCategories in useApi if needed, 
+    // but breadcrumbs often need all categories/courses)
+    const { categories } = useCategories();
+    const courses = useMemo(() => {
+        return categories?.flatMap(cat => cat.courses || []);
+    }, [categories]);
+
     // Local state
     const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -254,8 +263,52 @@ const LessonPage = () => {
     const [problems, setProblems] = useState<ProblemContent[]>([]);
     const [problemLoading, setProblemLoading] = useState(false);
 
+    const { streak, leaderboard, mutateAll } = useGamificationData();
+
     const { playSound } = useSoundManager();
     const continueRef = useRef<() => void>(() => { });
+
+    const coursePath = useMemo(
+        () => `/courses/${params.categoryId}/${params.courseSlug}`,
+        [params]
+    );
+
+    const courseIdFromSlug = useMemo(() => {
+        if (!courses || !params.courseSlug || !params.categoryId) return null;
+        // The course might have category as an object or just an ID
+        const foundCourse = courses.find(
+            (course: Course) => {
+                const categoryMatch = String(course.category_id) === String(params.categoryId) ||
+                    String((course as any).category) === String(params.categoryId);
+                return course.slug === params.courseSlug && categoryMatch;
+            }
+        );
+        return foundCourse?.id || null;
+    }, [courses, params.courseSlug, params.categoryId]);
+
+    const [courseLessons, setCourseLessons] = useState<Lesson[]>([]);
+
+    // Fetch course lessons
+    useEffect(() => {
+        const fetchCourseLessons = async () => {
+            if (!courseIdFromSlug) return;
+
+            try {
+                // Ensure we only fetch for the current course
+                const response = await fetch(
+                    `${API_BASE_URL}/api/lms/lessons/?course=${courseIdFromSlug}`
+                );
+                if (!response.ok) throw new Error('Failed to fetch lessons');
+
+                const lessons = await response.json();
+                setCourseLessons(lessons);
+            } catch (error) {
+                console.error('Error fetching course lessons:', error);
+            }
+        };
+
+        fetchCourseLessons();
+    }, [courseIdFromSlug]);
 
 
     // Check if lesson is in review mode
@@ -276,12 +329,6 @@ const LessonPage = () => {
         return false;
     }, [searchParams, currentLesson?.id]);
 
-    // Breadcrumbs courses (already handled by useCategories in useApi if needed, 
-    // but breadcrumbs often need all categories/courses)
-    const { categories } = useCategories();
-    const courses = useMemo(() => {
-        return categories?.flatMap(cat => cat.courses || []);
-    }, [categories]);
 
     const sortedBlocks = useMemo(() => {
         if (!currentLesson?.content_blocks || !Array.isArray(currentLesson.content_blocks)) return [];
@@ -302,11 +349,6 @@ const LessonPage = () => {
         if (!sortedBlocks) return null;
         return sortedBlocks[currentBlockIndex]?.block_type === 'problem' ? sortedBlocks[currentBlockIndex] : null;
     }, [sortedBlocks, currentBlockIndex]);
-
-    const coursePath = useMemo(
-        () => `/courses/${params.categoryId}/${params.courseSlug}`,
-        [params]
-    );
 
 
     // Reset state when block changes
@@ -537,6 +579,8 @@ const LessonPage = () => {
                         score: isCorrect ? 100 : 0,
                     }
                 );
+                // Refresh gamification data after completion
+                mutateAll();
             } catch (err) {
                 console.error("Completion error", err);
             }
@@ -549,13 +593,25 @@ const LessonPage = () => {
         sortedBlocks?.length,
         router,
         params,
+        mutateAll,
     ]);
 
     const handleCompletionAnimationFinish = useCallback(() => {
         setShowCompletionAnimation(false);
-        setNavigating(true);
-        router.push(coursePath);
-    }, [router, coursePath]);
+
+        // Find next lesson
+        const sortedLessons = [...courseLessons].sort((a, b) => (a.order || 0) - (b.order || 0));
+        const currentIdx = sortedLessons.findIndex(l => l.id === currentLesson?.id);
+        const nextLesson = currentIdx !== -1 && currentIdx < sortedLessons.length - 1 ? sortedLessons[currentIdx + 1] : null;
+
+        if (nextLesson) {
+            setNavigating(true);
+            router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${nextLesson.id}`);
+        } else {
+            setNavigating(true);
+            router.push(coursePath);
+        }
+    }, [router, coursePath, courseLessons, currentLesson?.id, params.categoryId, params.courseSlug]);
 
     useEffect(() => {
         continueRef.current = handleContinue;
@@ -696,49 +752,6 @@ const LessonPage = () => {
     ]);
 
 
-    const courseIdFromSlug = useMemo(() => {
-        if (!courses || !params.courseSlug || !params.categoryId) return null;
-        // The course might have category as an object or just an ID
-        const foundCourse = courses.find(
-            (course: Course) => {
-                const categoryMatch = String(course.category_id) === String(params.categoryId) ||
-                    String((course as any).category) === String(params.categoryId);
-                return course.slug === params.courseSlug && categoryMatch;
-            }
-        );
-        return foundCourse?.id || null;
-    }, [courses, params.courseSlug, params.categoryId]);
-
-    const [courseLessons, setCourseLessons] = useState<Lesson[]>([]);
-
-    // Fetch course lessons
-    useEffect(() => {
-        const fetchCourseLessons = async () => {
-            if (!courseIdFromSlug) return;
-
-            try {
-                // Ensure we only fetch for the current course
-                const response = await fetch(
-                    `${API_BASE_URL}/api/lms/lessons/?course=${courseIdFromSlug}`
-                );
-                if (!response.ok) throw new Error('Failed to fetch lessons');
-
-                const lessons = await response.json();
-
-                // Extra safety: Filter lessons by course ID if the API returns more than expected
-                const filteredLessons = Array.isArray(lessons)
-                    ? lessons.filter((l: Lesson) => l.course_id === courseIdFromSlug || l.module_id === courseIdFromSlug || true)
-                    : [];
-                // Note: since backend doesn't have modules, course_id or module_id might be used.
-
-                setCourseLessons(lessons);
-            } catch (error) {
-                console.error('Error fetching course lessons:', error);
-            }
-        };
-
-        fetchCourseLessons();
-    }, [courseIdFromSlug]);
 
     // Loading state
     // if (isLoading) {
@@ -751,9 +764,19 @@ const LessonPage = () => {
     }
 
     if (showCompletionAnimation) {
+        const sortedLessons = [...courseLessons].sort((a, b) => (a.order || 0) - (b.order || 0));
+        const isLastLessonOfCourse = sortedLessons.length > 0 &&
+            sortedLessons[sortedLessons.length - 1].id === currentLesson?.id;
+
         return (
-            <LessonCompletionAnimation
-                onComplete={handleCompletionAnimationFinish}
+            <RewardSequence
+                streak={streak}
+                leaderboard={leaderboard}
+                completedLesson={currentLesson?.title || ""}
+                courseTitle={currentCourse?.title}
+                isCourseComplete={isLastLessonOfCourse}
+                onContinue={handleCompletionAnimationFinish}
+                onBack={() => router.push(coursePath)}
             />
         );
     }
@@ -797,7 +820,7 @@ const LessonPage = () => {
             {showFeedback && (
                 <AnswerFeedback
                     isCorrect={isCorrect}
-                    currentLesson={currentLesson}
+                    currentLesson={currentLesson as any}
                     onResetAnswer={handleResetAnswer}
                     onContinue={handleContinue}
                     explanationData={explanationData}

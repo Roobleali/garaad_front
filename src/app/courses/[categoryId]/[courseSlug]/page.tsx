@@ -81,15 +81,25 @@ export default function CourseDetailPage() {
             return;
         }
 
-        // Check if the module is completed to determine if it's in review mode
+        // Find the module
         const courseModule = currentCourse?.modules.find(m => m.id === moduleId);
+
+        // Get the first lesson ID from the module
+        const firstLessonId = courseModule?.lessons?.[0]?.id;
+
+        if (!firstLessonId) {
+            console.error('No lessons found in module:', moduleId);
+            return;
+        }
+
+        // Check if the module is completed to determine if it's in review mode
         const isModuleCompleted = courseModule && progress?.some(
             (p) => p.module_id === moduleId && p.status === "completed"
         );
 
         // Add review parameter if the module is completed
         const reviewParam = isModuleCompleted ? '?review=true' : '';
-        router.push(`/courses/${categoryId}/${courseSlug}/lessons/${moduleId}${reviewParam}`);
+        router.push(`/courses/${categoryId}/${courseSlug}/lessons/${firstLessonId}${reviewParam}`);
     };
 
     if (error) {

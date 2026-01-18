@@ -1,20 +1,7 @@
 import { Header as SiteHeader } from "@/components/Header";
-import { HeroSection } from "@/components/landing/HeroSection";
 import { FooterSection } from "@/components/sections/FooterSection";
-import { SectionSkeleton } from "@/components/landing/SkeletonLoader";
-import { Suspense } from "react";
 import { Metadata } from "next";
-import dynamic from "next/dynamic";
-
-const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection").then(mod => mod.TestimonialsSection), {
-  loading: () => <SectionSkeleton />,
-  ssr: true
-});
-
-const CommunityCTASection = dynamic(() => import("@/components/landing/CommunityCTASection").then(mod => mod.CommunityCTASection), {
-  loading: () => <SectionSkeleton />,
-  ssr: true
-});
+import { HomeContent } from "./home-content";
 
 export const metadata: Metadata = {
   title: "Garaad | Baro, Tartan, oo Guulayso - #1 Goobta STEM Soomaaliya",
@@ -70,17 +57,7 @@ export default function Home() {
 
       <SiteHeader />
 
-      <main>
-        <HeroSection />
-
-        <Suspense fallback={<SectionSkeleton />}>
-          <TestimonialsSection />
-        </Suspense>
-
-        <Suspense fallback={<SectionSkeleton />}>
-          <CommunityCTASection />
-        </Suspense>
-      </main>
+      <HomeContent />
 
       <FooterSection />
     </div>

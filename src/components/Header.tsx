@@ -14,6 +14,8 @@ import Logo from "./ui/Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { ProfileDropdown } from "./layout/ProfileDropdown";
 import ReferralModal from "./referrals/ReferralModal";
+import StreakDisplay from "./StreakDisplay";
+import { useGamificationData } from "@/hooks/useGamificationData";
 
 const AuthDialog = dynamic(
   () => import("@/components/auth/AuthDialog").then((mod) => mod.AuthDialog),
@@ -31,6 +33,9 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+
+  // Gamification data for streak display
+  const { streak, isLoading: streakLoading, hasError: streakError } = useGamificationData();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -135,6 +140,17 @@ export function Header() {
 
           {/* Desktop Right Side */}
           <div className="flex items-center gap-4">
+            {/* Streak Display for logged-in users */}
+            {user && (
+              <div className="hidden lg:block">
+                <StreakDisplay
+                  loading={streakLoading}
+                  error={streakError ? "Failed to load streak data" : null}
+                  streakData={streak || null}
+                />
+              </div>
+            )}
+
             <div className="hidden md:flex items-center gap-3">
               {user && (
                 <>
