@@ -121,27 +121,27 @@ const ProblemBlock: React.FC<{
       const isDisabled = disabledOptions.includes(option) || (hasAnswered && isCorrect);
 
       const buttonClass = cn(
-        "group w-full p-4 md:p-5 text-sm md:text-md rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-4",
-        "border-b-4 active:translate-y-[2px] active:border-b-2",
+        "group w-full p-5 md:p-6 text-sm md:text-md rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-5",
+        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
         // Default state
-        !isSelected && !hasAnswered && "border-black/[0.1] dark:border-white/[0.1] bg-white dark:bg-zinc-800/50 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] hover:border-primary/40 text-foreground/80",
-        // Selected state (not answered yet)
-        isSelected && !hasAnswered && "border-primary bg-primary/5 dark:bg-primary/10 border-b-primary shadow-lg ring-2 ring-primary/20 text-primary font-bold scale-[1.02]",
-        // Correct state
-        isOptionCorrect && "border-[#58CC02] bg-[#D7FFB8]/30 dark:bg-[#58CC02]/10 text-[#2e6b01] dark:text-[#58CC02] border-b-[#46a302] font-bold ring-2 ring-[#58CC02]/20",
-        // Incorrect state
-        isOptionIncorrect && "border-red-500 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border-b-red-700 opacity-80",
+        !isSelected && !hasAnswered && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300",
+        // Selected state (not answered yet) - Premium Lavender/Purple
+        isSelected && !hasAnswered && "border-primary/60 bg-primary/5 dark:bg-primary/10 shadow-[0_8px_20px_-10px_rgba(168,85,247,0.3)] ring-1 ring-primary/20 text-primary font-bold scale-[1.01]",
+        // Correct state - Vibrant Emerald
+        isOptionCorrect && "border-emerald-500/60 bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
+        // Incorrect state - Vibrant Rose
+        isOptionIncorrect && "border-rose-500/60 bg-rose-50/80 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 font-bold shadow-[0_8px_20px_-10px_rgba(244,63,94,0.3)]",
         // Disabled/Not selected state
-        isDisabled && !isSelected && "border-black/[0.05] dark:border-white/[0.05] bg-transparent text-foreground/20 cursor-not-allowed grayscale opacity-40"
+        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none hover:translate-y-0"
       );
 
       const indicatorClass = cn(
-        "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border-2 transition-all duration-300 shrink-0 shadow-sm",
-        !isSelected && !hasAnswered && "border-black/[0.1] dark:border-white/[0.1] bg-black/[0.02] dark:bg-white/[0.05] text-foreground/40 group-hover:bg-primary/10 group-hover:border-primary/50 group-hover:text-primary",
-        isSelected && !hasAnswered && "bg-primary border-primary text-white rotate-6 scale-110",
-        isOptionCorrect && "bg-[#58CC02] border-[#58CC02] text-white rotate-0",
-        isOptionIncorrect && "bg-red-500 border-red-500 text-white rotate-0",
-        isDisabled && !isSelected && "border-black/[0.05] dark:border-white/[0.05] bg-transparent text-foreground/20"
+        "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black border-2 transition-all duration-300 shrink-0",
+        !isSelected && !hasAnswered && "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 text-slate-400 group-hover:bg-primary/10 group-hover:border-primary/40 group-hover:text-primary",
+        isSelected && !hasAnswered && "bg-primary border-primary text-white shadow-lg shadow-primary/20",
+        isOptionCorrect && "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20",
+        isOptionIncorrect && "bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20",
+        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-transparent text-slate-300 dark:text-white/10"
       );
 
       return (
@@ -157,7 +157,7 @@ const ProblemBlock: React.FC<{
                 letters[idx] || (idx + 1)}
           </div>
           <div className="flex-1">
-            <span className="leading-snug text-base md:text-lg">
+            <span className="leading-snug text-base md:text-lg tracking-tight">
               {content?.content?.type === "latex" ? (
                 <Latex>{option}</Latex>
               ) : (
@@ -166,8 +166,8 @@ const ProblemBlock: React.FC<{
             </span>
           </div>
           {isSelected && !hasAnswered && (
-            <div className="absolute right-4 animate-in fade-in zoom-in duration-300">
-              <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+            <div className="absolute right-6 animate-pulse">
+              <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
             </div>
           )}
         </button>
@@ -215,14 +215,11 @@ const ProblemBlock: React.FC<{
       <div className="w-full max-w-3xl mx-auto px-4 pb-12">
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* Question Card */}
-          <div className="overflow-hidden rounded-[2.5rem] bg-white dark:bg-zinc-900 shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.05] dark:border-white/[0.05] relative">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50 opacity-40" />
-
-            <div className="p-8 md:p-12 space-y-8">
-              <div className="space-y-4">
+          <div className="overflow-hidden rounded-[2rem] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.05] dark:border-white/[0.05] relative">
+            <div className="p-8 md:p-12 space-y-10">
+              <div className="space-y-6 text-center max-w-2xl mx-auto">
                 {content.which && (
-                  <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
+                  <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
                     {content.content?.type === "latex" ? (
                       <Latex>{content.which}</Latex>
                     ) : (
@@ -245,8 +242,8 @@ const ProblemBlock: React.FC<{
               </div>
 
               {content.img && (
-                <div className="flex justify-center group">
-                  <div className="relative w-full max-w-[600px] aspect-[16/10] rounded-[2rem] overflow-hidden border border-black/[0.08] dark:border-white/[0.08] bg-black/[0.02] dark:bg-black/40 shadow-inner">
+                <div className="flex justify-center group px-4">
+                  <div className="relative w-full max-w-[550px] aspect-[16/10] rounded-2xl overflow-hidden border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-black/20">
                     {imgLoading && (
                       <div className="absolute inset-0 w-full h-full bg-muted animate-pulse z-10" />
                     )}
@@ -270,7 +267,7 @@ const ProblemBlock: React.FC<{
                         alt={content.alt || "lesson image"}
                         fill
                         loading="lazy"
-                        className="object-contain p-4 transition-transform duration-700 group-hover:scale-[1.02]"
+                        className="object-contain p-2 transition-transform duration-700 group-hover:scale-[1.01]"
                         sizes="(max-width: 900px) 100vw, 600px"
                         quality={90}
                         onLoad={() => setImgLoading(false)}
@@ -295,7 +292,7 @@ const ProblemBlock: React.FC<{
                           diagramCount >= 3 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
                       )}>
                         {diagrams.map((cfg: any, i: number) => (
-                          <div key={cfg.diagram_id || i} className="w-full bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl p-6 border border-black/[0.04] dark:border-white/[0.04] shadow-sm">
+                          <div key={cfg.diagram_id || i} className="w-full bg-black/[0.01] dark:bg-white/[0.01] rounded-2xl p-6 border border-black/[0.04] dark:border-white/[0.04]">
                             <DiagramScale config={cfg} isMultiple={isMultiple} />
                           </div>
                         ))}
@@ -317,15 +314,15 @@ const ProblemBlock: React.FC<{
             </div>
 
             {/* Bottom Actions */}
-            <div className="px-8 md:px-12 pb-10 flex flex-col items-center">
+            <div className="px-8 md:px-12 pb-12 flex flex-col items-center">
               {!hasAnswered && (
                 <Button
                   onClick={onCheckAnswer}
                   disabled={!selectedOption}
                   size="xl"
                   className={cn(
-                    "w-full max-w-sm font-black transition-all duration-300 shadow-xl active:scale-[0.97]",
-                    selectedOption ? "shadow-primary/30 transform -translate-y-1" : "shadow-none"
+                    "w-full h-14 rounded-2xl font-bold transition-all duration-300 shadow-lg active:scale-[0.98]",
+                    selectedOption ? "shadow-primary/20" : "shadow-none opacity-50"
                   )}
                 >
                   Hubi Jawaabta

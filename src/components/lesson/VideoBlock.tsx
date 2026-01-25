@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { ChevronRight, Play, Pause, RotateCcw, Loader2 } from "lucide-react";
+import { ChevronRight, Play, Pause, RotateCcw, Loader2, Maximize } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
@@ -19,6 +19,7 @@ const VideoBlock: React.FC<{
 }> = ({ content, onContinue, isLastBlock }) => {
   const videoUrl = content.source || content.url;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -26,6 +27,28 @@ const VideoBlock: React.FC<{
   const [duration, setDuration] = useState(0);
   const [isEnded, setIsEnded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Handle fullscreen state changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
 
   // Robustly handle Cloudinary optimized URLs
   const optimizedUrl = React.useMemo(() => {
@@ -122,12 +145,16 @@ const VideoBlock: React.FC<{
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
       <div
-        className="relative group overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-800 shadow-sm min-h-[200px]"
+        ref={containerRef}
+        className={cn(
+          "relative group overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm min-h-[200px]",
+          isFullscreen ? "rounded-none w-screen h-screen" : "rounded-3xl"
+        )}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
         {optimizedUrl ? (
-          <div className="relative w-full">
+          <div className={cn("relative w-full", isFullscreen ? "h-full flex items-center justify-center bg-black" : "")}>
 
             {isLoading && (
               <div className="absolute inset-0 z-30 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
@@ -145,7 +172,10 @@ const VideoBlock: React.FC<{
               poster={posterUrl}
               playsInline
               preload="auto"
-              className="w-full h-auto max-h-[70vh] object-contain rounded-xl bg-black"
+              className={cn(
+                "w-full object-contain bg-black",
+                isFullscreen ? "h-full" : "h-auto max-h-[70vh] rounded-xl"
+              )}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               onTimeUpdate={handleTimeUpdate}
@@ -217,6 +247,14 @@ const VideoBlock: React.FC<{
                     <span className="text-xs font-mono font-medium text-white/60 min-w-[35px] text-right">
                       {formatTime(duration)}
                     </span>
+
+                    <button
+                      onClick={toggleFullscreen}
+                      className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                      title={isFullscreen ? "Ka bax shaashadda weyn" : "Shaashadda weyn"}
+                    >
+                      <Maximize className="w-5 h-5 text-white" />
+                    </button>
                   </div>
                 </div>
               </div>

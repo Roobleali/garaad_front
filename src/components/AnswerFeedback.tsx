@@ -98,51 +98,51 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                     <div
                         key="answer-feedback-banner"
                         className={cn(
-                            "fixed inset-x-0 bottom-0 z-50 flex justify-center p-4 sm:p-6",
-                            "animate-in fade-in slide-in-from-bottom-10 duration-500 ease-out"
+                            "fixed inset-x-0 bottom-6 z-50 flex justify-center p-4 sm:p-6",
+                            "animate-in fade-in slide-in-from-bottom-8 duration-500 cubic-bezier(0.2, 0.8, 0.2, 1)"
                         )}
                     >
                         <div
                             className={cn(
-                                "w-full max-w-2xl p-6 rounded-[2rem] shadow-2xl border-2 transition-all duration-300",
+                                "w-full max-w-3xl p-4 md:p-6 rounded-[2rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border transition-all duration-500",
                                 isCorrect
-                                    ? "bg-[#D7FFB8] border-[#58CC02] dark:bg-[#1a2e0a] dark:border-[#58CC02]"
-                                    : "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-500/30"
+                                    ? "bg-white/95 dark:bg-zinc-900/95 border-emerald-500/25 backdrop-blur-xl"
+                                    : "bg-white/95 dark:bg-zinc-900/95 border-rose-500/25 backdrop-blur-xl"
                             )}
                         >
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex flex-col md:flex-row items-center gap-6">
                                 {/* Left side: Icon + Text + XP */}
-                                <div className="flex items-center gap-4 text-left w-full">
+                                <div className="flex items-center gap-4 text-left flex-1">
                                     <div
                                         className={cn(
-                                            "w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl border-2 shadow-sm transition-transform duration-500 hover:scale-110",
+                                            "w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl shadow-sm transition-transform duration-500",
                                             isCorrect
-                                                ? "bg-[#58CC02] border-[#58CC02] text-white"
-                                                : "bg-red-500 border-red-500 text-white"
+                                                ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                                                : "bg-rose-500 text-white shadow-rose-500/20"
                                         )}
                                     >
                                         {isCorrect ? (
-                                            <Check className="h-7 w-7 stroke-[3]" />
+                                            <Check className="h-7 w-7 stroke-[3.5]" />
                                         ) : (
-                                            <X className="h-7 w-7 stroke-[3]" />
+                                            <X className="h-7 w-7 stroke-[3.5]" />
                                         )}
                                     </div>
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-center gap-3">
+                                    <div className="space-y-1 flex-1">
+                                        <div className="flex items-center flex-wrap gap-2.5">
                                             <h3 className={cn(
                                                 "text-xl font-black tracking-tight",
-                                                isCorrect ? "text-[#58CC02]" : "text-red-600 dark:text-red-400"
+                                                isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                                             )}>
                                                 {title}
                                             </h3>
                                             {isCorrect && (
-                                                <div className="py-1 px-3 font-bold text-sm rounded-xl bg-[#8ef53f42] border border-[#58CC02]/20 flex items-center gap-2 animate-bounce">
-                                                    <Award className="text-[#58CC02]" size={16} />
-                                                    <span className="text-[#3b8a01] dark:text-[#a3e635]">+{xp} dhibco</span>
+                                                <div className="py-1 px-3 font-black text-[10px] rounded-full bg-emerald-500/10 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 animate-bounce">
+                                                    <Award size={12} />
+                                                    <span className="tracking-widest uppercase">+{xp}</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <p className="text-muted-foreground font-medium text-sm sm:text-base">
+                                        <p className="text-slate-500 dark:text-slate-400 font-bold text-sm leading-tight">
                                             {message}
                                         </p>
                                     </div>
@@ -150,38 +150,29 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
 
                                 {/* Right side: Action Buttons */}
                                 <div className="flex items-center gap-3 w-full md:w-auto">
-                                    {isCorrect && (
-                                        <Button
-                                            variant="outline"
-                                            size="lg"
-                                            onClick={handleWhyClick}
-                                            className="h-12 rounded-2xl border-2 border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 font-bold px-6"
-                                        >
-                                            <Info className="mr-2 h-5 w-5" />
-                                            Sharaxaad
-                                        </Button>
-                                    )}
-
-                                    {!isCorrect && (
-                                        <Button
-                                            variant="outline"
-                                            size="lg"
-                                            onClick={handleWhyClick}
-                                            className="h-12 rounded-2xl border-2 border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 font-bold px-6"
-                                        >
-                                            <Info className="mr-2 h-5 w-5" />
-                                            Sharaxaad
-                                        </Button>
-                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleWhyClick}
+                                        className={cn(
+                                            "h-12 rounded-xl font-black px-5 text-sm transition-colors",
+                                            isCorrect
+                                                ? "hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                                : "hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
+                                        )}
+                                    >
+                                        <Info className="mr-2 h-4 w-4 stroke-[2.5]" />
+                                        Sharaxaad
+                                    </Button>
 
                                     <Button
                                         size="lg"
                                         onClick={buttonAction}
                                         className={cn(
-                                            "flex-1 md:flex-none h-12 px-8 rounded-2xl gap-2 text-white font-black text-base transition-all active:scale-[0.96] shadow-lg",
+                                            "flex-1 md:flex-none h-12 px-10 rounded-xl gap-2 text-white font-black text-lg transition-all active:scale-[0.96] shadow-xl",
                                             isCorrect
-                                                ? "bg-[#58CC02] hover:bg-[#46a302] border-b-4 border-[#46a302]"
-                                                : "bg-red-500 hover:bg-red-400 border-b-4 border-red-700"
+                                                ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30"
+                                                : "bg-rose-600 hover:bg-rose-500 shadow-rose-500/30"
                                         )}
                                     >
                                         {buttonText}
@@ -189,7 +180,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                     </Button>
 
                                     <Suspense fallback={null}>
-                                        <div className="hidden sm:block">
+                                        <div className="hidden lg:block">
                                             <BugReportButton setIsReportingBug={setIsReportingBug} />
                                         </div>
                                     </Suspense>
