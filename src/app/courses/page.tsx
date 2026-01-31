@@ -262,18 +262,27 @@ export default function CoursesPage() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="p-6 flex-1 flex flex-col">
-                                  <h3 className="font-black text-xl mb-3 line-clamp-1 leading-tight text-slate-400 dark:text-slate-600">
-                                    {course?.title}
-                                  </h3>
-                                  {course?.description && (
-                                    <p className="text-sm text-slate-400 dark:text-slate-700 line-clamp-2 mb-4 font-medium">
-                                      {course.description}
-                                    </p>
-                                  )}
-                                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900">
-                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                      <span>Lama helayo (Soon)</span>
+                                <div className="p-0 flex-1 flex flex-col">
+                                  <div className="relative h-40 bg-slate-50 dark:bg-slate-950/50 overflow-hidden flex items-center justify-center rounded-t-[2.5rem] opacity-40 grayscale-[0.5]">
+                                    <CourseImage
+                                      src={course?.thumbnail}
+                                      alt={course?.title ?? ""}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+                                  </div>
+                                  <div className="p-6 flex-1 flex flex-col">
+                                    <h3 className="font-black text-xl mb-3 line-clamp-1 leading-tight text-slate-400 dark:text-slate-600">
+                                      {course?.title}
+                                    </h3>
+                                    {course?.description && (
+                                      <p className="text-sm text-slate-400 dark:text-slate-700 line-clamp-2 mb-4 font-medium">
+                                        {course.description}
+                                      </p>
+                                    )}
+                                    <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900">
+                                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                        <span>Lama helayo (Soon)</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
