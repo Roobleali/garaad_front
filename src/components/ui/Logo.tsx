@@ -40,7 +40,11 @@ export function Logo({
             width={width}
             height={height}
             className={cn(
-                "h-12 w-auto sm:h-14 md:h-16 lg:h-20 max-w-[160px] sm:max-w-[180px] md:max-w-[200px] object-contain",
+                "w-auto object-contain transition-all duration-300",
+                // Light mode sizes
+                !isDarkMode && "h-10 sm:h-11 md:h-12 lg:h-14 max-w-[140px] sm:max-w-[160px] md:max-w-[180px]",
+                // Dark mode sizes (larger)
+                isDarkMode && "h-20 sm:h-24 md:h-28 lg:h-32 max-w-[200px] sm:max-w-[240px] md:max-w-[280px]",
                 className
             )}
             priority={priority}

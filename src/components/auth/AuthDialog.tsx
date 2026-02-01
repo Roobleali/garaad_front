@@ -34,7 +34,7 @@ import { z } from "zod";
 import { X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { SignUpData } from "@/types/auth";
-import { EyeOff, CheckCircle2 } from "lucide-react";
+import { EyeOff, CheckCircle2, Lock } from "lucide-react";
 import Link from "next/link";
 import { validateEmail } from "@/lib/email-validation";
 

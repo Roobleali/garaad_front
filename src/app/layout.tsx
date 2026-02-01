@@ -5,7 +5,7 @@ import ClientLayout from "./client-layout";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Providers } from "./providers";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { RootErrorBoundary } from "@/components/ErrorBoundary";
 import { Suspense } from "react";
 import { Loader } from "lucide-react";
 import PWARegister from "@/components/PWARegister";
@@ -116,8 +116,8 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ErrorBoundary>
-          <Providers>
+        <Providers>
+          <RootErrorBoundary>
             <ClientLayout>
               <PWARegister />
               <Suspense fallback={<Loader className="spin " />}>
@@ -128,10 +128,9 @@ export default function RootLayout({
             <Toaster />
             <Analytics />
             <SpeedInsights />
-          </Providers>
-        </ErrorBoundary>
+          </RootErrorBoundary>
+        </Providers>
       </body>
     </html>
   );
 }
-
