@@ -54,8 +54,7 @@ export function HeroSection() {
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 glassmorphism animate-in fade-in slide-in-from-top-4 duration-1000">
                             <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                             <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-primary">
-                                #1 Goobta STEM Soomaaliya
-                            </span>
+                                Ku baro Sameyn                            </span>
                         </div>
                     </Reveal>
 

@@ -6,7 +6,7 @@ import { HomeContent } from "./home-content";
 export const metadata: Metadata = {
   title: "Garaad | Baro, Tartan, oo Guulayso - #1 Goobta STEM Soomaaliya",
   description:
-    "Garaad waa hoyga aqoonta casriga ah. Baro Xisaabta, Fiisigiska, iyo Tiknoolajiyada adiga oo isticmaalaya Af-Soomaali hufan—macalin la'aan iyo tartan furan. Ku biir kumanaan arday Soomaaliyeed ah.",
+    "Garaad waa hoyga aqoonta casriga ah. Baro AI, Programming, iyo Science adigoo isticmaalaya Af-Soomaali hufan—macalin la'aan iyo tartan furan. Ku biir boqolaad arday Soomaaliyeed ah.",
   keywords: [
     "Garaad",
     "STEM Soomaali",
