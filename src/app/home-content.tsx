@@ -7,6 +7,8 @@ import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/store/features/authSlice";
 import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
+import posthog from 'posthog-js';
+import { useEffect } from "react";
 
 const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection").then(mod => mod.TestimonialsSection), {
     loading: () => <SectionSkeleton />,
@@ -21,6 +23,13 @@ const CommunityCTASection = dynamic(() => import("@/components/landing/Community
 export function HomeContent() {
     const user = useSelector(selectCurrentUser);
     const isAuthenticated = !!user;
+
+    useEffect(() => {
+        posthog.capture('home_viewed', {
+            authenticated: isAuthenticated,
+            user_id: user?.id
+        });
+    }, [isAuthenticated, user?.id]);
 
     return (
         <main>
