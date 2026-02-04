@@ -1,10 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { DiagramObject, DiagramConfig } from "../types/learning";
+
+const ExcalidrawDiagram = dynamic(() => import("./lesson/ExcalidrawDiagram"), {
+  ssr: false,
+});
 
 const DiagramScale: React.FC<{ config: DiagramConfig; isMultiple?: boolean }> = ({ config, isMultiple = false }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const controlRef = useRef<HTMLDivElement | null>(null);
+
+  if (config?.diagram_type === "excalidraw") {
+    return <ExcalidrawDiagram initialData={config.data || {}} />;
+  }
 
   useEffect(() => {
     if (!config || !config.objects || config.objects.length === 0) return;

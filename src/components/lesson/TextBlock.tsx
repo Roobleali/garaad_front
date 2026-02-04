@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { TextContent } from "@/types/learning";
 import { Card, CardContent } from "../ui/card";
 import HoverText from "./HoverText";
@@ -57,7 +58,6 @@ const TextBlock: React.FC<{
   isLastBlock: boolean;
 }> = ({ content, onContinue, isLastBlock }) => {
   const handleContinue = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
     onContinue();
   };
 
@@ -77,6 +77,8 @@ const TextBlock: React.FC<{
       setImgSrc(content.url);
     }
   }, [content.url]);
+
+  const [selectedCell, setSelectedCell] = useState<{ r: number; c: number } | null>(null);
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
@@ -184,15 +186,15 @@ const TextBlock: React.FC<{
           {content.type === "table-grid" &&
             content.table?.rows?.length &&
             content.table.rows.length > 0 && (
-              <div className="w-full overflow-hidden rounded-2xl border border-white/5 mb-6">
+              <div className="w-full overflow-hidden rounded-2xl border border-white/5 mb-6 bg-black/5 dark:bg-white/5 shadow-inner">
                 <table className="min-w-full border-separate border-spacing-0">
                   {content.table.header && (
-                    <thead className="bg-black/5 dark:bg-white/5">
+                    <thead className="bg-black/10 dark:bg-white/10">
                       <tr>
                         {content.table.header.map((headerCell, index) => (
                           <th
                             key={index}
-                            className="px-6 py-4 text-left font-bold text-xs uppercase tracking-wider text-primary border-b border-black/5 dark:border-white/5"
+                            className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-[0.2em] text-primary/70 border-b border-black/5 dark:border-white/5"
                           >
                             {headerCell}
                           </th>
@@ -205,19 +207,33 @@ const TextBlock: React.FC<{
                       <tr
                         key={rowIndex}
                         className={cn(
-                          "transition-colors",
-                          rowIndex % 2 === 0 ? "bg-transparent" : "bg-black/5 dark:bg-white/5",
-                          "hover:bg-primary/5"
+                          "transition-colors group",
+                          rowIndex % 2 === 0 ? "bg-transparent" : "bg-black/5 dark:bg-white/5"
                         )}
                       >
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-b border-black/5 dark:border-white/5 last:border-b-0"
-                          >
-                            {cell || ""}
-                          </td>
-                        ))}
+                        {row.map((cell, cellIndex) => {
+                          const isSelected = selectedCell?.r === rowIndex && selectedCell?.c === cellIndex;
+                          return (
+                            <td
+                              key={cellIndex}
+                              onClick={() => setSelectedCell(isSelected ? null : { r: rowIndex, c: cellIndex })}
+                              className={cn(
+                                "px-6 py-4 text-sm transition-all duration-300 cursor-pointer relative",
+                                "border-b border-black/5 dark:border-white/5 last:border-b-0",
+                                isSelected
+                                  ? "bg-primary/20 text-primary font-bold shadow-[inset_0_0_20px_rgba(168,85,247,0.1)]"
+                                  : "text-slate-700 dark:text-slate-300 hover:bg-primary/5"
+                              )}
+                            >
+                              {cell || ""}
+                              {isSelected && (
+                                <div className="absolute top-1 right-1">
+                                  <div className="w-1 h-1 bg-primary rounded-full animate-ping" />
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>

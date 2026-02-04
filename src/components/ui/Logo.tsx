@@ -41,10 +41,7 @@ export function Logo({
             height={height}
             className={cn(
                 "w-auto object-contain transition-all duration-300",
-                // Light mode sizes
-                !isDarkMode && "h-14 sm:h-13 md:h-16 lg:h-18 max-w-[180px] sm:max-w-[200px] md:max-w-[210px]",
-                // Dark mode sizes (larger)
-                isDarkMode && "h-20 sm:h-24 md:h-28 lg:h-32 max-w-[200px] sm:max-w-[240px] md:max-w-[280px]",
+                "h-20 sm:h-24 md:h-28 lg:h-32 max-w-[200px] sm:max-w-[240px] md:max-w-[280px]",
                 className
             )}
             priority={priority}

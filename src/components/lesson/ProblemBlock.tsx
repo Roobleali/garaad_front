@@ -16,8 +16,14 @@ import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { useProblem } from "@/hooks/useApi";
 
 import CalculatorProblemBlock from "./CalculatorProblemBlock";
+import MatchingBlock from "./MatchingBlock";
 
 const DiagramScale = dynamic(() => import("../DiagramScale"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-muted rounded-xl h-40 w-full" />,
+});
+
+const ShikiCode = dynamic(() => import("./ShikiCode"), {
   ssr: false,
   loading: () => <div className="animate-pulse bg-muted rounded-xl h-40 w-full" />,
 });
@@ -83,7 +89,7 @@ const ProblemBlock: React.FC<{
         explanation: pd.explanation || "No explanation available",
         diagram_config: pd.diagram_config,
         diagrams: pd.diagrams,
-        question_type: ["code", "mcq", "short_input", "diagram"].includes(
+        question_type: ["code", "mcq", "short_input", "diagram", "matching"].includes(
           pd.question_type
         )
           ? (pd.question_type as any)
@@ -109,7 +115,6 @@ const ProblemBlock: React.FC<{
 
     const handleOptionSelect = (option: string) => {
       if (hasAnswered && isCorrect) return;
-      playSound("toggle-on");
       onOptionSelect(option);
     };
 
@@ -122,17 +127,16 @@ const ProblemBlock: React.FC<{
 
       const buttonClass = cn(
         "group w-full p-5 md:p-6 text-sm md:text-md rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-5",
-        "shadow-sm hover:shadow-md hover:-translate-y-0.5",
         // Default state
-        !isSelected && !hasAnswered && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300",
+        !isSelected && !hasAnswered && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5",
         // Selected state (not answered yet) - Premium Lavender/Purple
-        isSelected && !hasAnswered && "border-primary/60 bg-primary/5 dark:bg-primary/10 shadow-[0_8px_20px_-10px_rgba(168,85,247,0.3)] ring-1 ring-primary/20 text-primary font-bold scale-[1.01]",
+        isSelected && !hasAnswered && "border-primary/60 bg-primary/5 dark:bg-primary/10 shadow-[0_8px_20px_-10px_rgba(168,85,247,0.3)] ring-1 ring-primary/20 text-primary font-bold scale-[1.01] hover:-translate-y-0.5",
         // Correct state - Vibrant Emerald
         isOptionCorrect && "border-emerald-500/60 bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
-        // Incorrect state - Vibrant Rose
-        isOptionIncorrect && "border-rose-500/60 bg-rose-50/80 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 font-bold shadow-[0_8px_20px_-10px_rgba(244,63,94,0.3)]",
+        // Incorrect state - Vibrant Rose (Enhanced Visibility)
+        isOptionIncorrect && "border-rose-500 bg-rose-100/90 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold shadow-[0_4px_12px_rgba(244,63,94,0.4)]",
         // Disabled/Not selected state
-        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none hover:translate-y-0"
+        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none"
       );
 
       const indicatorClass = cn(
@@ -158,7 +162,9 @@ const ProblemBlock: React.FC<{
           </div>
           <div className="flex-1">
             <span className="leading-snug text-base md:text-lg tracking-tight">
-              {content?.content?.type === "latex" ? (
+              {content?.question_type === "code" || option.startsWith("```") ? (
+                <ShikiCode code={option.replace(/```[a-z]*\n?|```/g, "")} language={option.match(/```([a-z]+)/)?.[1] || "javascript"} />
+              ) : content?.content?.type === "latex" ? (
                 <Latex>{option}</Latex>
               ) : (
                 option
@@ -166,7 +172,7 @@ const ProblemBlock: React.FC<{
             </span>
           </div>
           {isSelected && !hasAnswered && (
-            <div className="absolute right-6 animate-pulse">
+            <div className="absolute right-6 scale-110">
               <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
             </div>
           )}
@@ -211,6 +217,39 @@ const ProblemBlock: React.FC<{
       );
     }
 
+    if (content.question_type === "matching") {
+      return (
+        <div className="w-full max-w-3xl mx-auto px-4 pb-12">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                Isku xir kuwa saxda ah
+              </h2>
+              <p className="text-slate-500 font-medium">Jiid oo isku xir qeybaha is leh</p>
+            </div>
+            <MatchingBlock
+              options={content.options}
+              onComplete={(success) => {
+                if (success) {
+                  onCheckAnswer(); // Call parent check
+                } else {
+                  playSound("incorrect");
+                }
+              }}
+              isCorrect={answerState.isCorrect}
+            />
+            {answerState.isCorrect !== null && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={onContinue} size="lg" className="rounded-2xl px-12 h-14 font-black">
+                  Sii soco markale
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="w-full max-w-3xl mx-auto px-4 pb-12">
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -231,7 +270,12 @@ const ProblemBlock: React.FC<{
                 )}
 
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">
-                  {content.content?.type === "latex" ? (
+                  {content.question_type === "code" || content.question.includes("```") ? (
+                    <ShikiCode
+                      code={content.question.replace(/```[a-z]*\n?|```/g, "")}
+                      language={content.question.match(/```([a-z]+)/)?.[1] || "javascript"}
+                    />
+                  ) : content.content?.type === "latex" ? (
                     <Latex>{content.question}</Latex>
                   ) : (
                     content.question.includes('<') ? (

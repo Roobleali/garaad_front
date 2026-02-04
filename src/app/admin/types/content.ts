@@ -7,6 +7,7 @@ export interface Option {
 export interface DiagramObject {
     type: string;
     color: string;
+    text_color: string;
     number: number;
     position: string;
     layout: {
@@ -99,7 +100,7 @@ export interface ContentBlockData {
 
 export interface ContentBlock {
     id: number;
-    block_type: "text" | "problem" | "video" | "quiz" | "example" | "code" | "image";
+    block_type: "text" | "problem" | "video" | "quiz" | "example" | "code" | "image" | "list" | "table" | "table-grid";
     content: ContentBlockData;
     order: number;
     lesson: number;

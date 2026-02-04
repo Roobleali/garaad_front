@@ -5,7 +5,18 @@ import { adminApi as api, ApiError } from '@/lib/admin-api';
 import type { ContentBlock, ContentBlockData, Option, DiagramConfig, DiagramObject, ProblemData } from '@/app/admin/types/content';
 import { ContentBlockModal } from './ContentBlockModal';
 import { Modal } from './ui/Modal';
-import { Video, Link, Trash2, Plus, Upload, Loader2, X, Sparkles, ChevronUp, ChevronDown, CheckCircle } from 'lucide-react';
+import {
+    Plus, Trash2, Video, Type, Image as LucideImage, HelpCircle, Save, X,
+    GripVertical, Info, Layout, List as ListIcon, Table as TableIcon,
+    Square, CheckSquare, AlignLeft, Hash, Link, Calculator, BarChart2,
+    Upload, Loader2, Sparkles, ChevronUp, ChevronDown, CheckCircle, PlusCircle
+} from 'lucide-react';
+import { addStyles, EditableMathField } from 'react-mathquill';
+
+// Load MathQuill styles
+if (typeof window !== 'undefined') {
+    addStyles();
+}
 import axios from 'axios';
 import { DEFAULT_CONTENT, DIAGRAM_EXAMPLE, MULTIPLE_CHOICE_EXAMPLE, TABLE_EXAMPLE, DEFAULT_DIAGRAM_CONFIG, LIST_EXAMPLE } from '@/lib/admin/Block_Examples';
 import { RichTextEditor } from './ui/RichTextEditor';
@@ -56,14 +67,51 @@ const ProblemContent = ({
         return <div className="text-sm text-gray-500">No problem content available</div>;
     }
 
+    const renderOptions = () => {
+        if (!problemContent.options || problemContent.options.length === 0) return null;
+
+        if (problemContent.question_type === 'matching') {
+            return (
+                <div className="space-y-2 mt-3">
+                    {problemContent.options.map((option: Option) => {
+                        const [left, right] = option.text.split('|||');
+                        return (
+                            <div key={option.id} className="flex items-center gap-4">
+                                <div className="flex-1 p-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-medium">{left}</div>
+                                <div className="text-gray-400">→</div>
+                                <div className="flex-1 p-2 bg-emerald-50 border border-emerald-100 rounded-lg text-xs font-medium text-emerald-700">{right}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                {problemContent.options.map((option: Option) => (
+                    <div
+                        key={option.id}
+                        className={`text-sm p-3 rounded-xl transition-all ${problemContent.correct_answer?.some((ans: Option) => ans.id === option.id)
+                            ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
+                            : 'bg-gray-50 text-gray-600 border border-gray-100 hover:bg-gray-100'
+                            }`}
+                    >
+                        {option.text}
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-3">
             <div className="flex flex-col md:flex-row md:items-start gap-4">
                 <div className="flex-1 min-w-0">
                     {problemContent.which && (
-                        <div className="text-sm text-gray-500 mb-1 font-medium">{problemContent.which}</div>
+                        <div className="text-sm text-gray-500 mb-1 font-medium" dangerouslySetInnerHTML={{ __html: problemContent.which }} />
                     )}
-                    <div className="text-gray-900 font-semibold">{problemContent.question_text}</div>
+                    <div className="text-gray-900 font-semibold" dangerouslySetInnerHTML={{ __html: problemContent.question_text }} />
                     <p className="mt-1 text-xs text-blue-600 font-bold uppercase tracking-wider">Su'aal ({problemContent.question_type})</p>
                 </div>
                 {problemContent.img && (
@@ -87,19 +135,24 @@ const ProblemContent = ({
                 )}
             </div>
 
-            {problemContent.options && problemContent.options.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                    {problemContent.options.map((option: Option) => (
-                        <div
-                            key={option.id}
-                            className={`text-sm p-3 rounded-xl transition-all ${problemContent.correct_answer?.some((ans: Option) => ans.id === option.id)
-                                ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
-                                : 'bg-gray-50 text-gray-600 border border-gray-100 hover:bg-gray-100'
-                                }`}
-                        >
-                            {option.text}
+            {renderOptions()}
+
+            {(problemContent.question_type === 'fill_blank' ||
+                problemContent.question_type === 'open_ended' ||
+                problemContent.question_type === 'math_expression' ||
+                problemContent.question_type === 'code') && (
+                    <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mb-1">Jawaabta Saxda ah</p>
+                        <div className="text-sm font-medium text-emerald-700">
+                            {problemContent.correct_answer?.[0]?.text || 'No answer provided'}
                         </div>
-                    ))}
+                    </div>
+                )}
+
+            {problemContent.explanation && (
+                <div className="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                    <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-1">Sharaxaad</p>
+                    <div className="text-xs text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: problemContent.explanation }} />
                 </div>
             )}
         </div>
@@ -215,11 +268,17 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
             let blockData: any;
 
             if (editingContent.type === 'problem') {
-                const problemRes = await api.post('lms/problems/', {
+                const problemData: any = {
                     ...editingContent,
                     lesson: lessonId,
                     order: specifiedOrder
-                });
+                };
+
+                // Remove fields that shouldn't be in the direct post if they are empty
+                if (!problemData.img) delete problemData.img;
+                if (!problemData.video_url) delete problemData.video_url;
+
+                const problemRes = await api.post('lms/problems/', problemData);
                 blockData = {
                     block_type: 'problem',
                     content: {},
@@ -234,11 +293,6 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                 if (editingContent.isDirectUpload && editingContent.directFile) {
                     setVideoUploading(true);
                     setUploadProgress(0);
-                    // Upload logic is already available in handleVideoUpload but that was for inline upload.
-                    // We can reuse the API call logic here or extract it.
-                    // Given the previous handleVideoUpload was attached to a specific file input change event,
-                    // we'll implement the upload here for the "Add Block" submission flow if it wasn't already uploaded.
-
                     try {
                         const formData = new FormData();
                         formData.append('video', editingContent.directFile);
@@ -320,10 +374,16 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
             let blockData: any;
             if (editingContent.type === 'problem' && editingBlock.problem) {
                 // For problems, we update the problem itself
-                await api.patch(`lms/problems/${editingBlock.problem}/`, {
+                const problemData: any = {
                     ...editingContent,
                     lesson: lessonId,
-                });
+                };
+
+                // Ensure optional fields are handled correctly
+                if (!problemData.img) problemData.img = null;
+                if (!problemData.video_url) problemData.video_url = null;
+
+                await api.put(`lms/problems/${editingBlock.problem}/`, problemData);
                 blockData = {
                     block_type: 'problem',
                     content: {},
@@ -550,20 +610,42 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                 setContent={setEditingContent}
                 isAdding={adding}
                 renderContentForm={(content, setContent) => (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                        {/* Block Type Selection (Only for Add) */}
                         {!showEditBlock && (
-                            <select
-                                value={content.type}
-                                onChange={e => setContent({ ...content, type: e.target.value as any })}
-                                className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold"
-                            >
-                                <option value="qoraal">Qoraal</option>
-                                <option value="video">Muuqaal</option>
-                                <option value="problem">Su'aal</option>
-                            </select>
+                            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between gap-4">
+                                <span className="text-sm font-bold text-gray-700">Nooca Qeybta</span>
+                                <select
+                                    value={content.type}
+                                    onChange={e => {
+                                        const newType = e.target.value as any;
+                                        if (newType === 'problem') {
+                                            setContent({
+                                                ...MULTIPLE_CHOICE_EXAMPLE,
+                                                order: content.order
+                                            });
+                                        } else if (newType === 'list') {
+                                            setContent({ ...LIST_EXAMPLE, order: content.order });
+                                        } else if (newType === 'table' || newType === 'table-grid') {
+                                            setContent({ ...TABLE_EXAMPLE, type: newType, order: content.order });
+                                        } else {
+                                            setContent({ ...DEFAULT_CONTENT, type: newType, order: content.order });
+                                        }
+                                    }}
+                                    className="p-2.5 rounded-xl border border-gray-200 text-sm font-bold bg-white focus:ring-2 focus:ring-blue-100 outline-none"
+                                >
+                                    <option value="qoraal">Qoraal</option>
+                                    <option value="video">Muuqaal</option>
+                                    <option value="problem">Su'aal</option>
+                                    <option value="list">Liis (List)</option>
+                                    <option value="table">Jadwal (Table)</option>
+                                    <option value="table-grid">Jadwal Grid</option>
+                                </select>
+                            </div>
                         )}
 
-                        {content.type === 'video' ? (
+                        {/* Video Content Form */}
+                        {content.type === 'video' && (
                             <div className="space-y-4">
                                 <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
                                     <button
@@ -646,11 +728,585 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                     />
                                 </div>
                             </div>
-                        ) : (
-                            <RichTextEditor
-                                content={content.text || ''}
-                                onChange={val => setContent({ ...content, text: val })}
-                            />
+                        )}
+
+                        {/* Problem Content Form */}
+                        {content.type === 'problem' && (
+                            <div className="space-y-6">
+                                {/* Question Type Selection */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Nooca Su'aasha</label>
+                                        <select
+                                            value={content.question_type || 'multiple_choice'}
+                                            onChange={e => {
+                                                const newType = e.target.value as any;
+                                                const updatedContent = { ...content, question_type: newType };
+
+                                                // Reset specific fields based on type
+                                                if (newType === 'true_false') {
+                                                    updatedContent.options = [
+                                                        { id: 'true', text: 'Sax' },
+                                                        { id: 'false', text: 'Qalad' }
+                                                    ];
+                                                    updatedContent.correct_answer = [{ id: 'true', text: 'Sax' }];
+                                                } else if (['fill_blank', 'open_ended', 'math_expression', 'code'].includes(newType)) {
+                                                    updatedContent.options = [];
+                                                    updatedContent.correct_answer = [{ id: 'answer', text: '' }];
+                                                } else if (newType === 'matching') {
+                                                    updatedContent.options = [{ id: 'a', text: '|||' }];
+                                                    updatedContent.correct_answer = [];
+                                                } else if (newType === 'diagram') {
+                                                    updatedContent.diagram_config = DEFAULT_DIAGRAM_CONFIG;
+                                                }
+
+                                                setContent(updatedContent);
+                                            }}
+                                            className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold bg-white outline-none focus:ring-2 focus:ring-blue-100"
+                                        >
+                                            <option value="multiple_choice">Doorashooyin Badan</option>
+                                            <option value="single_choice">Hal Doorasho</option>
+                                            <option value="true_false">Sax ama Qalad</option>
+                                            <option value="fill_blank">Buuxi Meelaha Banaan</option>
+                                            <option value="matching">Isku Xirka (Matching)</option>
+                                            <option value="open_ended">Jawaab Furan</option>
+                                            <option value="math_expression">Raasiga (Math/LaTeX)</option>
+                                            <option value="code">Koodh (Code)</option>
+                                            <option value="diagram">Jaantus (Diagram)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Dhibcaha XP</label>
+                                        <input
+                                            type="number"
+                                            value={content.xp || 10}
+                                            onChange={e => setContent({ ...content, xp: parseInt(e.target.value) })}
+                                            className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Qoraalka Hordhaca (Optional)</label>
+                                        <RichTextEditor
+                                            content={content.which || ''}
+                                            onChange={val => setContent({ ...content, which: val })}
+                                            placeholder="Tusaale: Aqri cutubka 1-aad ka dibna ka jawaab..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Su'aasha *</label>
+                                        <RichTextEditor
+                                            content={content.question_text || ''}
+                                            onChange={val => setContent({ ...content, question_text: val })}
+                                            placeholder="Geli su'aasha halkan..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Media Options for Problem */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">URL-ka Sawirka</label>
+                                        <input
+                                            type="text"
+                                            value={content.img || ''}
+                                            onChange={e => setContent({ ...content, img: e.target.value })}
+                                            className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none"
+                                            placeholder="https://..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">URL-ka Muuqaalka</label>
+                                        <input
+                                            type="text"
+                                            value={content.video_url || ''}
+                                            onChange={e => setContent({ ...content, video_url: e.target.value })}
+                                            className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none"
+                                            placeholder="https://..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Question Specific Inputs */}
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                                    {/* Choice Based Questions */}
+                                    {['multiple_choice', 'single_choice'].includes(content.question_type || '') && (
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between px-1">
+                                                <h5 className="text-xs font-black text-gray-900 uppercase tracking-tight">Doorashooyinka</h5>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newOption = {
+                                                            id: Math.random().toString(36).substr(2, 9),
+                                                            text: ''
+                                                        };
+                                                        setContent({
+                                                            ...content,
+                                                            options: [...(content.options || []), newOption]
+                                                        });
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                    Mid kale
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {(content.options || []).map((option, idx) => (
+                                                    <div key={option.id} className="flex gap-2">
+                                                        <div className="flex-1 flex gap-2 p-2 bg-white rounded-xl border border-gray-200 items-center">
+                                                            <input
+                                                                type={content.question_type === 'multiple_choice' ? 'checkbox' : 'radio'}
+                                                                name="correct_choice"
+                                                                checked={content.correct_answer?.some(a => a.id === option.id)}
+                                                                onChange={() => {
+                                                                    if (content.question_type === 'multiple_choice') {
+                                                                        const isCorrect = content.correct_answer?.some(a => a.id === option.id);
+                                                                        const newCorrect = isCorrect
+                                                                            ? content.correct_answer?.filter(a => a.id !== option.id)
+                                                                            : [...(content.correct_answer || []), option];
+                                                                        setContent({ ...content, correct_answer: newCorrect || [] });
+                                                                    } else {
+                                                                        setContent({ ...content, correct_answer: [option] });
+                                                                    }
+                                                                }}
+                                                                className="w-4 h-4 text-emerald-500 rounded-full focus:ring-emerald-200"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={option.text}
+                                                                onChange={e => {
+                                                                    const newOptions = [...(content.options || [])];
+                                                                    newOptions[idx].text = e.target.value;
+                                                                    setContent({ ...content, options: newOptions });
+                                                                }}
+                                                                className="flex-1 bg-transparent border-none text-xs font-medium outline-none"
+                                                                placeholder={`Fursada ${idx + 1}...`}
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newOptions = content.options?.filter(o => o.id !== option.id);
+                                                                const newCorrect = content.correct_answer?.filter(a => a.id !== option.id);
+                                                                setContent({ ...content, options: newOptions || [], correct_answer: newCorrect || [] });
+                                                            }}
+                                                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* True/False */}
+                                    {content.question_type === 'true_false' && (
+                                        <div className="flex gap-4 p-2 bg-white rounded-xl border border-gray-200">
+                                            {['Sax', 'Qalad'].map((text, idx) => {
+                                                const id = idx === 0 ? 'true' : 'false';
+                                                return (
+                                                    <button
+                                                        key={id}
+                                                        type="button"
+                                                        onClick={() => setContent({
+                                                            ...content,
+                                                            correct_answer: [{ id, text }]
+                                                        })}
+                                                        className={`flex-1 py-3 rounded-xl font-bold text-sm border-2 transition-all ${content.correct_answer?.[0]?.id === id
+                                                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm'
+                                                            : 'bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100'
+                                                            }`}
+                                                    >
+                                                        {text}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Fill in the blank / Open ended / Math */}
+                                    {['fill_blank', 'open_ended', 'math_expression', 'code'].includes(content.question_type || '') && (
+                                        <div className="space-y-2">
+                                            <h5 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Jawaabta Saxda ah</h5>
+                                            {content.question_type === 'open_ended' || content.question_type === 'code' ? (
+                                                <textarea
+                                                    value={content.correct_answer?.[0]?.text || ''}
+                                                    onChange={e => setContent({ ...content, correct_answer: [{ id: 'answer', text: e.target.value }] })}
+                                                    className="w-full p-4 rounded-2xl border border-gray-200 text-sm font-medium h-32 bg-white outline-none focus:ring-2 focus:ring-blue-100"
+                                                    placeholder={content.question_type === 'code' ? "Geli koodhka..." : "Geli jawaabta la filayo..."}
+                                                />
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    value={content.correct_answer?.[0]?.text || ''}
+                                                    onChange={e => setContent({ ...content, correct_answer: [{ id: 'answer', text: e.target.value }] })}
+                                                    className="w-full p-4 rounded-2xl border border-gray-200 text-sm font-medium bg-white outline-none focus:ring-2 focus:ring-blue-100"
+                                                    placeholder={content.question_type === 'math_expression' ? "\\frac{1}{2}, x^2, etc." : "Geli ereyga saxda ah..."}
+                                                />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Matching */}
+                                    {content.question_type === 'matching' && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between px-1">
+                                                <h5 className="text-xs font-black text-gray-900 uppercase tracking-tight">Isku Xirka</h5>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setContent({ ...content, options: [...(content.options || []), { id: Math.random().toString(), text: '|||' }] })}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                    Isku xir cusub
+                                                </button>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {(content.options || []).map((option, idx) => {
+                                                    const [left, right] = option.text.split('|||');
+                                                    return (
+                                                        <div key={option.id} className="flex items-center gap-2 group/match">
+                                                            <div className="flex-1 grid grid-cols-[1fr,auto,1fr] items-center gap-2 bg-white p-2 rounded-xl border border-gray-200">
+                                                                <input
+                                                                    type="text"
+                                                                    value={left}
+                                                                    onChange={e => {
+                                                                        const newOptions = [...(content.options || [])];
+                                                                        newOptions[idx].text = `${e.target.value}|||${right}`;
+                                                                        setContent({ ...content, options: newOptions });
+                                                                    }}
+                                                                    className="bg-gray-50 p-2 rounded-lg text-[10px] font-bold border-none outline-none text-center"
+                                                                    placeholder="Bidix"
+                                                                />
+                                                                <div className="text-gray-300 font-black">→</div>
+                                                                <input
+                                                                    type="text"
+                                                                    value={right}
+                                                                    onChange={e => {
+                                                                        const newOptions = [...(content.options || [])];
+                                                                        newOptions[idx].text = `${left}|||${e.target.value}`;
+                                                                        setContent({ ...content, options: newOptions });
+                                                                    }}
+                                                                    className="bg-emerald-50/50 p-2 rounded-lg text-[10px] font-bold border-none outline-none text-center text-emerald-700 placeholder:text-emerald-300"
+                                                                    placeholder="Midig"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newOptions = content.options?.filter((_, i) => i !== idx);
+                                                                    setContent({ ...content, options: newOptions || [] });
+                                                                }}
+                                                                className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Diagram configuration */}
+                                    {content.question_type === 'diagram' && (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Diagram ID</label>
+                                                    <input
+                                                        type="number"
+                                                        value={content.diagram_config?.diagram_id || 101}
+                                                        onChange={e => setContent({
+                                                            ...content,
+                                                            diagram_config: { ...content.diagram_config!, diagram_id: parseInt(e.target.value) }
+                                                        })}
+                                                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Diagram Type</label>
+                                                    <select
+                                                        value={content.diagram_config?.diagram_type || 'scale'}
+                                                        onChange={e => setContent({
+                                                            ...content,
+                                                            diagram_config: { ...content.diagram_config!, diagram_type: e.target.value }
+                                                        })}
+                                                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
+                                                    >
+                                                        <option value="scale">Scale</option>
+                                                        <option value="grid">Grid</option>
+                                                        <option value="excalidraw">Excalidraw</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Scale Weight</label>
+                                                <input
+                                                    type="number"
+                                                    value={content.diagram_config?.scale_weight || 0}
+                                                    onChange={e => setContent({
+                                                        ...content,
+                                                        diagram_config: { ...content.diagram_config!, scale_weight: parseInt(e.target.value) }
+                                                    })}
+                                                    className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Explanation */}
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Sharaxaad (Explanation)</label>
+                                    <RichTextEditor
+                                        content={content.explanation || ''}
+                                        onChange={val => setContent({ ...content, explanation: val })}
+                                        placeholder="Sharaxaad ku saabsan maxay jawaabta u saxantahay..."
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* List Content Form */}
+                        {content.type === 'list' && (
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Cinwaanka Liiska</label>
+                                    <input
+                                        type="text"
+                                        value={content.title || ''}
+                                        onChange={e => setContent({ ...content, title: e.target.value })}
+                                        className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold outline-none"
+                                        placeholder="Geli cinwaanka..."
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between px-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Waxyaabaha Liiska</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setContent({ ...content, list_items: [...(content.list_items || []), ''] })}
+                                            className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
+                                        >
+                                            + Ku dar shay
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {(content.list_items || []).map((item, idx) => (
+                                            <div key={idx} className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={item}
+                                                    onChange={e => {
+                                                        const newItems = [...(content.list_items || [])];
+                                                        newItems[idx] = e.target.value;
+                                                        setContent({ ...content, list_items: newItems });
+                                                    }}
+                                                    className="flex-1 p-2.5 rounded-xl border border-gray-200 text-sm outline-none"
+                                                    placeholder={`Shayga ${idx + 1}...`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newItems = content.list_items?.filter((_, i) => i !== idx);
+                                                        setContent({ ...content, list_items: newItems || [] });
+                                                    }}
+                                                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Table Content Form */}
+                        {(content.type === 'table' || content.type === 'table-grid') && (
+                            <div className="space-y-6">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Qoraalka Guud</label>
+                                    <RichTextEditor
+                                        content={content.text || ''}
+                                        onChange={val => setContent({ ...content, text: val })}
+                                    />
+                                </div>
+
+                                {content.type === 'table' ? (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between px-1">
+                                            <h5 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Astaamaha (Features)</h5>
+                                            <button
+                                                type="button"
+                                                onClick={() => setContent({ ...content, features: [...(content.features || []), { title: '', text: '' }] })}
+                                                className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
+                                            >
+                                                + Ku dar Astaame
+                                            </button>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {(content.features || []).map((feature, idx) => (
+                                                <div key={idx} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3 relative">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newFeatures = content.features?.filter((_, i) => i !== idx);
+                                                            setContent({ ...content, features: newFeatures || [] });
+                                                        }}
+                                                        className="absolute top-2 right-2 p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <input
+                                                        type="text"
+                                                        value={feature.title}
+                                                        onChange={e => {
+                                                            const newFeatures = [...(content.features || [])];
+                                                            newFeatures[idx].title = e.target.value;
+                                                            setContent({ ...content, features: newFeatures });
+                                                        }}
+                                                        className="w-full bg-transparent border-none text-sm font-black outline-none placeholder:text-gray-300"
+                                                        placeholder="Magaca astaamaha..."
+                                                    />
+                                                    <RichTextEditor
+                                                        content={feature.text || ''}
+                                                        onChange={val => {
+                                                            const newFeatures = [...(content.features || [])];
+                                                            newFeatures[idx].text = val;
+                                                            setContent({ ...content, features: newFeatures });
+                                                        }}
+                                                        placeholder="Faahfaahinta astaamaha..."
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Table Grid Editor (Simplified) */}
+                                        <div className="space-y-3">
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Ciwaanada (Header)</label>
+                                            <div className="flex gap-2">
+                                                {(content.table?.header || ['']).map((h, i) => (
+                                                    <input
+                                                        key={i}
+                                                        type="text"
+                                                        value={h}
+                                                        onChange={e => {
+                                                            const newHeader = [...(content.table?.header || [''])];
+                                                            newHeader[i] = e.target.value;
+                                                            setContent({ ...content, table: { ...content.table!, header: newHeader } });
+                                                        }}
+                                                        className="flex-1 p-2 rounded-lg border border-gray-200 text-[10px] font-bold"
+                                                        placeholder="Ciwaan..."
+                                                    />
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setContent({
+                                                        ...content,
+                                                        table: {
+                                                            header: [...(content.table?.header || ['']), ''],
+                                                            rows: (content.table?.rows || []).map(r => [...r, ''])
+                                                        }
+                                                    })}
+                                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center px-1">
+                                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Safafka (Rows)</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setContent({
+                                                        ...content,
+                                                        table: {
+                                                            ...content.table!,
+                                                            rows: [...(content.table?.rows || []), Array((content.table?.header || ['']).length).fill('')]
+                                                        }
+                                                    })}
+                                                    className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
+                                                >
+                                                    + Ku dar Saf
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2 overflow-x-auto pb-2">
+                                                {(content.table?.rows || []).map((row, rIdx) => (
+                                                    <div key={rIdx} className="flex gap-2 min-w-max">
+                                                        {row.map((cell, cIdx) => (
+                                                            <input
+                                                                key={cIdx}
+                                                                type="text"
+                                                                value={cell}
+                                                                onChange={e => {
+                                                                    const newRows = [...(content.table?.rows || [])];
+                                                                    newRows[rIdx][cIdx] = e.target.value;
+                                                                    setContent({ ...content, table: { ...content.table!, rows: newRows } });
+                                                                }}
+                                                                className="w-32 p-2 rounded-lg border border-gray-200 text-[10px]"
+                                                                placeholder="Cell..."
+                                                            />
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newRows = content.table?.rows?.filter((_, i) => i !== rIdx);
+                                                                setContent({ ...content, table: { ...content.table!, rows: newRows || [] } });
+                                                            }}
+                                                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Qoraal (Default) Form */}
+                        {content.type === 'qoraal' && (
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Cinwaanka (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={content.title || ''}
+                                        onChange={e => setContent({ ...content, title: e.target.value })}
+                                        className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100"
+                                        placeholder="Tusaale: Maxaad u baahantahay?"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Macluumaadka Qoraalka</label>
+                                    <RichTextEditor
+                                        content={content.text || ''}
+                                        onChange={val => setContent({ ...content, text: val })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Sawir (Optional URL)</label>
+                                    <input
+                                        type="text"
+                                        value={content.url || ''}
+                                        onChange={e => setContent({ ...content, url: e.target.value })}
+                                        className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none focus:ring-2 focus:ring-blue-100"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                            </div>
                         )}
                     </div>
                 )}

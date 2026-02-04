@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +42,7 @@ const defaultCourseImage = "/images/placeholder-course.svg";
 export default function CourseDetailPage() {
     const router = useRouter();
     const { categoryId, courseSlug } = useParams();
+    const searchParams = useSearchParams();
     const {
         course: currentCourse,
         isLoading: isCourseLoading,
@@ -66,10 +67,21 @@ export default function CourseDetailPage() {
     const enrollmentProgress = useMemo(() => {
         if (!enrollments) return 0;
         return (
-            enrollments.find((e) => e.course === currentCourse?.id)
+            enrollments.find((e: any) => e.course === currentCourse?.id)
                 ?.progress_percent || 0
         );
     }, [enrollments, currentCourse]);
+
+    // Determine active module based on nextLessonId param
+    const activeModuleId = useMemo(() => {
+        const nextLessonId = searchParams.get('nextLessonId');
+        if (!nextLessonId || !currentCourse?.modules) return undefined;
+
+        const foundModule = currentCourse.modules.find(m =>
+            m.lessons?.some(l => String(l.id) === String(nextLessonId))
+        );
+        return foundModule?.id;
+    }, [searchParams, currentCourse]);
 
     const handleEnrollClick = () => {
         router.push('/welcome');
@@ -82,7 +94,7 @@ export default function CourseDetailPage() {
         }
 
         // Find the module
-        const courseModule = currentCourse?.modules.find(m => m.id === moduleId);
+        const courseModule = (currentCourse?.modules as any[])?.find(m => m.id === moduleId);
 
         // Get the first lesson ID from the module
         const firstLessonId = courseModule?.lessons?.[0]?.id;
@@ -94,7 +106,7 @@ export default function CourseDetailPage() {
 
         // Check if the module is completed to determine if it's in review mode
         const isModuleCompleted = courseModule && progress?.some(
-            (p) => p.module_id === moduleId && p.status === "completed"
+            (p: any) => p.module_id === moduleId && p.status === "completed"
         );
 
         // Add review parameter if the module is completed
@@ -147,7 +159,7 @@ export default function CourseDetailPage() {
                         <div className="flex mb-6 border-border dark:border-slate-800 border-2 px-4 py-2 rounded-md w-fit bg-slate-50 dark:bg-black">
                             <div className="relative w-16 h-16">
                                 <Image
-                                    src={optimizeCloudinaryUrl(currentCourse.thumbnail) || defaultCourseImage}
+                                    src={optimizeCloudinaryUrl(currentCourse.thumbnail || undefined) || defaultCourseImage}
                                     alt={currentCourse.title}
                                     fill
                                     className="object-contain"
@@ -201,9 +213,10 @@ export default function CourseDetailPage() {
                         <div className="relative flex flex-col items-center gap-12">
                             {currentCourse.modules && (
                                 <ModuleZigzag
-                                    modules={currentCourse.modules}
+                                    modules={currentCourse.modules as any}
                                     onModuleClick={handleModuleClick}
                                     progress={progress ?? []}
+                                    activeModuleId={activeModuleId}
                                 />
                             )}
                         </div>

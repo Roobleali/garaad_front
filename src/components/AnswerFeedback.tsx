@@ -104,10 +104,10 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                     >
                         <div
                             className={cn(
-                                "w-full max-w-3xl p-4 md:p-6 rounded-[2rem] shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1)] border transition-all duration-500",
+                                "w-full max-max-3xl p-4 md:p-6 rounded-2xl shadow-xl border transition-all duration-300",
                                 isCorrect
                                     ? "bg-white/95 dark:bg-zinc-900/95 border-emerald-500/25 backdrop-blur-xl"
-                                    : "bg-white/95 dark:bg-zinc-900/95 border-rose-500/25 backdrop-blur-xl"
+                                    : "bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-white/10 backdrop-blur-xl"
                             )}
                         >
                             <div className="flex flex-col md:flex-row items-center gap-6">
@@ -118,7 +118,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                             "w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl shadow-sm transition-transform duration-500",
                                             isCorrect
                                                 ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                                                : "bg-rose-500 text-white shadow-rose-500/20"
+                                                : "bg-slate-500 text-white shadow-slate-500/20"
                                         )}
                                     >
                                         {isCorrect ? (
@@ -131,7 +131,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                         <div className="flex items-center flex-wrap gap-2.5">
                                             <h3 className={cn(
                                                 "text-xl font-black tracking-tight",
-                                                isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                                                isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"
                                             )}>
                                                 {title}
                                             </h3>
@@ -158,7 +158,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                             "h-12 rounded-xl font-black px-5 text-sm transition-colors",
                                             isCorrect
                                                 ? "hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
-                                                : "hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
+                                                : "hover:bg-slate-500/10 hover:text-slate-600 dark:hover:text-slate-400"
                                         )}
                                     >
                                         <Info className="mr-2 h-4 w-4 stroke-[2.5]" />
@@ -172,7 +172,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                             "flex-1 md:flex-none h-12 px-10 rounded-xl gap-2 text-white font-black text-lg transition-all active:scale-[0.96] shadow-xl",
                                             isCorrect
                                                 ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30"
-                                                : "bg-rose-600 hover:bg-rose-500 shadow-rose-500/30"
+                                                : "bg-slate-600 hover:bg-slate-500 shadow-slate-500/30"
                                         )}
                                     >
                                         {buttonText}

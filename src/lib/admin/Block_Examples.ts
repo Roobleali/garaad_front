@@ -81,6 +81,7 @@ export const DEFAULT_DIAGRAM_CONFIG: DiagramConfig = {
         {
             type: "cube",
             color: "#4F8EF7",
+            text_color: "#FFFFFF",
             number: 5,
             position: "left",
             layout: {

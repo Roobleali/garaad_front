@@ -1,8 +1,8 @@
 "use client";
-export const dynamic = 'force-dynamic';
 
 import type React from "react";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -242,6 +242,7 @@ const LessonPage = () => {
     }, [categories]);
 
     // Local state
+    const [mounted, setMounted] = useState(false);
     const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isCorrect, setIsCorrect] = useState(false);
@@ -358,6 +359,11 @@ const LessonPage = () => {
         setSelectedOption(null);
         setDisabledOptions([]);
     }, [currentBlockIndex]);
+
+    // Prevent hydration mismatch
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Sync lesson to Redux for other components
     useEffect(() => {
@@ -546,7 +552,7 @@ const LessonPage = () => {
         const isLastBlock = currentBlockIndex === lastIndex;
 
         playSound("continue");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "instant" });
         setShowFeedback(false);
 
         if (!isLastBlock) {
@@ -602,20 +608,16 @@ const LessonPage = () => {
 
     const handleCompletionAnimationFinish = useCallback(() => {
         setShowCompletionAnimation(false);
+        setNavigating(true);
 
-        // Find next lesson
+        // Find next lesson info to pass as hint for highlighting
         const sortedLessons = [...courseLessons].sort((a, b) => (a.order || 0) - (b.order || 0));
         const currentIdx = sortedLessons.findIndex(l => l.id === currentLesson?.id);
         const nextLesson = currentIdx !== -1 && currentIdx < sortedLessons.length - 1 ? sortedLessons[currentIdx + 1] : null;
 
-        if (nextLesson) {
-            setNavigating(true);
-            router.push(`/courses/${params.categoryId}/${params.courseSlug}/lessons/${nextLesson.id}`);
-        } else {
-            setNavigating(true);
-            router.push(coursePath);
-        }
-    }, [router, coursePath, courseLessons, currentLesson?.id, params.categoryId, params.courseSlug]);
+        const queryParam = nextLesson ? `?nextLessonId=${nextLesson.id}` : "";
+        router.push(`${coursePath}${queryParam}`);
+    }, [router, coursePath, courseLessons, currentLesson?.id]);
 
     useEffect(() => {
         continueRef.current = handleContinue;
@@ -652,13 +654,9 @@ const LessonPage = () => {
     }, [router]);
 
     // Block rendering
-    const renderCurrentBlock = useCallback(() => {
-        if (!sortedBlocks || (sortedBlocks?.length || 0) === 0) return null;
-
-        const block = sortedBlocks[currentBlockIndex];
+    const renderBlock = useCallback((block: any, index: number) => {
         if (!block) return null;
-
-        const isLastBlock = currentBlockIndex === (sortedBlocks?.length || 0) - 1;
+        const isLastBlock = index === (sortedBlocks?.length || 0) - 1;
 
         switch (block.block_type) {
             case "problem":
@@ -667,23 +665,31 @@ const LessonPage = () => {
                     <ProblemBlock
                         problemId={block.problem}
                         onContinue={handleContinue}
-                        selectedOption={selectedOption}
-                        answerState={answerState}
+                        selectedOption={index === currentBlockIndex ? selectedOption : null}
+                        answerState={index === currentBlockIndex ? answerState : { isCorrect: true, showAnswer: true, lastAttempt: null }}
                         onOptionSelect={handleOptionSelect}
                         onCheckAnswer={handleCheckAnswer}
                         isLoading={isLoading}
                         error={error}
-                        isCorrect={isCorrect}
+                        isCorrect={index === currentBlockIndex ? isCorrect : true}
                         isLastInLesson={isLastBlock}
-                        disabledOptions={disabledOptions}
+                        disabledOptions={index === currentBlockIndex ? disabledOptions : []}
                     />
                 );
 
             case "text":
+            case "list":
+            case "table":
+            case "table-grid":
                 const textContent =
                     typeof block.content === "string"
                         ? (JSON.parse(block.content) as TextContent)
                         : (block.content as TextContent);
+
+                // Add type to content if not present for correct internal TextBlock rendering
+                if (!textContent.type) {
+                    textContent.type = block.block_type as any;
+                }
 
                 return (
                     <TextBlock
@@ -762,13 +768,16 @@ const LessonPage = () => {
 
 
     // Loading state
-    // if (isLoading) {
-    //     return <LoadingSpinner message="soo dajinaya casharada..." />;
-    // }
+    if (isLoading) {
+        return <LoadingSpinner message="soo dajinaya casharada..." />;
+    }
 
-    // No lesson found
-    if (!currentLesson && !isLoading) {
-        return <ErrorCard coursePath={coursePath} onRetry={handleRetry} />;
+    // No lesson found or no content
+    if (!currentLesson || (sortedBlocks?.length || 0) === 0) {
+        if (!isLoading) {
+            return <ErrorCard coursePath={coursePath} onRetry={handleRetry} />;
+        }
+        return <LoadingSpinner message="soo dajinaya casharada..." />;
     }
 
     if (showCompletionAnimation) {
@@ -795,6 +804,8 @@ const LessonPage = () => {
     }
 
     // Render the main lesson page
+    if (!mounted) return null;
+
     return (
         <div className="min-h-screen bg-background">
             <LessonHeader
@@ -819,8 +830,19 @@ const LessonPage = () => {
                         </div>
                     )}
 
-                    <div className="flex flex-col items-center">
-                        {renderCurrentBlock()}
+                    <div className="flex flex-col items-center w-full overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentBlockIndex}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "linear" }}
+                                className="w-full"
+                            >
+                                {renderBlock(sortedBlocks[currentBlockIndex], currentBlockIndex)}
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
                 </div>
             </main>
