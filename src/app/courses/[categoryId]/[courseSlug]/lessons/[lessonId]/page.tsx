@@ -626,8 +626,17 @@ const LessonPage = () => {
     const handleCheckAnswer = useCallback(() => {
         if (!selectedOption || !currentProblem) return;
 
-        const correctAnswer = currentProblem.correct_answer?.map((ans) => ans.text);
-        const isCorrect = correctAnswer?.includes(selectedOption) || false;
+        let isCorrect = false;
+
+        if (selectedOption === "matching_success") {
+            isCorrect = true;
+        } else if (currentProblem.question_type === "short_input") {
+            const correctAnswers = currentProblem.correct_answer?.map((ans) => ans.text.toLowerCase().trim()) || [];
+            isCorrect = correctAnswers.includes(selectedOption.toLowerCase().trim());
+        } else {
+            const correctAnswer = currentProblem.correct_answer?.map((ans) => ans.text);
+            isCorrect = correctAnswer?.includes(selectedOption) || false;
+        }
 
         if (isCorrect) {
             setCurrentXp(currentProblem.xp || currentProblem.points || 10);
@@ -637,7 +646,7 @@ const LessonPage = () => {
         setShowFeedback(true);
         playSound(isCorrect ? "correct" : "incorrect");
 
-        if (!isCorrect) {
+        if (!isCorrect && currentProblem.question_type !== "short_input") {
             setDisabledOptions((prev) => [...prev, selectedOption]);
             setSelectedOption(null);
         }

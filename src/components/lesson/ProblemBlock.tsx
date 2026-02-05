@@ -14,6 +14,7 @@ import { ProblemContent } from "@/types/learning";
 import { useSoundManager } from "@/hooks/use-sound-effects";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { useProblem } from "@/hooks/useApi";
+import { Input } from "@/components/ui/input";
 
 import CalculatorProblemBlock from "./CalculatorProblemBlock";
 import MatchingBlock from "./MatchingBlock";
@@ -104,6 +105,7 @@ const ProblemBlock: React.FC<{
     const hasAnswered = answerState.isCorrect !== null;
     const [imgLoading, setImgLoading] = useState(false);
     const [imgSrc, setImgSrc] = useState(content?.img);
+    const [textAnswer, setTextAnswer] = useState("");
     const { playSound } = useSoundManager();
 
     useEffect(() => {
@@ -115,6 +117,7 @@ const ProblemBlock: React.FC<{
 
     const handleOptionSelect = (option: string) => {
       if (hasAnswered && isCorrect) return;
+      setTextAnswer(option); // Keep for short_input
       onOptionSelect(option);
     };
 
@@ -231,8 +234,12 @@ const ProblemBlock: React.FC<{
               options={content.options}
               onComplete={(success) => {
                 if (success) {
-                  onCheckAnswer(); // Call parent check
+                  onOptionSelect("matching_success"); // Mark as selected
+                  onCheckAnswer();
                 } else {
+                  // If it's a "live" matching that checks on every drop, 
+                  // we might not want to show full red feedback yet.
+                  // For now, let's just play the sound.
                   playSound("incorrect");
                 }
               }}
@@ -346,15 +353,38 @@ const ProblemBlock: React.FC<{
                 </div>
               )}
 
-              {/* Options Grid */}
-              <div
-                className={cn(
-                  "grid gap-4 w-full",
-                  content.question_type === "diagram" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
-                )}
-              >
-                {content.options.map(renderOption)}
-              </div>
+              {/* Options Grid / Input */}
+              {content.question_type === "short_input" ? (
+                <div className="w-full max-w-lg mx-auto py-4">
+                  <Input
+                    type="text"
+                    placeholder="Qor jawaabta halkan..."
+                    value={textAnswer}
+                    onChange={(e) => handleOptionSelect(e.target.value)}
+                    disabled={hasAnswered && isCorrect}
+                    className={cn(
+                      "h-16 rounded-2xl text-lg px-6 border-2 transition-all",
+                      hasAnswered && isCorrect && "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-700",
+                      hasAnswered && !isCorrect && "border-rose-500 bg-rose-50/50 dark:bg-rose-500/10 text-rose-700",
+                      !hasAnswered && "border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    )}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && textAnswer.trim()) {
+                        onCheckAnswer();
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "grid gap-4 w-full",
+                    content.question_type === "diagram" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+                  )}
+                >
+                  {content.options.map(renderOption)}
+                </div>
+              )}
             </div>
 
             {/* Bottom Actions */}
