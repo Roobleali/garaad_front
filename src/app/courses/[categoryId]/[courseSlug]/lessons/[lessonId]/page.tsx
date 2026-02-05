@@ -653,6 +653,16 @@ const LessonPage = () => {
         router.refresh();
     }, [router]);
 
+    // Auto-dismiss feedback after 20s if incorrect
+    useEffect(() => {
+        if (showFeedback && !isCorrect) {
+            const timer = setTimeout(() => {
+                handleResetAnswer();
+            }, 20000);
+            return () => clearTimeout(timer);
+        }
+    }, [showFeedback, isCorrect, handleResetAnswer]);
+
     // Block rendering
     const renderBlock = useCallback((block: any, index: number) => {
         if (!block) return null;
