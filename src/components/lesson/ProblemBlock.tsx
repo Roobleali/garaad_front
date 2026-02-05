@@ -89,11 +89,11 @@ const ProblemBlock: React.FC<{
         explanation: pd.explanation || "No explanation available",
         diagram_config: pd.diagram_config,
         diagrams: pd.diagrams,
-        question_type: ["code", "mcq", "short_input", "diagram", "matching"].includes(
+        question_type: ["code", "mcq", "short_input", "diagram", "matching", "multiple_choice"].includes(
           pd.question_type
         )
           ? (pd.question_type as any)
-          : undefined,
+          : pd.question_type || undefined,
         content: pd.content || {},
       } as ProblemContent;
     }, [externalContent, fetchedData]);

@@ -674,6 +674,7 @@ const LessonPage = () => {
                 return (
                     <ProblemBlock
                         problemId={block.problem}
+                        content={typeof block.content === 'string' ? JSON.parse(block.content) : block.content}
                         onContinue={handleContinue}
                         selectedOption={index === currentBlockIndex ? selectedOption : null}
                         answerState={index === currentBlockIndex ? answerState : { isCorrect: true, showAnswer: true, lastAttempt: null }}
