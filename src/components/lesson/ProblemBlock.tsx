@@ -134,7 +134,7 @@ const ProblemBlock: React.FC<{
         // Correct state - Vibrant Emerald
         isOptionCorrect && "border-emerald-500/60 bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
         // Incorrect state - Vibrant Rose (Enhanced Visibility)
-        isOptionIncorrect && "border-rose-500 bg-rose-100/90 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400 font-bold shadow-[0_4px_12px_rgba(244,63,94,0.4)]",
+        isOptionIncorrect && "border-rose-500 bg-rose-100/90 dark:bg-rose-500/20 text-rose-950 dark:text-rose-100 font-bold shadow-[0_4px_12px_rgba(244,63,94,0.4)]",
         // Disabled/Not selected state
         isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none"
       );
@@ -220,7 +220,7 @@ const ProblemBlock: React.FC<{
     if (content.question_type === "matching") {
       return (
         <div className="w-full max-w-3xl mx-auto px-4 pb-12">
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
                 Isku xir kuwa saxda ah
@@ -252,7 +252,7 @@ const ProblemBlock: React.FC<{
 
     return (
       <div className="w-full max-w-3xl mx-auto px-4 pb-12">
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-8">
           {/* Question Card */}
           <div className="overflow-hidden rounded-[2rem] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.05] dark:border-white/[0.05] relative">
             <div className="p-8 md:p-12 space-y-10">

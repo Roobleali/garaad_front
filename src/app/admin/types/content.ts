@@ -96,6 +96,8 @@ export interface ContentBlockData {
     thumbnail_url?: string | null;
     isDirectUpload?: boolean;
     directFile?: File | null;
+    img_url?: string;
+    img_position?: 'top' | 'bottom';
 }
 
 export interface ContentBlock {

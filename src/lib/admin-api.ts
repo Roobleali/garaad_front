@@ -22,7 +22,10 @@ export interface ApiResponse<T> {
 }
 
 const adminApi = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org/api",
+    baseURL: (() => {
+        const base = process.env.NEXT_PUBLIC_API_URL || "https://api.garaad.org";
+        return base.endsWith('/api') ? base : `${base}/api`;
+    })(),
     headers: {
         "Content-Type": "application/json",
     },

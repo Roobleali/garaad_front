@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent, MouseEvent } from 'react';
+import { useState, useEffect, FormEvent, MouseEvent, Fragment } from 'react';
 import { adminApi as api, ApiError } from '@/lib/admin-api';
 import type { ContentBlock, ContentBlockData, Option, DiagramConfig, DiagramObject, ProblemData } from '@/app/admin/types/content';
 import { ContentBlockModal } from './ContentBlockModal';
@@ -9,7 +9,8 @@ import {
     Plus, Trash2, Video, Type, Image as LucideImage, HelpCircle, Save, X,
     GripVertical, Info, Layout, List as ListIcon, Table as TableIcon,
     Square, CheckSquare, AlignLeft, Hash, Link, Calculator, BarChart2,
-    Upload, Loader2, Sparkles, ChevronUp, ChevronDown, CheckCircle, PlusCircle
+    Upload, Loader2, Sparkles, ChevronUp, ChevronDown, CheckCircle, PlusCircle,
+    ArrowUpDown
 } from 'lucide-react';
 import { addStyles, EditableMathField } from 'react-mathquill';
 
@@ -174,7 +175,35 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
     const [deleteError, setDeleteError] = useState('');
     const [videoUploading, setVideoUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [tableType, setTableType] = useState<string>('');
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadImageError, setUploadImageError] = useState('');
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingImage(true);
+        setUploadImageError('');
+
+        const formData = new FormData();
+        formData.append('photo', file);
+        formData.append('title', file.name);
+
+        try {
+            const res = await api.post('lms/photos/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setEditingContent({
+                ...editingContent,
+                img_url: res.data.photo_url || res.data.url
+            });
+        } catch (err: any) {
+            console.error('Image upload failed:', err);
+            setUploadImageError(err.response?.data?.detail || 'Sawirka waa la soo daji waayay');
+        } finally {
+            setUploadingImage(false);
+        }
+    };
     const [expandedBlocks, setExpandedBlocks] = useState<Set<number>>(new Set());
 
     const toggleBlock = (id: number) => {
@@ -352,12 +381,12 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
             setAdding(false);
         }
     };
-
     const handleEditBlock = (block: ContentBlock) => {
         setEditingBlock(block);
+        const normalizedType = block.block_type === 'text' ? 'qoraal' : block.block_type;
         setEditingContent({
             ...DEFAULT_CONTENT,
-            type: block.block_type as any,
+            type: normalizedType as any,
             ...(block.content as any),
             id: block.id
         });
@@ -370,41 +399,56 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
         setAdding(true);
         setError('');
 
-        try {
-            let blockData: any;
-            if (editingContent.type === 'problem' && editingBlock.problem) {
-                // For problems, we update the problem itself
-                const problemData: any = {
-                    ...editingContent,
-                    lesson: lessonId,
-                };
+        const isTypeChanged = editingBlock.block_type !== editingContent.type;
+        let blockData: any;
 
-                // Ensure optional fields are handled correctly
-                if (!problemData.img) problemData.img = null;
-                if (!problemData.video_url) problemData.video_url = null;
+        if (editingContent.type === 'problem') {
+            let problemId = editingBlock.problem;
 
-                await api.put(`lms/problems/${editingBlock.problem}/`, problemData);
-                blockData = {
-                    block_type: 'problem',
-                    content: {},
-                };
-            } else if (editingContent.type === 'video') {
-                blockData = {
-                    block_type: 'video',
-                    content: {
-                        source: editingContent.url || '',
-                        url: editingContent.url || '',
-                        title: editingContent.title || '',
-                        video_source_type: editingContent.video_source_type || 'upload'
-                    },
-                };
+            // If we changed to problem and don't have one, create it
+            // Or if we already have one, update it
+            const problemData: any = {
+                ...editingContent,
+                lesson: lessonId,
+            };
+            if (!problemData.img) problemData.img = null;
+            if (!problemData.video_url) problemData.video_url = null;
+
+            if (problemId) {
+                await api.put(`lms/problems/${problemId}/`, problemData);
             } else {
-                blockData = {
-                    block_type: 'text',
-                    content: editingContent,
-                };
+                const problemRes = await api.post('lms/problems/', {
+                    ...problemData,
+                    order: editingBlock.order
+                });
+                problemId = problemRes.data.id;
             }
 
+            blockData = {
+                block_type: 'problem',
+                content: {},
+                problem: problemId
+            };
+        } else if (editingContent.type === 'video') {
+            blockData = {
+                block_type: 'video',
+                content: {
+                    source: editingContent.url || '',
+                    url: editingContent.url || '',
+                    title: editingContent.title || '',
+                    video_source_type: editingContent.video_source_type || 'upload'
+                },
+                problem: null // Clear problem if changing from problem to video
+            };
+        } else {
+            blockData = {
+                block_type: editingContent.type === 'qoraal' ? 'text' : editingContent.type,
+                content: editingContent,
+                problem: null // Clear problem if changing from problem to text
+            };
+        }
+
+        try {
             const res = await api.patch(`lms/lesson-content-blocks/${editingBlock.id}/`, blockData);
             setBlocks(blocks.map(b => b.id === editingBlock.id ? res.data : b));
             setShowEditBlock(false);
@@ -611,38 +655,33 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                 isAdding={adding}
                 renderContentForm={(content, setContent) => (
                     <div className="space-y-6">
-                        {/* Block Type Selection (Only for Add) */}
-                        {!showEditBlock && (
-                            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between gap-4">
-                                <span className="text-sm font-bold text-gray-700">Nooca Qeybta</span>
-                                <select
-                                    value={content.type}
-                                    onChange={e => {
-                                        const newType = e.target.value as any;
-                                        if (newType === 'problem') {
-                                            setContent({
-                                                ...MULTIPLE_CHOICE_EXAMPLE,
-                                                order: content.order
-                                            });
-                                        } else if (newType === 'list') {
-                                            setContent({ ...LIST_EXAMPLE, order: content.order });
-                                        } else if (newType === 'table' || newType === 'table-grid') {
-                                            setContent({ ...TABLE_EXAMPLE, type: newType, order: content.order });
-                                        } else {
-                                            setContent({ ...DEFAULT_CONTENT, type: newType, order: content.order });
-                                        }
-                                    }}
-                                    className="p-2.5 rounded-xl border border-gray-200 text-sm font-bold bg-white focus:ring-2 focus:ring-blue-100 outline-none"
-                                >
-                                    <option value="qoraal">Qoraal</option>
-                                    <option value="video">Muuqaal</option>
-                                    <option value="problem">Su'aal</option>
-                                    <option value="list">Liis (List)</option>
-                                    <option value="table">Jadwal (Table)</option>
-                                    <option value="table-grid">Jadwal Grid</option>
-                                </select>
-                            </div>
-                        )}
+                        {/* Block Type Selection */}
+                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center justify-between gap-4">
+                            <span className="text-sm font-bold text-gray-700">Nooca Qeybta</span>
+                            <select
+                                value={content.type}
+                                onChange={e => {
+                                    const newType = e.target.value as any;
+                                    if (newType === 'problem') {
+                                        setContent({ ...MULTIPLE_CHOICE_EXAMPLE, order: content.order });
+                                    } else if (newType === 'list') {
+                                        setContent({ ...LIST_EXAMPLE, order: content.order });
+                                    } else if (newType === 'table' || newType === 'table-grid') {
+                                        setContent({ ...TABLE_EXAMPLE, type: newType, order: content.order });
+                                    } else {
+                                        setContent({ ...DEFAULT_CONTENT, type: newType, order: content.order });
+                                    }
+                                }}
+                                className="p-2.5 rounded-xl border border-gray-200 text-sm font-bold bg-white focus:ring-2 focus:ring-blue-100 outline-none"
+                            >
+                                <option value="qoraal">Qoraal</option>
+                                <option value="video">Muuqaal</option>
+                                <option value="problem">Su'aal</option>
+                                <option value="list">Liis (List)</option>
+                                <option value="table">Jadwal (Table)</option>
+                                <option value="table-grid">Jadwal Grid</option>
+                            </select>
+                        </div>
 
                         {/* Video Content Form */}
                         {content.type === 'video' && (
@@ -651,16 +690,14 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                     <button
                                         type="button"
                                         onClick={() => setContent({ ...content, isDirectUpload: false })}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${!content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
-                                            }`}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${!content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                                     >
                                         Dooro Muuqaal (URL)
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setContent({ ...content, isDirectUpload: true })}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
-                                            }`}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                                     >
                                         Soo Geli Cusub
                                     </button>
@@ -713,7 +750,6 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                             className="w-full p-3 rounded-xl border border-gray-200 font-medium"
                                             placeholder="https://..."
                                         />
-                                        <p className="text-[10px] text-gray-400 mt-1.5">Geli URL-ka tooska ah ee muuqaalka</p>
                                     </div>
                                 )}
 
@@ -733,7 +769,6 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                         {/* Problem Content Form */}
                         {content.type === 'problem' && (
                             <div className="space-y-6">
-                                {/* Question Type Selection */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Nooca Su'aasha</label>
@@ -742,24 +777,13 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                             onChange={e => {
                                                 const newType = e.target.value as any;
                                                 const updatedContent = { ...content, question_type: newType };
-
-                                                // Reset specific fields based on type
                                                 if (newType === 'true_false') {
-                                                    updatedContent.options = [
-                                                        { id: 'true', text: 'Sax' },
-                                                        { id: 'false', text: 'Qalad' }
-                                                    ];
+                                                    updatedContent.options = [{ id: 'true', text: 'Sax' }, { id: 'false', text: 'Qalad' }];
                                                     updatedContent.correct_answer = [{ id: 'true', text: 'Sax' }];
                                                 } else if (['fill_blank', 'open_ended', 'math_expression', 'code'].includes(newType)) {
                                                     updatedContent.options = [];
                                                     updatedContent.correct_answer = [{ id: 'answer', text: '' }];
-                                                } else if (newType === 'matching') {
-                                                    updatedContent.options = [{ id: 'a', text: '|||' }];
-                                                    updatedContent.correct_answer = [];
-                                                } else if (newType === 'diagram') {
-                                                    updatedContent.diagram_config = DEFAULT_DIAGRAM_CONFIG;
                                                 }
-
                                                 setContent(updatedContent);
                                             }}
                                             className="w-full p-3 rounded-xl border border-gray-200 text-sm font-bold bg-white outline-none focus:ring-2 focus:ring-blue-100"
@@ -788,14 +812,6 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
 
                                 <div className="space-y-4">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Qoraalka Hordhaca (Optional)</label>
-                                        <RichTextEditor
-                                            content={content.which || ''}
-                                            onChange={val => setContent({ ...content, which: val })}
-                                            placeholder="Tusaale: Aqri cutubka 1-aad ka dibna ka jawaab..."
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
                                         <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Su'aasha *</label>
                                         <RichTextEditor
                                             content={content.question_text || ''}
@@ -805,50 +821,15 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                     </div>
                                 </div>
 
-                                {/* Media Options for Problem */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">URL-ka Sawirka</label>
-                                        <input
-                                            type="text"
-                                            value={content.img || ''}
-                                            onChange={e => setContent({ ...content, img: e.target.value })}
-                                            className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none"
-                                            placeholder="https://..."
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">URL-ka Muuqaalka</label>
-                                        <input
-                                            type="text"
-                                            value={content.video_url || ''}
-                                            onChange={e => setContent({ ...content, video_url: e.target.value })}
-                                            className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none"
-                                            placeholder="https://..."
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Question Specific Inputs */}
                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
-                                    {/* Choice Based Questions */}
                                     {['multiple_choice', 'single_choice'].includes(content.question_type || '') && (
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between px-1">
                                                 <h5 className="text-xs font-black text-gray-900 uppercase tracking-tight">Doorashooyinka</h5>
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        const newOption = {
-                                                            id: Math.random().toString(36).substr(2, 9),
-                                                            text: ''
-                                                        };
-                                                        setContent({
-                                                            ...content,
-                                                            options: [...(content.options || []), newOption]
-                                                        });
-                                                    }}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700"
+                                                    onClick={() => setContent({ ...content, options: [...(content.options || []), { id: Math.random().toString(36).substr(2, 9), text: '' }] })}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider"
                                                 >
                                                     <Plus className="w-3 h-3" />
                                                     Mid kale
@@ -857,43 +838,19 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                             <div className="space-y-2">
                                                 {(content.options || []).map((option, idx) => (
                                                     <div key={option.id} className="flex gap-2">
-                                                        <div className="flex-1 flex gap-2 p-2 bg-white rounded-xl border border-gray-200 items-center">
-                                                            <input
-                                                                type={content.question_type === 'multiple_choice' ? 'checkbox' : 'radio'}
-                                                                name="correct_choice"
-                                                                checked={content.correct_answer?.some(a => a.id === option.id)}
-                                                                onChange={() => {
-                                                                    if (content.question_type === 'multiple_choice') {
-                                                                        const isCorrect = content.correct_answer?.some(a => a.id === option.id);
-                                                                        const newCorrect = isCorrect
-                                                                            ? content.correct_answer?.filter(a => a.id !== option.id)
-                                                                            : [...(content.correct_answer || []), option];
-                                                                        setContent({ ...content, correct_answer: newCorrect || [] });
-                                                                    } else {
-                                                                        setContent({ ...content, correct_answer: [option] });
-                                                                    }
-                                                                }}
-                                                                className="w-4 h-4 text-emerald-500 rounded-full focus:ring-emerald-200"
-                                                            />
-                                                            <input
-                                                                type="text"
-                                                                value={option.text}
-                                                                onChange={e => {
-                                                                    const newOptions = [...(content.options || [])];
-                                                                    newOptions[idx].text = e.target.value;
-                                                                    setContent({ ...content, options: newOptions });
-                                                                }}
-                                                                className="flex-1 bg-transparent border-none text-xs font-medium outline-none"
-                                                                placeholder={`Fursada ${idx + 1}...`}
-                                                            />
-                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={option.text}
+                                                            onChange={e => {
+                                                                const newOptions = [...(content.options || [])];
+                                                                newOptions[idx].text = e.target.value;
+                                                                setContent({ ...content, options: newOptions });
+                                                            }}
+                                                            className="flex-1 p-2 bg-white rounded-xl border border-gray-200 text-xs font-medium"
+                                                        />
                                                         <button
                                                             type="button"
-                                                            onClick={() => {
-                                                                const newOptions = content.options?.filter(o => o.id !== option.id);
-                                                                const newCorrect = content.correct_answer?.filter(a => a.id !== option.id);
-                                                                setContent({ ...content, options: newOptions || [], correct_answer: newCorrect || [] });
-                                                            }}
+                                                            onClick={() => setContent({ ...content, options: content.options?.filter(o => o.id !== option.id) })}
                                                             className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -903,165 +860,8 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* True/False */}
-                                    {content.question_type === 'true_false' && (
-                                        <div className="flex gap-4 p-2 bg-white rounded-xl border border-gray-200">
-                                            {['Sax', 'Qalad'].map((text, idx) => {
-                                                const id = idx === 0 ? 'true' : 'false';
-                                                return (
-                                                    <button
-                                                        key={id}
-                                                        type="button"
-                                                        onClick={() => setContent({
-                                                            ...content,
-                                                            correct_answer: [{ id, text }]
-                                                        })}
-                                                        className={`flex-1 py-3 rounded-xl font-bold text-sm border-2 transition-all ${content.correct_answer?.[0]?.id === id
-                                                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm'
-                                                            : 'bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100'
-                                                            }`}
-                                                    >
-                                                        {text}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    {/* Fill in the blank / Open ended / Math */}
-                                    {['fill_blank', 'open_ended', 'math_expression', 'code'].includes(content.question_type || '') && (
-                                        <div className="space-y-2">
-                                            <h5 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Jawaabta Saxda ah</h5>
-                                            {content.question_type === 'open_ended' || content.question_type === 'code' ? (
-                                                <textarea
-                                                    value={content.correct_answer?.[0]?.text || ''}
-                                                    onChange={e => setContent({ ...content, correct_answer: [{ id: 'answer', text: e.target.value }] })}
-                                                    className="w-full p-4 rounded-2xl border border-gray-200 text-sm font-medium h-32 bg-white outline-none focus:ring-2 focus:ring-blue-100"
-                                                    placeholder={content.question_type === 'code' ? "Geli koodhka..." : "Geli jawaabta la filayo..."}
-                                                />
-                                            ) : (
-                                                <input
-                                                    type="text"
-                                                    value={content.correct_answer?.[0]?.text || ''}
-                                                    onChange={e => setContent({ ...content, correct_answer: [{ id: 'answer', text: e.target.value }] })}
-                                                    className="w-full p-4 rounded-2xl border border-gray-200 text-sm font-medium bg-white outline-none focus:ring-2 focus:ring-blue-100"
-                                                    placeholder={content.question_type === 'math_expression' ? "\\frac{1}{2}, x^2, etc." : "Geli ereyga saxda ah..."}
-                                                />
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Matching */}
-                                    {content.question_type === 'matching' && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between px-1">
-                                                <h5 className="text-xs font-black text-gray-900 uppercase tracking-tight">Isku Xirka</h5>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setContent({ ...content, options: [...(content.options || []), { id: Math.random().toString(), text: '|||' }] })}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700"
-                                                >
-                                                    <Plus className="w-3 h-3" />
-                                                    Isku xir cusub
-                                                </button>
-                                            </div>
-                                            <div className="space-y-3">
-                                                {(content.options || []).map((option, idx) => {
-                                                    const [left, right] = option.text.split('|||');
-                                                    return (
-                                                        <div key={option.id} className="flex items-center gap-2 group/match">
-                                                            <div className="flex-1 grid grid-cols-[1fr,auto,1fr] items-center gap-2 bg-white p-2 rounded-xl border border-gray-200">
-                                                                <input
-                                                                    type="text"
-                                                                    value={left}
-                                                                    onChange={e => {
-                                                                        const newOptions = [...(content.options || [])];
-                                                                        newOptions[idx].text = `${e.target.value}|||${right}`;
-                                                                        setContent({ ...content, options: newOptions });
-                                                                    }}
-                                                                    className="bg-gray-50 p-2 rounded-lg text-[10px] font-bold border-none outline-none text-center"
-                                                                    placeholder="Bidix"
-                                                                />
-                                                                <div className="text-gray-300 font-black">→</div>
-                                                                <input
-                                                                    type="text"
-                                                                    value={right}
-                                                                    onChange={e => {
-                                                                        const newOptions = [...(content.options || [])];
-                                                                        newOptions[idx].text = `${left}|||${e.target.value}`;
-                                                                        setContent({ ...content, options: newOptions });
-                                                                    }}
-                                                                    className="bg-emerald-50/50 p-2 rounded-lg text-[10px] font-bold border-none outline-none text-center text-emerald-700 placeholder:text-emerald-300"
-                                                                    placeholder="Midig"
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const newOptions = content.options?.filter((_, i) => i !== idx);
-                                                                    setContent({ ...content, options: newOptions || [] });
-                                                                }}
-                                                                className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Diagram configuration */}
-                                    {content.question_type === 'diagram' && (
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Diagram ID</label>
-                                                    <input
-                                                        type="number"
-                                                        value={content.diagram_config?.diagram_id || 101}
-                                                        onChange={e => setContent({
-                                                            ...content,
-                                                            diagram_config: { ...content.diagram_config!, diagram_id: parseInt(e.target.value) }
-                                                        })}
-                                                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Diagram Type</label>
-                                                    <select
-                                                        value={content.diagram_config?.diagram_type || 'scale'}
-                                                        onChange={e => setContent({
-                                                            ...content,
-                                                            diagram_config: { ...content.diagram_config!, diagram_type: e.target.value }
-                                                        })}
-                                                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
-                                                    >
-                                                        <option value="scale">Scale</option>
-                                                        <option value="grid">Grid</option>
-                                                        <option value="excalidraw">Excalidraw</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">Scale Weight</label>
-                                                <input
-                                                    type="number"
-                                                    value={content.diagram_config?.scale_weight || 0}
-                                                    onChange={e => setContent({
-                                                        ...content,
-                                                        diagram_config: { ...content.diagram_config!, scale_weight: parseInt(e.target.value) }
-                                                    })}
-                                                    className="w-full p-2.5 rounded-xl border border-gray-200 text-sm"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* Explanation */}
                                 <div className="space-y-1">
                                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Sharaxaad (Explanation)</label>
                                     <RichTextEditor
@@ -1113,10 +913,7 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        const newItems = content.list_items?.filter((_, i) => i !== idx);
-                                                        setContent({ ...content, list_items: newItems || [] });
-                                                    }}
+                                                    onClick={() => setContent({ ...content, list_items: content.list_items?.filter((_, i) => i !== idx) || [] })}
                                                     className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -1139,31 +936,22 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                     />
                                 </div>
 
-                                {content.type === 'table' ? (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between px-1">
-                                            <h5 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Astaamaha (Features)</h5>
-                                            <button
-                                                type="button"
-                                                onClick={() => setContent({ ...content, features: [...(content.features || []), { title: '', text: '' }] })}
-                                                className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
-                                            >
-                                                + Ku dar Astaame
-                                            </button>
-                                        </div>
-                                        <div className="space-y-4">
-                                            {(content.features || []).map((feature, idx) => (
-                                                <div key={idx} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3 relative">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const newFeatures = content.features?.filter((_, i) => i !== idx);
-                                                            setContent({ ...content, features: newFeatures || [] });
-                                                        }}
-                                                        className="absolute top-2 right-2 p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                {/* Features Editor */}
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h5 className="text-xs font-black text-gray-900 uppercase">Astaamaha (Features)</h5>
+                                        <button
+                                            type="button"
+                                            onClick={() => setContent({ ...content, features: [...(content.features || []), { title: '', text: '' }] })}
+                                            className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
+                                        >
+                                            + Ku dar
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {(content.features || []).map((feature, idx) => (
+                                            <div key={idx} className="space-y-2 p-3 bg-white rounded-xl border border-gray-200">
+                                                <div className="flex gap-2">
                                                     <input
                                                         type="text"
                                                         value={feature.title}
@@ -1172,113 +960,114 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                                             newFeatures[idx].title = e.target.value;
                                                             setContent({ ...content, features: newFeatures });
                                                         }}
-                                                        className="w-full bg-transparent border-none text-sm font-black outline-none placeholder:text-gray-300"
-                                                        placeholder="Magaca astaamaha..."
+                                                        className="flex-1 p-2 text-xs font-bold border-b border-gray-100 outline-none"
+                                                        placeholder="Cinwaanka..."
                                                     />
-                                                    <RichTextEditor
-                                                        content={feature.text || ''}
-                                                        onChange={val => {
-                                                            const newFeatures = [...(content.features || [])];
-                                                            newFeatures[idx].text = val;
-                                                            setContent({ ...content, features: newFeatures });
-                                                        }}
-                                                        placeholder="Faahfaahinta astaamaha..."
-                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setContent({ ...content, features: content.features?.filter((_, i) => i !== idx) || [] })}
+                                                        className="text-rose-500 p-1"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
                                                 </div>
-                                            ))}
+                                                <textarea
+                                                    value={feature.text}
+                                                    onChange={e => {
+                                                        const newFeatures = [...(content.features || [])];
+                                                        newFeatures[idx].text = e.target.value;
+                                                        setContent({ ...content, features: newFeatures });
+                                                    }}
+                                                    className="w-full p-2 text-xs text-gray-600 bg-gray-50/50 rounded-lg outline-none resize-none"
+                                                    placeholder="Macluumaadka..."
+                                                    rows={2}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Table Data Editor */}
+                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4 overflow-x-auto">
+                                    <div className="flex items-center justify-between">
+                                        <h5 className="text-xs font-black text-gray-900 uppercase">Xogta Jadwalka</h5>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const currentHeader = content.table?.header || [];
+                                                    const newHeader = [...currentHeader, `Header ${currentHeader.length + 1}`];
+                                                    const newRows = (content.table?.rows || []).map(row => [...row, '']);
+                                                    setContent({ ...content, table: { header: newHeader, rows: newRows } });
+                                                }}
+                                                className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100"
+                                            >
+                                                + Column
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const headerLen = content.table?.header?.length || 1;
+                                                    const newRow = Array(headerLen).fill('');
+                                                    const newRows = [...(content.table?.rows || []), newRow];
+                                                    setContent({ ...content, table: { ...content.table, header: content.table?.header || ['Header 1'], rows: newRows } });
+                                                }}
+                                                className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100"
+                                            >
+                                                + Row
+                                            </button>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {/* Table Grid Editor (Simplified) */}
-                                        <div className="space-y-3">
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Ciwaanada (Header)</label>
-                                            <div className="flex gap-2">
-                                                {(content.table?.header || ['']).map((h, i) => (
-                                                    <input
-                                                        key={i}
-                                                        type="text"
-                                                        value={h}
-                                                        onChange={e => {
-                                                            const newHeader = [...(content.table?.header || [''])];
-                                                            newHeader[i] = e.target.value;
-                                                            setContent({ ...content, table: { ...content.table!, header: newHeader } });
-                                                        }}
-                                                        className="flex-1 p-2 rounded-lg border border-gray-200 text-[10px] font-bold"
-                                                        placeholder="Ciwaan..."
-                                                    />
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setContent({
-                                                        ...content,
-                                                        table: {
-                                                            header: [...(content.table?.header || ['']), ''],
-                                                            rows: (content.table?.rows || []).map(r => [...r, ''])
-                                                        }
-                                                    })}
-                                                    className="p-2 bg-blue-50 text-blue-600 rounded-lg"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center px-1">
-                                                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Safafka (Rows)</label>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setContent({
-                                                        ...content,
-                                                        table: {
-                                                            ...content.table!,
-                                                            rows: [...(content.table?.rows || []), Array((content.table?.header || ['']).length).fill('')]
-                                                        }
-                                                    })}
-                                                    className="text-[10px] font-bold text-blue-600 uppercase hover:underline"
-                                                >
-                                                    + Ku dar Saf
-                                                </button>
-                                            </div>
-                                            <div className="space-y-2 overflow-x-auto pb-2">
-                                                {(content.table?.rows || []).map((row, rIdx) => (
-                                                    <div key={rIdx} className="flex gap-2 min-w-max">
-                                                        {row.map((cell, cIdx) => (
+
+                                    {content.table && (
+                                        <table className="w-full border-collapse text-[10px]">
+                                            <thead>
+                                                <tr>
+                                                    {content.table.header.map((h, i) => (
+                                                        <th key={i} className="p-1 border border-gray-200">
                                                             <input
-                                                                key={cIdx}
                                                                 type="text"
-                                                                value={cell}
+                                                                value={h}
                                                                 onChange={e => {
-                                                                    const newRows = [...(content.table?.rows || [])];
-                                                                    newRows[rIdx][cIdx] = e.target.value;
-                                                                    setContent({ ...content, table: { ...content.table!, rows: newRows } });
+                                                                    const newHeader = [...content.table!.header];
+                                                                    newHeader[i] = e.target.value;
+                                                                    setContent({ ...content, table: { ...content.table!, header: newHeader } });
                                                                 }}
-                                                                className="w-32 p-2 rounded-lg border border-gray-200 text-[10px]"
-                                                                placeholder="Cell..."
+                                                                className="w-full bg-transparent font-black text-center outline-none"
                                                             />
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {content.table.rows.map((row, ri) => (
+                                                    <tr key={ri}>
+                                                        {row.map((cell, ci) => (
+                                                            <td key={ci} className="p-1 border border-gray-200">
+                                                                <input
+                                                                    type="text"
+                                                                    value={cell}
+                                                                    onChange={e => {
+                                                                        const newRows = [...content.table!.rows];
+                                                                        newRows[ri][ci] = e.target.value;
+                                                                        setContent({ ...content, table: { ...content.table!, rows: newRows } });
+                                                                    }}
+                                                                    className="w-full bg-transparent outline-none"
+                                                                />
+                                                            </td>
                                                         ))}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newRows = content.table?.rows?.filter((_, i) => i !== rIdx);
-                                                                setContent({ ...content, table: { ...content.table!, rows: newRows || [] } });
-                                                            }}
-                                                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
+                                                    </tr>
                                                 ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         {/* Qoraal (Default) Form */}
                         {content.type === 'qoraal' && (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div className="space-y-1">
                                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Cinwaanka (Optional)</label>
                                     <input
@@ -1289,22 +1078,75 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                         placeholder="Tusaale: Maxaad u baahantahay?"
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Macluumaadka Qoraalka</label>
-                                    <RichTextEditor
-                                        content={content.text || ''}
-                                        onChange={val => setContent({ ...content, text: val })}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Sawir (Optional URL)</label>
-                                    <input
-                                        type="text"
-                                        value={content.url || ''}
-                                        onChange={e => setContent({ ...content, url: e.target.value })}
-                                        className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium outline-none focus:ring-2 focus:ring-blue-100"
-                                        placeholder="https://..."
-                                    />
+
+                                <div className="flex flex-col gap-6">
+                                    {/* Handle Dynamic Ordering */}
+                                    {[
+                                        { id: 'text', label: 'Macluumaadka Qoraalka' },
+                                        { id: 'image', label: 'Sawir (Optional)' }
+                                    ].sort((a, b) => {
+                                        const isImgTop = content.img_position === 'top';
+                                        if (a.id === 'image' && isImgTop) return -1;
+                                        if (b.id === 'image' && isImgTop) return 1;
+                                        return 0;
+                                    }).map((item, index) => (
+                                        <Fragment key={item.id}>
+                                            {item.id === 'text' ? (
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">{item.label}</label>
+                                                    <RichTextEditor
+                                                        content={content.text || ''}
+                                                        onChange={val => setContent({ ...content, text: val })}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-sm font-bold text-gray-700">{item.label}</span>
+                                                        {content.img_url && (
+                                                            <button
+                                                                onClick={() => setContent({ ...content, img_url: '', img_position: 'bottom' })}
+                                                                className="text-xs text-red-500 hover:text-red-600 font-medium"
+                                                            >
+                                                                Ka saar
+                                                            </button>
+                                                        )}
+                                                    </div>
+
+                                                    {content.img_url ? (
+                                                        <div className="space-y-4">
+                                                            <img src={content.img_url} alt="Uploaded" className="rounded-xl border border-gray-200 max-h-48 mx-auto" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="relative">
+                                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="img-upload" disabled={uploadingImage} />
+                                                            <label htmlFor="img-upload" className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:bg-blue-50 transition-all">
+                                                                {uploadingImage ? <Loader2 className="w-6 h-6 animate-spin text-blue-600" /> : <Plus className="w-6 h-6 text-blue-500" />}
+                                                                <span className="text-sm font-bold text-gray-700 mt-2">Soo daji sawir</span>
+                                                            </label>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Order Switch Button between items */}
+                                            {index === 0 && (
+                                                <div className="flex justify-center -my-3 z-10">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setContent({
+                                                            ...content,
+                                                            img_position: content.img_position === 'top' ? 'bottom' : 'top'
+                                                        })}
+                                                        className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:bg-gray-50 hover:scale-110 active:scale-95 transition-all text-blue-500"
+                                                        title="Badel meesha (Switch Order)"
+                                                    >
+                                                        <ArrowUpDown className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </Fragment>
+                                    ))}
                                 </div>
                             </div>
                         )}
@@ -1312,26 +1154,12 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                 )}
             />
 
-            <Modal
-                isOpen={showDeleteBlock}
-                onClose={() => setShowDeleteBlock(false)}
-                title="Ma hubtaa?"
-            >
+            <Modal isOpen={showDeleteBlock} onClose={() => setShowDeleteBlock(false)} title="Ma hubtaa?">
                 <div className="p-6 text-center">
                     <p className="text-gray-500 mb-8">Ma hubtaa inaad tirtirto qeybtan? Ficilkan lagama noqon karo.</p>
                     <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowDeleteBlock(false)}
-                            className="flex-1 py-3 px-6 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors"
-                        >
-                            Maya
-                        </button>
-                        <button
-                            onClick={handleDeleteBlock}
-                            className="flex-1 py-3 px-6 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 transition-colors"
-                        >
-                            Haa, Tirtir
-                        </button>
+                        <button onClick={() => setShowDeleteBlock(false)} className="flex-1 py-3 px-6 rounded-xl bg-gray-100 text-gray-700 font-bold">Maya</button>
+                        <button onClick={handleDeleteBlock} className="flex-1 py-3 px-6 rounded-xl bg-rose-600 text-white font-bold">Haa, Tirtir</button>
                     </div>
                 </div>
             </Modal>

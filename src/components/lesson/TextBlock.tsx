@@ -80,6 +80,36 @@ const TextBlock: React.FC<{
 
   const [selectedCell, setSelectedCell] = useState<{ r: number; c: number } | null>(null);
 
+  const displayImg = content.img_url || content.url;
+  const isImgTop = content.img_position === 'top';
+
+  const RenderImage = () => {
+    if (!displayImg) return null;
+    return (
+      <div className="flex justify-center w-full">
+        <div className="relative w-full max-w-[550px] aspect-[16/9] my-4 rounded-2xl overflow-hidden border border-white/5 bg-black/20">
+          {imgLoading && (
+            <div className="absolute inset-0 w-full h-full bg-white/5 animate-pulse z-10" />
+          )}
+          <Image
+            key={displayImg}
+            src={displayImg || ""}
+            alt={content.alt || "lesson image"}
+            fill
+            style={{
+              objectFit: "contain",
+              opacity: imgLoading ? 0 : 1,
+              transition: "opacity 0.5s ease-in-out"
+            }}
+            onLoad={() => setImgLoading(false)}
+            onError={() => setImgLoading(false)}
+            priority
+          />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
       <div className="w-full bg-white/5 dark:bg-black/40 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden transition-all duration-500 hover:bg-black/5 dark:hover:bg-black/50">
@@ -93,6 +123,8 @@ const TextBlock: React.FC<{
               )}
             </div>
           )}
+
+          {isImgTop && <RenderImage />}
 
           {content.type === "2_hovers" && content.text && (
             <HoverText
@@ -112,29 +144,7 @@ const TextBlock: React.FC<{
             </div>
           )}
 
-          {content.url && (
-            <div className="flex justify-center w-full">
-              <div className="relative w-full max-w-[550px] aspect-[16/9] my-4 rounded-2xl overflow-hidden border border-white/5 bg-black/20">
-                {imgLoading && (
-                  <div className="absolute inset-0 w-full h-full bg-white/5 animate-pulse z-10" />
-                )}
-                <Image
-                  key={imgSrc}
-                  src={imgSrc || ""}
-                  alt={content.alt || "lesson image"}
-                  fill
-                  style={{
-                    objectFit: "contain",
-                    opacity: imgLoading ? 0 : 1,
-                    transition: "opacity 0.5s ease-in-out"
-                  }}
-                  onLoad={() => setImgLoading(false)}
-                  onError={() => setImgLoading(false)}
-                  priority
-                />
-              </div>
-            </div>
-          )}
+          {!isImgTop && <RenderImage />}
 
           {additionalTexts.map((text, index) => {
             if (

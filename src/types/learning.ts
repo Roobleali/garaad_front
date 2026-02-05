@@ -83,6 +83,8 @@ export interface TextContent {
   format: "markdown";
   orientation?: "horizontal" | "vertical";
   url?: string;
+  img_url?: string;
+  img_position?: "top" | "bottom";
   alt?: string;
   features?: Feature[];
   table?: {

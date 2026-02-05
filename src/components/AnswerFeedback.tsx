@@ -97,14 +97,11 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                 {!isReportingBug && (
                     <div
                         key="answer-feedback-banner"
-                        className={cn(
-                            "fixed inset-x-0 bottom-6 z-50 flex justify-center p-4 sm:p-6",
-                            "animate-in fade-in slide-in-from-bottom-8 duration-500 cubic-bezier(0.2, 0.8, 0.2, 1)"
-                        )}
+                        className="fixed inset-x-0 bottom-6 z-50 flex justify-center p-4 sm:p-6"
                     >
                         <div
                             className={cn(
-                                "w-full max-max-3xl p-4 md:p-6 rounded-2xl shadow-xl border transition-all duration-300",
+                                "w-full max-w-3xl p-4 md:p-6 rounded-2xl shadow-xl border transition-all duration-300",
                                 isCorrect
                                     ? "bg-white/95 dark:bg-zinc-900/95 border-emerald-500/25 backdrop-blur-xl"
                                     : "bg-white/95 dark:bg-zinc-900/95 border-slate-200 dark:border-white/10 backdrop-blur-xl"
@@ -187,7 +184,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div >
                 )}
             </>
         );

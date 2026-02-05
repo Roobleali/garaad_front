@@ -822,7 +822,7 @@ const LessonPage = () => {
                     {isReviewMode && (
                         <div className="max-w-2xl mx-auto px-4 mb-4">
                             <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 flex items-center gap-2">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                 <span className="text-green-400 text-sm font-bold">
                                     Muraajacee - Casharkan waa la dhammeeyay, waxaad ku celcelaysaa
                                 </span>
@@ -837,7 +837,7 @@ const LessonPage = () => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3, ease: "linear" }}
+                                transition={{ duration: 0 }}
                                 className="w-full"
                             >
                                 {renderBlock(sortedBlocks[currentBlockIndex], currentBlockIndex)}
