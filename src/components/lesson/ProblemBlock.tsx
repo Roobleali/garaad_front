@@ -255,7 +255,7 @@ const ProblemBlock: React.FC<{
         <div className="space-y-8">
           {/* Question Card */}
           <div className="overflow-hidden rounded-[2rem] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.05] dark:border-white/[0.05] relative">
-            <div className="p-8 md:p-12 space-y-10">
+            <div className="p-5 md:p-8 space-y-10">
               <div className="space-y-6 text-center max-w-2xl mx-auto">
                 {content.which && (
                   <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
@@ -358,7 +358,7 @@ const ProblemBlock: React.FC<{
             </div>
 
             {/* Bottom Actions */}
-            <div className="px-8 md:px-12 pb-12 flex flex-col items-center">
+            <div className="px-5 md:px-8 pb-12 flex flex-col items-center">
               {!hasAnswered && (
                 <Button
                   onClick={onCheckAnswer}
