@@ -68,21 +68,21 @@ const ProblemBlock: React.FC<{
     const { problem: fetchedData, isLoading: internalLoading, isError: internalError } = useProblem(problemId);
 
     const content = useMemo(() => {
-      if (externalContent) return externalContent;
-      if (!fetchedData) return null;
+      const pd = (externalContent || fetchedData) as any;
+      if (!pd) return null;
 
-      const pd = fetchedData as any;
+      // Unify field names across API and embedded content
       return {
         id: pd.id,
-        question: pd.question_text,
+        question: pd.question_text || pd.question,
         which: pd.which,
         options: Array.isArray(pd.options)
-          ? pd.options.map((opt: any) => typeof opt === 'string' ? opt : opt.text)
+          ? pd.options.map((opt: any) => typeof opt === 'string' ? opt : (opt.text || opt.content || ""))
           : [],
         correct_answer: Array.isArray(pd.correct_answer)
           ? pd.correct_answer.map((ans: any, index: number) => ({
             id: `answer-${ans.id || index}`,
-            text: ans.text || "",
+            text: ans.text || (typeof ans === 'string' ? ans : ""),
           }))
           : [],
         img: pd.img,
@@ -90,11 +90,11 @@ const ProblemBlock: React.FC<{
         explanation: pd.explanation || "No explanation available",
         diagram_config: pd.diagram_config,
         diagrams: pd.diagrams,
-        question_type: ["code", "mcq", "short_input", "diagram", "matching", "multiple_choice"].includes(
+        question_type: ["code", "mcq", "short_input", "diagram", "matching", "multiple_choice", "calculator"].includes(
           pd.question_type
         )
           ? (pd.question_type as any)
-          : pd.question_type || undefined,
+          : pd.question_type || "mcq", // Default to mcq for safety
         content: pd.content || {},
       } as ProblemContent;
     }, [externalContent, fetchedData]);
@@ -165,8 +165,10 @@ const ProblemBlock: React.FC<{
           </div>
           <div className="flex-1">
             <span className="leading-snug text-sm md:text-base tracking-tight">
-              {content?.question_type === "code" || option.startsWith("```") ? (
-                <ShikiCode code={option.replace(/```[a-z]*\n?|```/g, "")} language={option.match(/```([a-z]+)/)?.[1] || "javascript"} />
+              {content.question_type === "code" ? (
+                <div className="bg-zinc-950 rounded-xl overflow-hidden shadow-2xl transition-all">
+                  <ShikiCode code={option} language="javascript" />
+                </div>
               ) : content?.content?.type === "latex" ? (
                 <Latex>{option}</Latex>
               ) : (
@@ -225,8 +227,8 @@ const ProblemBlock: React.FC<{
         <div className="w-full max-w-3xl mx-auto px-4 pb-12">
           <div className="space-y-8">
             <div className="text-center space-y-4">
-              <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                Isku xir kuwa saxda ah
+              <h2 className="text-xl md:text-2xl font-bold text-foreground">
+                {content.question || "Isku xir kuwa saxda ah"}
               </h2>
               <p className="text-slate-500 font-medium">Jiid oo isku xir qeybaha is leh</p>
             </div>
@@ -354,19 +356,25 @@ const ProblemBlock: React.FC<{
               )}
 
               {/* Options Grid / Input */}
-              {content.question_type === "short_input" ? (
-                <div className="w-full max-w-lg mx-auto py-4">
+              {(content.question_type === "short_input" || content.question_type === "code") ? (
+                <div className="w-full max-w-2xl mx-auto py-4">
+                  {content.question_type === "code" && (
+                    <div className="mb-4 text-xs font-bold text-primary/70 uppercase tracking-widest px-2">
+                      Qor code-ka halkan:
+                    </div>
+                  )}
                   <Input
                     type="text"
-                    placeholder="Qor jawaabta halkan..."
+                    placeholder={content.question_type === "code" ? "Qor code-ka..." : "Qor jawaabta halkan..."}
                     value={textAnswer}
                     onChange={(e) => handleOptionSelect(e.target.value)}
                     disabled={hasAnswered && isCorrect}
                     className={cn(
                       "h-16 rounded-2xl text-lg px-6 border-2 transition-all",
+                      content.question_type === "code" && "font-mono bg-zinc-950 border-zinc-800 text-emerald-400 placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-emerald-500/20",
                       hasAnswered && isCorrect && "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 text-emerald-700",
                       hasAnswered && !isCorrect && "border-rose-500 bg-rose-50/50 dark:bg-rose-500/10 text-rose-700",
-                      !hasAnswered && "border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                      !hasAnswered && content.question_type !== "code" && "border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10"
                     )}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && textAnswer.trim()) {
