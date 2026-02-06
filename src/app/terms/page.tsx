@@ -64,7 +64,7 @@ export default function TermsPage() {
                             <li>We may change prices with notice to you</li>
                         </ul>
                         <p className="text-foreground/80 leading-relaxed mt-4">
-                            To cancel your subscription, email us at <a href="mailto:support@garaad.org" className="text-primary hover:underline">support@garaad.org</a> or
+                            To cancel your subscription, email us at <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a> or
                             use the cancellation option in your account settings.
                         </p>
                     </section>
@@ -72,7 +72,7 @@ export default function TermsPage() {
                     <section className="mb-8">
                         <h2 className="text-2xl font-bold text-foreground mb-4">3. Your Content</h2>
                         <p className="text-foreground/80 leading-relaxed">
-                            When you submit content to the Platform (such as comments, solutions, or AI chat messages), you grant us
+                            When you submit content to the Platform (such as comments or solutions), you grant us
                             a license to use, display, and distribute that content to operate and improve the Service.
                         </p>
                         <p className="text-foreground/80 leading-relaxed">
@@ -90,26 +90,12 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">4. AI Features</h2>
-                        <p className="text-foreground/80 leading-relaxed">
-                            Our AI-powered learning features may generate responses based on your input. Please note:
-                        </p>
-                        <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-                            <li>AI responses may not always be accurate or complete</li>
-                            <li>Don't share sensitive personal information with AI features</li>
-                            <li>We use your interactions to improve our Service, but we don't train third-party AI models with your data</li>
-                            <li>For voice features, we process audio to generate text transcriptions, then immediately discard the audio</li>
-                        </ul>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">5. What You Can't Do</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">4. What You Can't Do</h2>
                         <p className="text-foreground/80 leading-relaxed">
                             You agree not to:
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-foreground/80">
                             <li>Scrape, copy, or harvest data from the Platform</li>
-                            <li>Use the Service to train AI models without permission</li>
                             <li>Attempt to hack or breach our security</li>
                             <li>Impersonate others or create fake accounts</li>
                             <li>Use the Service for any illegal purpose</li>
@@ -118,7 +104,7 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">6. Intellectual Property</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">5. Intellectual Property</h2>
                         <p className="text-foreground/80 leading-relaxed">
                             All content on the Platform (lessons, problems, videos, designs) is protected by copyright and other laws.
                             You may use it for personal learning, but you can't copy, distribute, or create derivative works without our permission.
@@ -126,7 +112,7 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">7. Disclaimers</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">6. Disclaimers</h2>
                         <p className="text-foreground/80 leading-relaxed font-semibold">
                             THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. WE DON'T GUARANTEE THAT:
                         </p>
@@ -138,7 +124,7 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">8. Limitation of Liability</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">7. Limitation of Liability</h2>
                         <p className="text-foreground/80 leading-relaxed">
                             To the maximum extent permitted by law, Garaad is not liable for any indirect, incidental, or consequential
                             damages arising from your use of the Service.
@@ -146,19 +132,18 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">9. Dispute Resolution</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">8. Dispute Resolution</h2>
                         <p className="text-foreground/80 leading-relaxed">
-                            If you have a concern, please contact us at <a href="mailto:support@garaad.org" className="text-primary hover:underline">support@garaad.org</a>.
+                            If you have a concern, please contact us at <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a>.
                             We're committed to resolving issues fairly and quickly.
                         </p>
                         <p className="text-foreground/80 leading-relaxed">
-                            These terms are governed by the laws of the United States. Any disputes will be resolved in the courts
-                            of San Francisco, California.
+                            These terms are governed by the laws of the United Kingdom.
                         </p>
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">10. Changes to These Terms</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">9. Changes to These Terms</h2>
                         <p className="text-foreground/80 leading-relaxed">
                             We may update these terms from time to time. We'll notify you of material changes by email or through the Platform.
                             Continued use of the Service after changes means you accept the new terms.
@@ -166,13 +151,13 @@ export default function TermsPage() {
                     </section>
 
                     <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">11. Contact Us</h2>
+                        <h2 className="text-2xl font-bold text-foreground mb-4">10. Contact Us</h2>
                         <p className="text-foreground/80 leading-relaxed">
                             Questions about these terms? Contact us at:
                         </p>
                         <div className="bg-muted/50 rounded-xl p-6 mt-4">
                             <p className="text-foreground/80">
-                                <strong>Email:</strong> <a href="mailto:support@garaad.org" className="text-primary hover:underline">support@garaad.org</a>
+                                <strong>Email:</strong> <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a>
                             </p>
                             <p className="text-foreground/80 mt-2">
                                 <strong>Address:</strong> London, UK

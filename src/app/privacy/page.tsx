@@ -44,21 +44,10 @@ export default function PrivacyPage() {
                         <ul className="list-disc pl-6 space-y-2 text-foreground/80">
                             <li><strong>Account Information:</strong> Name, email, age, profile picture</li>
                             <li><strong>Learning Data:</strong> Courses accessed, progress, answers, and interactions</li>
-                            <li><strong>AI Chat Data:</strong> Your messages (text, voice, images) and AI responses</li>
                             <li><strong>Payment Information:</strong> Processed by our payment providers (we don't store card numbers)</li>
                             <li><strong>Communications:</strong> Messages you send us for support or feedback</li>
                         </ul>
 
-                        <h3 className="text-xl font-bold text-foreground mb-3 mt-6">Voice Input</h3>
-                        <p className="text-foreground/80 leading-relaxed">
-                            If you use voice features:
-                        </p>
-                        <ul className="list-disc pl-6 space-y-2 text-foreground/80">
-                            <li>We require microphone permission (you can revoke this anytime)</li>
-                            <li>Voice recordings are converted to text by a third-party service</li>
-                            <li>We <strong>do not store</strong> your voice recordings—they're immediately discarded after transcription</li>
-                            <li>Text transcriptions are treated like regular chat messages</li>
-                        </ul>
 
                         <h3 className="text-xl font-bold text-foreground mb-3 mt-6">Automatic Data Collection</h3>
                         <ul className="list-disc pl-6 space-y-2 text-foreground/80">
@@ -74,12 +63,9 @@ export default function PrivacyPage() {
                             <li><strong>Provide the Service:</strong> Deliver lessons, track progress, personalize learning</li>
                             <li><strong>Improve Our Platform:</strong> Analyze usage patterns, fix bugs, develop new features</li>
                             <li><strong>Communicate:</strong> Send important updates, respond to support requests</li>
-                            <li><strong>AI Features:</strong> Process your inputs to generate responses and improve our AI tools</li>
                             <li><strong>Safety:</strong> Prevent fraud, enforce our terms, protect users</li>
                         </ul>
-                        <p className="text-foreground/80 leading-relaxed mt-4 font-semibold">
-                            We do NOT use your AI chat data to train third-party AI models. We only use it to improve our own Service.
-                        </p>
+
                     </section>
 
                     <section className="mb-8">
@@ -106,7 +92,7 @@ export default function PrivacyPage() {
                             <li>We don't show ads to children or use their data for marketing</li>
                         </ul>
                         <p className="text-foreground/80 leading-relaxed mt-4">
-                            Parents can contact us at <a href="mailto:privacy@garaad.org" className="text-primary hover:underline">privacy@garaad.org</a> to
+                            Parents can contact us at <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a> to
                             review or delete their child's information.
                         </p>
                     </section>
@@ -119,12 +105,12 @@ export default function PrivacyPage() {
                         <ul className="list-disc pl-6 space-y-2 text-foreground/80">
                             <li><strong>Access:</strong> Request a copy of your personal information</li>
                             <li><strong>Correct:</strong> Update inaccurate information</li>
-                            <li><strong>Delete:</strong> Request deletion of your data (including AI chat history)</li>
+                            <li><strong>Delete:</strong> Request deletion of your data</li>
                             <li><strong>Opt-Out:</strong> Unsubscribe from marketing emails</li>
                             <li><strong>Export:</strong> Download your data in a portable format</li>
                         </ul>
                         <p className="text-foreground/80 leading-relaxed mt-4">
-                            To exercise these rights, email us at <a href="mailto:privacy@garaad.org" className="text-primary hover:underline">privacy@garaad.org</a> or
+                            To exercise these rights, email us at <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a> or
                             use the data export feature in your account settings.
                         </p>
                     </section>
@@ -142,10 +128,6 @@ export default function PrivacyPage() {
                         <p className="text-foreground/80 leading-relaxed">
                             We keep your information as long as your account is active or as needed to provide the Service.
                             You can request deletion at any time.
-                        </p>
-                        <p className="text-foreground/80 leading-relaxed">
-                            <strong>Note:</strong> We retain AI chat conversations indefinitely unless you request deletion,
-                            but we do not store voice recordings.
                         </p>
                     </section>
 
@@ -187,10 +169,7 @@ export default function PrivacyPage() {
                         </p>
                         <div className="bg-muted/50 rounded-xl p-6 mt-4">
                             <p className="text-foreground/80">
-                                <strong>Email:</strong> <a href="mailto:privacy@garaad.org" className="text-primary hover:underline">privacy@garaad.org</a>
-                            </p>
-                            <p className="text-foreground/80 mt-2">
-                                <strong>Support:</strong> <a href="mailto:support@garaad.org" className="text-primary hover:underline">support@garaad.org</a>
+                                <strong>Email:</strong> <a href="mailto:info@garaad.org" className="text-primary hover:underline">info@garaad.org</a>
                             </p>
                             <p className="text-foreground/80 mt-2">
                                 <strong>Address:</strong> London, UK

@@ -750,6 +750,27 @@ export default function Page() {
                     />
                   </div>
                 </div>
+
+                {/* Terms Acceptance Checkbox */}
+                <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl border border-border">
+                  <input
+                    type="checkbox"
+                    id="termsAcceptance"
+                    checked={true}
+                    readOnly
+                    className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-default"
+                  />
+                  <label htmlFor="termsAcceptance" className="text-sm text-foreground/80 leading-relaxed">
+                    Wan aqbalay{" "}
+                    <Link
+                      href="/terms"
+                      className="text-primary hover:underline font-medium"
+                      target="_blank"
+                    >
+                      shuruudaha Garaad
+                    </Link>
+                  </label>
+                </div>
               </div>
             )}
 
