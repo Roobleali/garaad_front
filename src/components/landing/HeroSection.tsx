@@ -22,8 +22,8 @@ export function HeroSection() {
                     style={{ animationDelay: "1.5s" }}
                 />
 
-                {/* Subtle Radial Gradient */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary-rgb),0.05)_0%,transparent_100%)]" />
+                {/* Subtle Radial Gradient - Light Purple */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(168,85,247,0.15)_0%,transparent_100%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(168,85,247,0.1)_0%,transparent_100%)]" />
 
                 {/* Grid Pattern Overlay with Mask */}
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02] dark:opacity-[0.04] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_100%)]" />

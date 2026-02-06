@@ -37,12 +37,11 @@ export function Logo({
         <Image
             src={logoSrc}
             alt="Garaad"
-            width={width}
-            height={height}
+            width={692}
+            height={461}
             className={cn(
-                "w-auto object-contain transition-all duration-300",
-                "h-20 sm:h-24 md:h-28 lg:h-32 max-w-[200px] sm:max-w-[240px] md:max-w-[280px]",
-                !isDarkMode && "scale-[0.8] -ml-4",
+                "w-32 sm:w-36 md:w-40 lg:w-44",
+                "h-auto object-contain",
                 className
             )}
             priority={priority}
