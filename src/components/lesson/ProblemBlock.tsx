@@ -279,15 +279,15 @@ const ProblemBlock: React.FC<{
                 )}
 
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground leading-tight tracking-tight">
-                  {content.question_type === "code" || content.question.includes("```") ? (
+                  {content.question_type === "code" || content.question?.includes("```") ? (
                     <ShikiCode
-                      code={content.question.replace(/```[a-z]*\n?|```/g, "")}
-                      language={content.question.match(/```([a-z]+)/)?.[1] || "javascript"}
+                      code={content.question?.replace(/```[a-z]*\n?|```/g, "") || ""}
+                      language={content.question?.match(/```([a-z]+)/)?.[1] || "javascript"}
                     />
                   ) : content.content?.type === "latex" ? (
                     <Latex>{content.question}</Latex>
                   ) : (
-                    content.question.includes('<') ? (
+                    content.question?.includes('<') ? (
                       <div dangerouslySetInnerHTML={{ __html: content.question }} />
                     ) : content.question
                   )}
