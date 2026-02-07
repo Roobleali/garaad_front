@@ -1,18 +1,17 @@
-// Garaad Service Worker for PWA and Push Notifications
-// Version: 1.0.0
+// Version: 1.0.1 (Internal: garaad-v2)
 
-const CACHE_NAME = 'garaad-v1';
-const STATIC_CACHE = 'garaad-static-v1';
-const DYNAMIC_CACHE = 'garaad-dynamic-v1';
+const CACHE_NAME = 'garaad-v2';
+const STATIC_CACHE = 'garaad-static-v2';
+const DYNAMIC_CACHE = 'garaad-dynamic-v2';
 
-// Assets to cache on install
+// Assets to cache on install (minimal set)
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
     '/logo.png',
 ];
+
+// ... (skipping to fetch event for clarity in replace, but I'll do a full replace for the logic)
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -44,19 +43,39 @@ self.addEventListener('activate', (event) => {
     return self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - optimize for updates
 self.addEventListener('fetch', (event) => {
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;
 
+    const url = new URL(event.request.url);
+
     // Skip API calls and WebSocket connections
-    if (
-        event.request.url.includes('/api/') ||
-        event.request.url.includes('/ws/')
-    ) {
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws/')) {
         return;
     }
 
+    // Navigation requests (HTML) - Network First
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Update dynamic cache with fresh HTML
+                    const responseClone = response.clone();
+                    caches.open(DYNAMIC_CACHE).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache if offline
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // Static assets (Images, Fonts, Scripts) - Cache First with Network Fallback
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
             if (cachedResponse) {
@@ -64,14 +83,13 @@ self.addEventListener('fetch', (event) => {
             }
 
             return fetch(event.request).then((response) => {
-                // Don't cache if not a valid response
+                // Don't cache if not a valid response or if it's external (except Cloudinary)
                 if (!response || response.status !== 200 || response.type === 'error') {
                     return response;
                 }
 
-                // Clone the response
+                // Cache static assets dynamically
                 const responseToCache = response.clone();
-
                 caches.open(DYNAMIC_CACHE).then((cache) => {
                     cache.put(event.request, responseToCache);
                 });
