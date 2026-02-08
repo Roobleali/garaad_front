@@ -22,7 +22,6 @@ const CommunityCTASection = dynamic(() => import("@/components/landing/Community
 export function HomeContent() {
     const { user, isAuthenticated } = useAuthStore();
     const posthog = usePostHog();
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         posthog?.capture('home_viewed', {
@@ -31,27 +30,7 @@ export function HomeContent() {
         });
     }, [isAuthenticated, user?.id, posthog]);
 
-    // Wait for client-side hydration and auth check
-    useEffect(() => {
-        // Give the middleware time to redirect if needed
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
 
-        return () => clearTimeout(timer);
-    }, []);
-
-    // Show loading state while checking auth
-    if (isLoading) {
-        return (
-            <main className="min-h-screen flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">Ku sugid...</p>
-                </div>
-            </main>
-        );
-    }
 
     return (
         <main>

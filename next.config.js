@@ -24,7 +24,7 @@ const nextConfig = {
   async headers() {
     const cspHeader = `
       default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://cdn.shakebugs.com https://*.posthog.com *.vercel-scripts.com;
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://cdn.shakebugs.com https://*.posthog.com *.vercel-scripts.com https://player.vimeo.com;
       style-src 'self' 'unsafe-inline' fonts.googleapis.com;
       img-src 'self' blob: data: res.cloudinary.com api.garaad.org images.ctfassets.net *.posthog.com https://*.stripe.com;
       media-src 'self' blob: data: https://res.cloudinary.com https://api.garaad.org;
@@ -33,7 +33,7 @@ const nextConfig = {
       base-uri 'self';
       form-action 'self';
       frame-ancestors 'none';
-      frame-src https://js.stripe.com;
+      frame-src https://js.stripe.com https://player.vimeo.com;
       connect-src 'self' https://api.garaad.org https://*.posthog.com https://api.stripe.com;
     `.replace(/\s{2,}/g, ' ').trim();
 

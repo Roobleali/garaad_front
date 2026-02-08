@@ -14,15 +14,15 @@ import VersionCheck from "@/components/VersionCheck";
 export const metadata: Metadata = {
   title: {
     default:
-      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
-    template: "%s | Garaad - Somali STEM Education",
+      "Garaad - #1 First Somali Platform | SaaS, AI, Tech, Cloud, React, JS, HTML",
+    template: "%s | Garaad - First Somali Tech Education Platform",
   },
   description:
     "Garaad waa platform-ka waxbarasho ee ugu horreeya ee Soomaalida oo lagu barto STEM: Xisaabta, Physics, iyo Programming. Ku baro afkaaga hooyo casharo tayo leh meel kasta.",
   keywords: [
-    "Garaad", "Garaad STEM", "Xisaabta Soomaali", "Baro Coding", "STEM Soomaali",
-    "AI Soomaali", "Physics Soomaali", "Soomaali Education", "Tiknoolajiyad Soomaali",
-    "Somali STEM Education", "Garaad Education", "Xisaab", "Algebra Soomaaliya"
+    "Garaad", "Garaad STEM", "First Somali Platform", "SaaS", "Somalis", "AI", "Tech", "Cloud", "React", "JS", "HTML",
+    "Xisaabta Soomaali", "Baro Coding", "STEM Soomaali", "AI Soomaali", "Physics Soomaali",
+    "Soomaali Education", "Tiknoolajiyad Soomaali", "Somali STEM Education", "Garaad Education"
   ],
   authors: [{ name: "Garaad Team", url: "https://garaad.so" }],
   creator: "Abdishakur Ali",
@@ -41,10 +41,10 @@ export const metadata: Metadata = {
     locale: "so_SO",
     url: "https://garaad.so",
     title:
-      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
+      "Garaad - #1 First Somali Platform | SaaS, AI, Tech, Cloud, React, JS, HTML",
     description:
-      "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
-    siteName: "Garaad - Somali STEM Education",
+      "Garaad waa platform-ka ugu horreeya ee Soomaalida (First Somali Platform) oo lagu barto SaaS, AI, Tech, Cloud, React, JS, HTML iyo STEM-ka oo dhan.",
+    siteName: "Garaad - First Somali Tech Education Platform",
     images: [
       {
         url: "/images/og-image.jpg",
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title:
-      "Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto",
+      "Garaad - #1 First Somali Platform | SaaS, AI, Tech, Cloud, React, JS, HTML",
     description:
-      "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
+      "Garaad waa platform-ka ugu horreeya ee Soomaalida (First Somali Platform) oo lagu barto SaaS, AI, Tech, Cloud, React, JS, HTML iyo STEM-ka oo dhan.",
     images: ["/images/twitter-image.jpg"],
     creator: "@garaad_so",
     site: "@garaad_so",
