@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import { ChevronRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import remarkGfm from "remark-gfm";
 
 const renderMDList = (input: string[] | string | undefined) => {
   if (!input) return null;
@@ -49,7 +50,7 @@ const renderMDList = (input: string[] | string | undefined) => {
     return <div dangerouslySetInnerHTML={{ __html: input }} />;
   }
 
-  return <ReactMarkdown>{input}</ReactMarkdown>;
+  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{input}</ReactMarkdown>;
 };
 
 const TextBlock: React.FC<{
@@ -119,7 +120,7 @@ const TextBlock: React.FC<{
               {content.title.includes('<') ? (
                 <div dangerouslySetInnerHTML={{ __html: content.title }} />
               ) : (
-                <ReactMarkdown>{content.title}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.title}</ReactMarkdown>
               )}
             </div>
           )}

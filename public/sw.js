@@ -1,6 +1,6 @@
-// Version: 1.0.2 (Internal: garaad-v3)
+// Version: 1.0.3 (Internal: garaad-v4)
 
-const CACHE_VERSION = 'garaad-v3';
+const CACHE_VERSION = 'garaad-v4';
 const STATIC_CACHE = `garaad-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `garaad-dynamic-${CACHE_VERSION}`;
 

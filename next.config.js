@@ -27,6 +27,7 @@ const nextConfig = {
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://cdn.shakebugs.com https://*.posthog.com *.vercel-scripts.com;
       style-src 'self' 'unsafe-inline' fonts.googleapis.com;
       img-src 'self' blob: data: res.cloudinary.com api.garaad.org images.ctfassets.net *.posthog.com https://*.stripe.com;
+      media-src 'self' blob: data: https://res.cloudinary.com https://api.garaad.org;
       font-src 'self' fonts.gstatic.com;
       object-src 'none';
       base-uri 'self';

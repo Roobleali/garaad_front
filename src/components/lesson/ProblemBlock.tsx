@@ -109,10 +109,38 @@ const ProblemBlock: React.FC<{
 
     // Sync with parent's selectedOption for backward compatibility
     useEffect(() => {
-      if (selectedOption && !selectedOptions.includes(selectedOption)) {
-        setSelectedOptions([selectedOption]);
+      if (!selectedOption) return;
+
+      if (isMultipleChoice) {
+        try {
+          // Attempt to parse if it looks like an array
+          let parsed = selectedOption;
+          if (typeof selectedOption === 'string' && selectedOption.startsWith('[')) {
+            try {
+              const p = JSON.parse(selectedOption);
+              if (Array.isArray(p)) parsed = p;
+            } catch (e) {
+              // ignore
+            }
+          }
+
+          const newOpts = Array.isArray(parsed) ? parsed : [parsed];
+
+          // Only update if different to avoid loops
+          const isDifferent = newOpts.length !== selectedOptions.length || !newOpts.every(o => selectedOptions.includes(o));
+
+          if (isDifferent) {
+            setSelectedOptions(newOpts);
+          }
+        } catch (e) {
+          console.error("Error parsing selectedOption", e);
+        }
+      } else {
+        if (!selectedOptions.includes(selectedOption)) {
+          setSelectedOptions([selectedOption]);
+        }
       }
-    }, [selectedOption]);
+    }, [selectedOption, isMultipleChoice]);
 
     const isMultipleChoice = content?.question_type === 'multiple_choice';
 

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { type LessonContentBlock, TextContent, ImageContent } from "@/types/learning";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface LessonBlockProps {
     block: LessonContentBlock;
@@ -14,7 +14,7 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             const textContent = block.content as TextContent;
             return (
                 <div className={cn("prose dark:prose-invert max-w-none", className)}>
-                    <ReactMarkdown>{textContent.text}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{textContent.text}</ReactMarkdown>
                 </div>
             );
 
@@ -56,7 +56,7 @@ export function LessonBlock({ block, className }: LessonBlockProps) {
             const exampleContent = block.content as TextContent;
             return (
                 <div className={cn("bg-muted p-4 rounded-lg", className)}>
-                    <ReactMarkdown>{exampleContent.text}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{exampleContent.text}</ReactMarkdown>
                 </div>
             );
 
