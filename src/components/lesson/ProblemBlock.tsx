@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 
 import CalculatorProblemBlock from "./CalculatorProblemBlock";
 import MatchingBlock from "./MatchingBlock";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const DiagramScale = dynamic(() => import("../DiagramScale"), {
   ssr: false,
@@ -65,6 +67,8 @@ const ProblemBlock: React.FC<{
   isCorrect,
   disabledOptions = [],
 }) => {
+
+
     // Support for multiple selection (multiple_choice)
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
@@ -107,6 +111,8 @@ const ProblemBlock: React.FC<{
       } as ProblemContent;
     }, [externalContent, fetchedData]);
 
+    const isMultipleChoice = content?.question_type === 'multiple_choice';
+
     // Sync with parent's selectedOption for backward compatibility
     useEffect(() => {
       if (!selectedOption) return;
@@ -142,7 +148,7 @@ const ProblemBlock: React.FC<{
       }
     }, [selectedOption, isMultipleChoice]);
 
-    const isMultipleChoice = content?.question_type === 'multiple_choice';
+
 
     const isLoading = externalLoading || internalLoading;
     const error = externalError || (internalError ? "Failed to load problem" : null);
@@ -242,7 +248,14 @@ const ProblemBlock: React.FC<{
               ) : content?.content?.type === "latex" ? (
                 <Latex>{option}</Latex>
               ) : (
-                option
+                <span className="prose dark:prose-invert max-w-none inline-block leading-snug text-sm md:text-base tracking-tight">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{ p: 'span' }}
+                  >
+                    {option}
+                  </ReactMarkdown>
+                </span>
               )}
             </span>
           </div>
@@ -333,8 +346,8 @@ const ProblemBlock: React.FC<{
       <div className="w-full max-w-3xl mx-auto px-4 pb-12">
         <div className="space-y-8">
           {/* Question Card */}
-          <div className="overflow-hidden rounded-[2rem] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.05] dark:border-white/[0.05] relative">
-            <div className="p-5 md:p-8 space-y-10">
+          <div className="overflow-hidden rounded-3xl bg-white/5 dark:bg-black/40 backdrop-blur-sm border border-black/5 dark:border-white/5 relative shadow-xl">
+            <div className="p-6 md:p-10 space-y-10">
               <div className="space-y-6 text-center max-w-2xl mx-auto">
                 {content.which && (
                   <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
@@ -357,9 +370,18 @@ const ProblemBlock: React.FC<{
                   ) : content.content?.type === "latex" ? (
                     <Latex>{content.question}</Latex>
                   ) : (
-                    content.question?.includes('<') ? (
+                    content.question?.includes('<') && !content.question?.includes('**') ? (
                       <div dangerouslySetInnerHTML={{ __html: content.question }} />
-                    ) : content.question
+                    ) : (
+                      <div className="prose dark:prose-invert max-w-none inline-block">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{ p: 'span' }}
+                        >
+                          {content.question}
+                        </ReactMarkdown>
+                      </div>
+                    )
                   )}
                 </h2>
               </div>

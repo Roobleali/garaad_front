@@ -43,18 +43,16 @@ const ImageBlock: React.FC<{
 }> = ({ content, onContinue, isLastBlock }) => {
   if (!content?.url) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
-        <Card className="w-full">
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Image not available</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button onClick={onContinue}>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] w-full max-w-3xl mx-auto px-4">
+        <div className="w-full bg-white/5 dark:bg-black/40 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden p-8 text-center">
+          <p className="text-muted-foreground">Image not available</p>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={onContinue} className="w-full md:w-auto min-w-[200px] h-12 rounded-xl font-bold">
               {isLastBlock ? "Dhamee" : "Sii wado"}
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -69,45 +67,48 @@ const ImageBlock: React.FC<{
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[40vh] max-w-2xl mx-auto px-4">
-      <Card className="w-full">
-        <CardContent className="p-6 space-y-8">
+    <div className="w-full max-w-3xl mx-auto px-4">
+      <div className="w-full bg-white/5 dark:bg-black/40 backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 overflow-hidden transition-all duration-500 hover:bg-black/5 dark:hover:bg-black/50">
+        <div className="flex flex-col p-6 md:p-10 space-y-8">
           {imageSections.map((section, index) => (
-            <div key={index} className="space-y-4">
+            <div key={index} className="space-y-6">
               {/* Text before image */}
               {section.text && (
-                <div className="text-base text-muted-foreground mb-4">
+                <div className="prose prose-lg dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
                   {section.text}
                 </div>
               )}
 
               {/* Image */}
-              <div className="relative aspect-video w-full">
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20">
                 <Image
                   src={optimizeCloudinaryUrl(section.url)}
-                  alt={section.alt}
-                  width={content.width || 800}
-                  height={content.height || 600}
-                  className="object-cover rounded-lg"
+                  alt={section.alt || "Course image"}
+                  fill
+                  className="object-contain"
                 />
               </div>
 
               {/* Caption */}
               {section.caption && (
-                <p className="text-sm text-muted-foreground text-center">
+                <p className="text-sm text-center text-muted-foreground font-medium italic">
                   {section.caption}
                 </p>
               )}
             </div>
           ))}
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button onClick={onContinue}>
-            {isLastBlock ? "Dhamee" : "Sii wado"}
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <Button
+          onClick={onContinue}
+          className="w-full h-12 rounded-xl text-md font-bold bg-primary hover:bg-primary/90 transition-all active:scale-[0.98] shadow-lg shadow-primary/10"
+        >
+          {isLastBlock ? "Dhamee" : "Sii wado"}
+          <ChevronRight className="ml-2 h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 };
