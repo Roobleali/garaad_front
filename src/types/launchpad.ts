@@ -21,6 +21,7 @@ export interface StartupMaker {
 export interface StartupImage {
     id: string;
     image: string;
+    image_url?: string;
     caption: string;
     order: number;
     uploaded_at: string;
@@ -38,9 +39,11 @@ export interface StartupComment {
 // List view startup (lightweight)
 export interface StartupListItem {
     id: string;
+    slug?: string;
     title: string;
     tagline: string;
     logo: string;
+    logo_url?: string;
     website_url: string;
     maker: StartupMaker;
     category: StartupCategory | null;
@@ -52,7 +55,15 @@ export interface StartupListItem {
     maker_completed_courses: string[];
     comments_count: number;
     created_at: string;
+    github_url?: string;
+    linkedin_url?: string;
+    twitter_url?: string;
+    facebook_url?: string;
+    instagram_url?: string;
+    video_url?: string;
+    images: StartupImage[];
 }
+
 
 // Detailed view startup (full data)
 export interface StartupDetail extends StartupListItem {
@@ -80,7 +91,16 @@ export interface StartupFormData {
     tech_stack: string[];
     is_hiring: boolean;
     pitch_data: Record<string, string>;
+    github_url: string;
+    linkedin_url: string;
+    twitter_url: string;
+    facebook_url: string;
+    instagram_url: string;
+    video_url: string;
+    images: File[];
 }
+
+
 
 
 // Vote response

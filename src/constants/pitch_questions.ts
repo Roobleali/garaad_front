@@ -16,21 +16,6 @@ export const PITCH_QUESTIONS = [
         so: "Maxay dhibaatadani muhiim u tahay ama u xanuun badan tahay?"
     },
     {
-        id: "q4_current_solution",
-        en: "How are people solving this problem today?",
-        so: "Sidee ayay dadku hadda u xalliyaan dhibaatadan?"
-    },
-    {
-        id: "q5_solution",
-        en: "What is your solution?",
-        so: "Waa maxay xalkaaga?"
-    },
-    {
-        id: "q6_differentiation",
-        en: "Why is your solution better or different?",
-        so: "Maxaa ka dhigay xalkaaga mid ka fiican ama ka duwan?"
-    },
-    {
         id: "q7_moat",
         en: "What is your unique advantage (moat)?",
         so: "Waa maxay faa’iidada gaarka ah ee aad leedahay (moat)?"
@@ -49,15 +34,6 @@ export const PITCH_QUESTIONS = [
         id: "q10_market",
         en: "What is the market size?",
         so: "Intee le’eg ayuu yahay suuqu?"
-    },
-    {
-        id: "q11_risk",
-        en: "What is the biggest risk right now?",
-        so: "Waa maxay khatarta ugu weyn hadda jirta?"
-    },
-    {
-        id: "q12_milestone",
-        en: "What is the next milestone?",
-        so: "Waa maxay tallaabada xigta ee muhiimka ah?"
     }
 ];
+

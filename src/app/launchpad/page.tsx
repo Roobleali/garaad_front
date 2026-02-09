@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Header as SiteHeader } from "@/components/Header";
 import { FooterSection } from "@/components/sections/FooterSection";
 import { StartupCard } from "@/components/launchpad/StartupCard";
+import { StartupCardSkeleton } from "@/components/launchpad/StartupCardSkeleton";
 import { launchpadService } from "@/services/launchpad";
 import type { StartupListItem, StartupCategory, StartupFilter } from "@/types/launchpad";
 import { ChevronDown, Rocket, TrendingUp, Clock, Award, Briefcase, Plus, Terminal, Code2, Database, Cpu } from "lucide-react";
@@ -33,6 +34,7 @@ export default function LaunchpadPage() {
             const response = await launchpadService.getStartups({
                 filter: currentFilter,
                 category: selectedCategory || undefined,
+                page_size: 100,
             });
 
             setStartups(response.results || []);
@@ -252,12 +254,9 @@ export default function LaunchpadPage() {
 
                         {/* Startups Grid */}
                         {isLoading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {[...Array(6)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="h-64 rounded-2xl bg-white/5 animate-pulse border border-white/10"
-                                    />
+                                    <StartupCardSkeleton key={i} />
                                 ))}
                             </div>
                         ) : error ? (

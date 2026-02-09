@@ -52,7 +52,19 @@ export const launchpadService = {
         const queryString = searchParams.toString();
         const url = `${BASE_URL}/startups/${queryString ? `?${queryString}` : ""}`;
 
-        return api.get<PaginatedResponse<StartupListItem>>(url);
+        const response = await api.get<any>(url);
+
+        // Handle both paginated and non-paginated responses
+        if (Array.isArray(response)) {
+            return {
+                count: response.length,
+                next: null,
+                previous: null,
+                results: response
+            };
+        }
+
+        return response as PaginatedResponse<StartupListItem>;
     },
 
     /**
@@ -85,8 +97,21 @@ export const launchpadService = {
         }
 
         if (data.pitch_data) {
-            formData.append("pitch_data", JSON.stringify(data.pitch_data));
+            const prunedPitch = Object.fromEntries(
+                Object.entries(data.pitch_data).filter(([_, v]) => v && v.trim() !== "")
+            );
+            formData.append("pitch_data", JSON.stringify(prunedPitch));
         }
+
+
+        if (data.github_url?.trim()) formData.append("github_url", data.github_url.trim());
+        if (data.linkedin_url?.trim()) formData.append("linkedin_url", data.linkedin_url.trim());
+        if (data.twitter_url?.trim()) formData.append("twitter_url", data.twitter_url.trim());
+        if (data.facebook_url?.trim()) formData.append("facebook_url", data.facebook_url.trim());
+        if (data.instagram_url?.trim()) formData.append("instagram_url", data.instagram_url.trim());
+        if (data.video_url?.trim()) formData.append("video_url", data.video_url.trim());
+
+
 
         return api.post<StartupDetail>(`${BASE_URL}/startups/`, formData);
     },
@@ -97,16 +122,40 @@ export const launchpadService = {
     async updateStartup(id: string, data: Partial<StartupFormData>): Promise<StartupDetail> {
         const formData = new FormData();
 
-        if (data.title !== undefined) formData.append("title", data.title);
-        if (data.tagline !== undefined) formData.append("tagline", data.tagline);
-        if (data.description !== undefined) formData.append("description", data.description);
-        if (data.website_url !== undefined) formData.append("website_url", data.website_url);
+        if (data.title?.trim()) formData.append("title", data.title.trim());
+        if (data.tagline?.trim()) formData.append("tagline", data.tagline.trim());
+        if (data.description !== undefined) formData.append("description", data.description?.trim() || "");
+        if (data.website_url?.trim()) formData.append("website_url", data.website_url.trim());
         if (data.is_hiring !== undefined) formData.append("is_hiring", (data.is_hiring || false).toString());
 
         if (data.tech_stack !== undefined) formData.append("tech_stack", JSON.stringify(data.tech_stack));
         if (data.category_id !== undefined) formData.append("category_id", data.category_id || "");
         if (data.logo) formData.append("logo", data.logo);
-        if (data.pitch_data) formData.append("pitch_data", JSON.stringify(data.pitch_data));
+
+        if (data.pitch_data) {
+            const prunedPitch = Object.fromEntries(
+                Object.entries(data.pitch_data).filter(([_, v]) => v && v.trim() !== "")
+            );
+            formData.append("pitch_data", JSON.stringify(prunedPitch));
+        }
+
+        if (data.github_url?.trim()) formData.append("github_url", data.github_url.trim());
+        else if (data.github_url === "") formData.append("github_url", "");
+
+        if (data.linkedin_url?.trim()) formData.append("linkedin_url", data.linkedin_url.trim());
+        else if (data.linkedin_url === "") formData.append("linkedin_url", "");
+
+        if (data.twitter_url?.trim()) formData.append("twitter_url", data.twitter_url.trim());
+        else if (data.twitter_url === "") formData.append("twitter_url", "");
+
+        if (data.facebook_url?.trim()) formData.append("facebook_url", data.facebook_url.trim());
+        else if (data.facebook_url === "") formData.append("facebook_url", "");
+
+        if (data.instagram_url?.trim()) formData.append("instagram_url", data.instagram_url.trim());
+        else if (data.instagram_url === "") formData.append("instagram_url", "");
+
+        if (data.video_url?.trim()) formData.append("video_url", data.video_url.trim());
+        else if (data.video_url === "") formData.append("video_url", "");
 
         return api.patch<StartupDetail>(`${BASE_URL}/startups/${id}/`, formData);
     },

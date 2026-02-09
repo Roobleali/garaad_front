@@ -32,7 +32,7 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
     };
 
     return (
-        <Link href={`/launchpad/${startup.id}`}>
+        <Link href={`/launchpad/${startup.slug || startup.id}`}>
             <div className="group relative p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/30 hover:bg-white/10 transition-all duration-300 cursor-pointer">
                 {/* Rank Badge */}
                 {rank && rank <= 3 && (
@@ -47,13 +47,14 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                 <div className="flex gap-4">
                     {/* Logo */}
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white/10 flex-shrink-0">
-                        {startup.logo ? (
+                        {startup.logo || startup.logo_url ? (
                             <Image
-                                src={startup.logo}
+                                src={startup.logo_url || startup.logo}
                                 alt={startup.title}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                             />
+
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary">
                                 {startup.title.charAt(0)}
@@ -122,6 +123,28 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                             </div>
                         )}
 
+
+
+                        {/* Gallery Thumbnails */}
+                        {startup.images && startup.images.length > 0 && (
+                            <div className="flex gap-2 mt-4 mb-2 overflow-hidden">
+                                {startup.images.slice(0, 3).map((img, index) => (
+                                    <div key={img.id} className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                                        <Image
+                                            src={img.image_url || img.image}
+                                            alt={img.caption || `Screenshot ${index + 1}`}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                ))}
+                                {startup.images.length > 3 && (
+                                    <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 bg-white/5 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-muted-foreground">+{startup.images.length - 3}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Maker Info */}
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">

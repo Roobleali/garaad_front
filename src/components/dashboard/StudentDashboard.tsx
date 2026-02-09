@@ -43,11 +43,13 @@ export function StudentDashboard() {
     }, [user]);
 
     const activeCoursesCount = useMemo(() => {
+        if (!Array.isArray(progress)) return 0;
         const uniqueCourses = new Set(progress.map(p => p.course_title));
         return uniqueCourses.size;
     }, [progress]);
 
     const completedLessonsCount = useMemo(() => {
+        if (!Array.isArray(progress)) return 0;
         return progress.filter(p => p.status === "completed").length;
     }, [progress]);
 
@@ -183,7 +185,7 @@ export function StudentDashboard() {
                         <Card className="border-none shadow-lg">
                             <CardContent className="p-0">
                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {progress.slice(0, 5).map((item, i) => (
+                                    {Array.isArray(progress) && progress.slice(0, 5).map((item, i) => (
                                         <div key={i} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer group">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${item.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
                                                 }`}>
@@ -198,7 +200,7 @@ export function StudentDashboard() {
                                             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
                                         </div>
                                     ))}
-                                    {progress.length === 0 && (
+                                    {(!Array.isArray(progress) || progress.length === 0) && (
                                         <div className="p-8 text-center">
                                             <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
                                                 <Activity className="w-6 h-6 text-slate-400" />

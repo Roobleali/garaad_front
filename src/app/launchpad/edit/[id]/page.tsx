@@ -1,26 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { launchpadService } from "@/services/launchpad";
+import { useAuth } from "@/hooks/useAuth";
 
-import type { StartupCategory, StartupFormData } from "@/types/launchpad";
+import type { StartupCategory, StartupFormData, StartupDetail } from "@/types/launchpad";
 import { TECH_STACK_OPTIONS } from "@/types/launchpad";
-import { Rocket, Upload, X, Check, Loader2, ArrowLeft, ChevronDown, ChevronUp as ChevronUpIcon, Github, Linkedin, Twitter, Facebook, Instagram, Video, Image as ImageIcon } from "lucide-react";
+import { Rocket, Upload, X, Check, Loader2, ArrowLeft, ChevronDown, ChevronUp as ChevronUpIcon, Github, Linkedin, Twitter, Facebook, Instagram, Video, Image as ImageIcon, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { PITCH_QUESTIONS } from "@/constants/pitch_questions";
 
-export default function SubmitStartupPage() {
+export default function EditStartupPage() {
     const router = useRouter();
+    const params = useParams();
+    const { user } = useAuth();
+    const id = params.id as string;
+
     const [categories, setCategories] = useState<StartupCategory[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
     const [currentStep, setCurrentStep] = useState(1);
     const totalSteps = 4;
-
 
     const [formData, setFormData] = useState<StartupFormData>({
         title: "",
@@ -41,18 +46,69 @@ export default function SubmitStartupPage() {
         images: [],
     });
 
-
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchData = async () => {
+            setIsLoading(true);
             try {
-                const data = await launchpadService.getCategories();
-                setCategories(data || []);
+                const [cats, startup] = await Promise.all([
+                    launchpadService.getCategories(),
+                    launchpadService.getStartup(id)
+                ]);
+
+                setCategories(cats || []);
+
+                // Pre-fill form
+                if (startup) {
+                    // Check ownership
+                    if (user && startup.maker.id !== user.id) {
+                        router.push(`/launchpad/${id}`);
+                        return;
+                    }
+
+                    const pitchData: Record<string, string> = {};
+                    PITCH_QUESTIONS.forEach(q => {
+                        pitchData[q.id] = startup.pitch_data?.[q.id]?.answer || "";
+                    });
+
+                    setFormData({
+                        title: startup.title,
+                        tagline: startup.tagline,
+                        description: startup.description || "",
+                        website_url: startup.website_url,
+                        logo: null, // Keep null unless changed
+                        category_id: startup.category?.id || null,
+                        tech_stack: startup.tech_stack || [],
+                        is_hiring: startup.is_hiring,
+                        pitch_data: pitchData,
+                        github_url: startup.github_url || "",
+                        linkedin_url: startup.linkedin_url || "",
+                        twitter_url: startup.twitter_url || "",
+                        facebook_url: startup.facebook_url || "",
+                        instagram_url: startup.instagram_url || "",
+                        video_url: startup.video_url || "",
+                        images: [], // New images only
+                    });
+
+                    if (startup.logo_url || startup.logo) {
+                        setLogoPreview(startup.logo_url || startup.logo);
+                    }
+
+                    if (startup.images) {
+                        setScreenshotPreviews(startup.images.map(img => img.image_url || img.image).filter(Boolean));
+                    }
+                }
             } catch (err) {
-                console.error("Failed to fetch categories:", err);
+                console.error("Failed to fetch data:", err);
+                setError("Ma dhici karto in la soo raro macluumaadka mashruuca");
+            } finally {
+                setIsLoading(false);
             }
         };
-        fetchCategories();
-    }, []);
+
+        if (id && user) {
+            fetchData();
+        }
+    }, [id, user, router]);
 
     const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -66,7 +122,7 @@ export default function SubmitStartupPage() {
 
     const handleScreenshotsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        if (files.length + formData.images.length > 5) {
+        if (files.length + formData.images.length + screenshotPreviews.length > 5) {
             alert("Ugu badnaan 5 sawir ayaa la oggol yahay");
             return;
         }
@@ -82,13 +138,18 @@ export default function SubmitStartupPage() {
     };
 
     const removeScreenshot = (index: number) => {
-        const newImages = [...formData.images];
-        newImages.splice(index, 1);
+        // This is a simplified version, it doesn't delete from backend yet
         const newPreviews = [...screenshotPreviews];
         newPreviews.splice(index, 1);
-
-        setFormData({ ...formData, images: newImages });
         setScreenshotPreviews(newPreviews);
+
+        // If it was a new image
+        if (index >= (screenshotPreviews.length - formData.images.length)) {
+            const imageIndex = index - (screenshotPreviews.length - formData.images.length);
+            const newImages = [...formData.images];
+            newImages.splice(imageIndex, 1);
+            setFormData({ ...formData, images: newImages });
+        }
     };
 
     const toggleTechStack = (tech: string) => {
@@ -117,27 +178,22 @@ export default function SubmitStartupPage() {
             setError("Fadlan geli website-ka");
             return;
         }
-        if (!formData.logo) {
-            setError("Fadlan soo geli logo");
-            return;
-        }
 
         setIsSubmitting(true);
         try {
-            const startup = await launchpadService.createStartup(formData);
+            const updatedStartup = await launchpadService.updateStartup(id, formData);
 
-            // Upload screenshots
+            // Upload new screenshots if any
             if (formData.images.length > 0) {
                 await Promise.all(
-                    formData.images.map(img => launchpadService.addImage(startup.id, img))
+                    formData.images.map(img => launchpadService.addImage(id, img))
                 );
             }
 
-            router.push(`/launchpad/${startup.slug || startup.id}`);
+            router.push(`/launchpad/${updatedStartup.slug || id}`);
+            router.refresh();
         } catch (err: any) {
-            console.error("Submission error:", err);
-
-            // Handle field-specific errors from backend
+            console.error("Update error:", err);
             if (err.response?.data) {
                 const data = err.response.data;
                 const errorMessages = Object.entries(data)
@@ -146,7 +202,7 @@ export default function SubmitStartupPage() {
                         return `${fieldName}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`;
                     })
                     .join(" | ");
-                setError(errorMessages || "Xogta aad dirtay wax baa ka qaldan");
+                setError(errorMessages || "Xogta aad bedeshay wax baa ka qaldan");
             } else {
                 setError(err.message || "Wax qalad ah ayaa dhacay");
             }
@@ -155,32 +211,54 @@ export default function SubmitStartupPage() {
         }
     };
 
+    const handleDelete = async () => {
+        const confirmed = window.confirm("Ma hubtaa inaad rabto inaad tirtirto startup-kan? Talaabadan dib looma soo celin karo.");
+        if (!confirmed) return;
+
+        setIsSubmitting(true);
+        try {
+            await launchpadService.deleteStartup(id);
+            router.push("/launchpad");
+        } catch (err) {
+            console.error("Failed to delete startup:", err);
+            alert("Waan ka xunnahay, tirtirista startup-ka way fashilantay.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+                <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                <p className="text-muted-foreground">Waa la soo raryaa macluumaadka...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background">
-
-
             <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {/* Back Link */}
                 <Link
-                    href="/launchpad"
+                    href={`/launchpad/${id}`}
                     className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    Ku laabo Launchpad
+                    Ku laabo Mashruuca
                 </Link>
 
                 {/* Header */}
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary mb-4">
                         <Rocket className="w-5 h-5" />
-                        <span className="font-medium">Soo Dir Startup</span>
+                        <span className="font-medium">Bedel Startup-ka</span>
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-black mb-4">
-                        Soo Bandhig <span className="text-primary">Startup-kaaga</span>
+                        Cusboonaysii <span className="text-primary">{formData.title}</span>
                     </h1>
                     <p className="text-muted-foreground">
-                        Ku dar startup-kaaga liiska si bulshada ay u codayaan oo aad u hesho feedback.
+                        Halkan ka bedel macluumaadka startup-kaaga si aad ula wadaagto isbedelladii ugu dambeeyay.
                     </p>
                 </div>
 
@@ -218,21 +296,19 @@ export default function SubmitStartupPage() {
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="Tusaale: Garaad"
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
                                     maxLength={100}
                                 />
                             </div>
 
-                            {/* Logo Upload - Moved to Step 1 */}
+                            {/* Logo Upload */}
                             <div>
-                                <label className="block text-sm font-medium mb-4">Logo *</label>
+                                <label className="block text-sm font-medium mb-4">Logo</label>
                                 <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10 border-dashed hover:border-primary/50 transition-colors">
                                     <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                                         {logoPreview ? (
                                             <>
                                                 <Image src={logoPreview} alt="Logo preview" fill className="object-contain" />
-
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -241,7 +317,7 @@ export default function SubmitStartupPage() {
                                                     }}
                                                     className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg shadow-lg"
                                                 >
-                                                    <X className="w-3 h-3" />
+                                                    <X className="w-3 h-3 text-white" />
                                                 </button>
                                             </>
                                         ) : (
@@ -257,12 +333,11 @@ export default function SubmitStartupPage() {
                                         )}
                                     </div>
                                     <div className="text-sm text-center sm:text-left">
-                                        <p className="font-bold text-foreground mb-1">Soo geli logada mashruuca</p>
-                                        <p className="text-muted-foreground leading-relaxed">PNG ama JPG (200x200px). Logadu waa wajiga dhabta ah ee startup-kaaga.</p>
+                                        <p className="font-bold text-foreground mb-1">Bedel logada mashruuca</p>
+                                        <p className="text-muted-foreground leading-relaxed">PNG ama JPG (200x200px).</p>
                                     </div>
                                 </div>
                             </div>
-
 
                             {/* Tagline */}
                             <div>
@@ -271,11 +346,9 @@ export default function SubmitStartupPage() {
                                     type="text"
                                     value={formData.tagline}
                                     onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                                    placeholder="Tusaale: Platform-ka waxbarashada tech-ka ee ugu weyn Soomaaliya"
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
                                     maxLength={200}
                                 />
-                                <p className="text-xs text-muted-foreground mt-1">{formData.tagline.length}/200</p>
                             </div>
 
                             {/* Website URL */}
@@ -285,7 +358,6 @@ export default function SubmitStartupPage() {
                                     type="url"
                                     value={formData.website_url}
                                     onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                                    placeholder="https://example.com"
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
                                 />
                             </div>
@@ -309,24 +381,16 @@ export default function SubmitStartupPage() {
                                                 : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
                                                 }`}
                                         >
-                                            <div className={`text-2xl p-2 rounded-xl transition-colors ${formData.category_id === cat.id ? 'bg-primary/20' : 'bg-white/5'
-                                                }`}>
+                                            <div className="text-2xl p-2 rounded-xl transition-colors">
                                                 {cat.icon}
                                             </div>
-                                            <span className={`text-xs font-bold text-center transition-colors ${formData.category_id === cat.id ? 'text-primary' : 'text-muted-foreground'
-                                                }`}>
+                                            <span className="text-xs font-bold text-center">
                                                 {cat.name_somali || cat.name}
                                             </span>
-                                            {formData.category_id === cat.id && (
-                                                <div className="absolute top-2 right-2">
-                                                    <Check className="w-3 h-3 text-primary" />
-                                                </div>
-                                            )}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-
                         </div>
                     )}
 
@@ -334,28 +398,22 @@ export default function SubmitStartupPage() {
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div>
                                 <h2 className="text-xl font-bold mb-1">Murtida (The Pitch)</h2>
-                                <p className="text-sm text-muted-foreground mb-6">Ka jawaab su'aalahan si aad u sharaxdo aragtidaada iyo dhibaatada aad xallinayso.</p>
+                                <p className="text-sm text-muted-foreground mb-6">Ka jawaab su'aalahan si aad u sharaxdo aragtidaada.</p>
                             </div>
 
                             <div className="space-y-8">
                                 {PITCH_QUESTIONS.map((q, index) => (
                                     <div key={q.id} className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-bold text-primary">
-                                                {index + 1}. {q.en}
-                                            </label>
-                                            <span className="block text-xs text-muted-foreground mt-1 italic">
-                                                {q.so}
-                                            </span>
-                                        </div>
+                                        <label className="block text-sm font-bold text-primary">
+                                            {index + 1}. {q.en}
+                                        </label>
                                         <textarea
                                             value={formData.pitch_data[q.id]}
                                             onChange={(e) => setFormData({
                                                 ...formData,
                                                 pitch_data: { ...formData.pitch_data, [q.id]: e.target.value }
                                             })}
-                                            placeholder="..."
-                                            rows={2}
+                                            rows={3}
                                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
                                         />
                                     </div>
@@ -368,14 +426,12 @@ export default function SubmitStartupPage() {
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div>
                                 <h2 className="text-xl font-bold mb-1">Xogta Dambe (Launch Details)</h2>
-                                <p className="text-sm text-muted-foreground mb-6">Waa tallabadii ugu dambaysay ee lagu habaynayo startup-kaaga.</p>
+                                <p className="text-sm text-muted-foreground mb-6">Tallabadii ugu dambaysay.</p>
                             </div>
-
-
 
                             {/* Tech Stack */}
                             <div>
-                                <label className="block text-sm font-medium mb-3">Tech Stack (Xulo wixii aad isticmaasheen)</label>
+                                <label className="block text-sm font-medium mb-3">Tech Stack</label>
                                 <div className="flex flex-wrap gap-2">
                                     {TECH_STACK_OPTIONS.map((tech) => (
                                         <button
@@ -399,26 +455,23 @@ export default function SubmitStartupPage() {
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Sharax startup-kaaga iyo waxa uu qabto si faahfaahsan..."
                                     rows={5}
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
                                 />
                             </div>
-
-
                         </div>
                     )}
 
                     {currentStep === 4 && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div>
-                                <h2 className="text-xl font-bold mb-1">Xiriirada & Media (Links & Media)</h2>
-                                <p className="text-sm text-muted-foreground mb-6">Ku dar sawirro, video iyo boggaga bulshada.</p>
+                                <h2 className="text-xl font-bold mb-1">Xiriirada & Media</h2>
+                                <p className="text-sm text-muted-foreground mb-6">Ku dar sawirro iyo boggaga bulshada.</p>
                             </div>
 
                             {/* Screenshots Upload */}
                             <div>
-                                <label className="block text-sm font-medium mb-4">Screenshots (Ugu badnaan 5 sawir)</label>
+                                <label className="block text-sm font-medium mb-4">Screenshots (Ugu badnaan 5)</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                                     {screenshotPreviews.map((preview, index) => (
                                         <div key={index} className="relative aspect-video rounded-xl overflow-hidden bg-white/5 border border-white/10">
@@ -435,7 +488,7 @@ export default function SubmitStartupPage() {
                                     {screenshotPreviews.length < 5 && (
                                         <label className="aspect-video flex flex-col items-center justify-center rounded-xl bg-white/5 border border-white/10 border-dashed hover:border-primary/50 cursor-pointer transition-colors">
                                             <ImageIcon className="w-6 h-6 text-muted-foreground mb-1" />
-                                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Add Image</span>
+                                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Add</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -458,63 +511,51 @@ export default function SubmitStartupPage() {
                                     type="url"
                                     value={formData.video_url}
                                     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                                    placeholder="https://youtube.com/watch?v=..."
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
                                 />
                             </div>
 
-                            {/* Social Links Grid */}
-                            <div className="space-y-4">
-                                <label className="block text-sm font-medium mb-4">Boggaga Bulshada (Social Links)</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                            <Github className="w-4 h-4 text-muted-foreground" />
-                                        </div>
-                                        <input
-                                            type="url"
-                                            value={formData.github_url}
-                                            onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
-                                            placeholder="GitHub URL"
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
-                                        />
-                                    </div>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                            <Linkedin className="w-4 h-4 text-muted-foreground" />
-                                        </div>
-                                        <input
-                                            type="url"
-                                            value={formData.linkedin_url}
-                                            onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                                            placeholder="LinkedIn URL"
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
-                                        />
-                                    </div>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                            <Twitter className="w-4 h-4 text-muted-foreground" />
-                                        </div>
-                                        <input
-                                            type="url"
-                                            value={formData.twitter_url}
-                                            onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value })}
-                                            placeholder="Twitter / X URL"
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
-                                        />
-                                    </div>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                            <Facebook className="w-4 h-4 text-muted-foreground" />
-                                        </div>
-                                        <input
-                                            type="url"
-                                            value={formData.facebook_url}
-                                            onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
-                                            placeholder="Facebook URL"
-                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
-                                        />
-                                    </div>
+                            {/* Social Links */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="relative">
+                                    <Github className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="url"
+                                        value={formData.github_url}
+                                        onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
+                                        placeholder="GitHub"
+                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="url"
+                                        value={formData.linkedin_url}
+                                        onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                                        placeholder="LinkedIn"
+                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="url"
+                                        value={formData.twitter_url}
+                                        onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value })}
+                                        placeholder="Twitter"
+                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    />
+                                </div>
+                                <div className="relative">
+                                    <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="url"
+                                        value={formData.facebook_url}
+                                        onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
+                                        placeholder="Facebook"
+                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -522,7 +563,7 @@ export default function SubmitStartupPage() {
 
                     {/* Navigation Buttons */}
                     <div className="flex items-center justify-between gap-4 pt-8 border-t border-white/10">
-                        {currentStep > 1 ? (
+                        {currentStep > 1 && (
                             <button
                                 type="button"
                                 onClick={() => setCurrentStep(prev => prev - 1)}
@@ -531,66 +572,58 @@ export default function SubmitStartupPage() {
                                 <ArrowLeft className="w-5 h-5" />
                                 Dib u Noqo
                             </button>
-                        ) : (
-                            <div />
                         )}
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 ml-auto">
                             {currentStep < totalSteps ? (
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        // Simple validation for step 1
-                                        if (currentStep === 1) {
-                                            if (!formData.title.trim() || !formData.tagline.trim() || !formData.website_url.trim() || !formData.logo) {
-                                                setError("Fadlan buuxi dhammaan meelaha muhiimka ah (ay ku jirto logadu)");
-                                                return;
-                                            }
-                                        }
-
-                                        setError(null);
-                                        setCurrentStep(prev => prev + 1);
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }}
-                                    className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                                    onClick={() => setCurrentStep(prev => prev + 1)}
+                                    className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all"
                                 >
                                     Tallaabada Xigta
                                 </button>
                             ) : (
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="flex items-center justify-center gap-2 px-10 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            Waa la diraa...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Rocket className="w-5 h-5" />
-                                            Hadda Soo Dir
-                                        </>
-                                    )}
-                                </button>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={isSubmitting}
+                                        className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 text-red-500 font-bold rounded-xl hover:bg-red-500/20 transition-all border border-red-500/20 disabled:opacity-50"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                        Tirtir Startup
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="flex items-center justify-center gap-2 px-10 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Waa la kaydinayaa...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-5 h-5" />
+                                                Kaydi Isbedelada
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
 
                     {/* Error */}
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm animate-shake">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
                             {error}
                         </div>
                     )}
                 </form>
-
             </main>
-
-
         </div>
     );
 }
-
-
