@@ -61,7 +61,13 @@ export interface StartupDetail extends StartupListItem {
     comments: StartupComment[];
     is_featured: boolean;
     updated_at: string;
+    pitch_data: Record<string, {
+        en: string;
+        so: string;
+        answer: string;
+    }>;
 }
+
 
 // Create/Update startup form data
 export interface StartupFormData {
@@ -73,7 +79,9 @@ export interface StartupFormData {
     category_id: string | null;
     tech_stack: string[];
     is_hiring: boolean;
+    pitch_data: Record<string, string>;
 }
+
 
 // Vote response
 export interface VoteResponse {

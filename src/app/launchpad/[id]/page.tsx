@@ -11,14 +11,18 @@ import type { StartupDetail, StartupComment } from "@/types/launchpad";
 import {
     ChevronUp,
     ExternalLink,
-    Briefcase,
     CheckCircle2,
+
     ArrowLeft,
     Send,
     MessageSquare,
     Share2,
     Loader2,
+    HelpCircle,
 } from "lucide-react";
+import { TechIcon } from "@/components/launchpad/TechIcon";
+import { PITCH_QUESTIONS } from "@/constants/pitch_questions";
+
 
 export default function StartupDetailPage() {
     const params = useParams();
@@ -156,12 +160,7 @@ export default function StartupDetailPage() {
                                     Lagu Dhisay Garaad
                                 </span>
                             )}
-                            {startup.is_hiring && (
-                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 text-green-400 text-sm font-medium rounded-full">
-                                    <Briefcase className="w-4 h-4" />
-                                    Shaqaalaynaya
-                                </span>
-                            )}
+
                         </div>
                         <p className="text-lg text-muted-foreground mb-4">{startup.tagline}</p>
 
@@ -171,8 +170,8 @@ export default function StartupDetailPage() {
                                 onClick={handleVote}
                                 disabled={isVoting}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-all ${startup.user_has_voted
-                                        ? "bg-primary text-white"
-                                        : "bg-white/10 border border-white/20 hover:border-primary/50"
+                                    ? "bg-primary text-white"
+                                    : "bg-white/10 border border-white/20 hover:border-primary/50"
                                     }`}
                             >
                                 <ChevronUp className="w-5 h-5" />
@@ -206,15 +205,13 @@ export default function StartupDetailPage() {
                 {/* Tech Stack */}
                 {startup.tech_stack.length > 0 && (
                     <div className="mb-8">
-                        <h2 className="text-sm font-medium text-muted-foreground mb-3">TECH STACK</h2>
-                        <div className="flex flex-wrap gap-2">
+                        <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Tech Stack</h2>
+                        <div className="flex flex-wrap gap-4">
                             {startup.tech_stack.map((tech) => (
-                                <span
-                                    key={tech}
-                                    className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm"
-                                >
-                                    {tech}
-                                </span>
+                                <div key={tech} className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                                    <TechIcon name={tech} className="w-5 h-5" />
+                                    <span className="text-sm font-medium">{tech}</span>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -222,11 +219,43 @@ export default function StartupDetailPage() {
 
                 {/* Description */}
                 <div className="mb-10">
-                    <h2 className="text-sm font-medium text-muted-foreground mb-3">KU SAABSAN</h2>
+                    <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Ku Saabsan (About)</h2>
                     <div className="prose prose-invert max-w-none">
                         <p className="text-lg leading-relaxed whitespace-pre-wrap">{startup.description}</p>
                     </div>
                 </div>
+
+                {/* Startup Pitch Section */}
+                {startup.pitch_data && Object.keys(startup.pitch_data).length > 0 && (
+                    <div className="mb-10 py-8 border-t border-white/10">
+                        <div className="flex items-center gap-2 mb-6">
+                            <HelpCircle className="w-5 h-5 text-primary" />
+                            <h2 className="text-xl font-bold">Startup Pitch</h2>
+                        </div>
+
+                        <div className="space-y-8">
+                            {PITCH_QUESTIONS.map((q) => {
+                                const answer = startup.pitch_data[q.id];
+                                if (!answer) return null;
+
+                                return (
+                                    <div key={q.id} className="group">
+                                        <div className="mb-2">
+                                            <h3 className="text-sm font-bold text-primary">{q.en}</h3>
+                                            <p className="text-xs text-muted-foreground italic">{q.so}</p>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/5 group-hover:border-primary/20 transition-colors">
+                                            <p className="text-muted-foreground leading-relaxed">
+                                                {typeof answer === 'string' ? answer : (answer as any).answer || ""}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
 
                 {/* Screenshots Gallery */}
                 {startup.images.length > 0 && (

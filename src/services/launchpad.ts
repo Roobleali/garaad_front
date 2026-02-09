@@ -72,7 +72,8 @@ export const launchpadService = {
         formData.append("tagline", data.tagline);
         formData.append("description", data.description);
         formData.append("website_url", data.website_url);
-        formData.append("is_hiring", data.is_hiring.toString());
+        formData.append("is_hiring", (data.is_hiring || false).toString());
+
         formData.append("tech_stack", JSON.stringify(data.tech_stack));
 
         if (data.category_id) {
@@ -81,6 +82,10 @@ export const launchpadService = {
 
         if (data.logo) {
             formData.append("logo", data.logo);
+        }
+
+        if (data.pitch_data) {
+            formData.append("pitch_data", JSON.stringify(data.pitch_data));
         }
 
         return api.post<StartupDetail>(`${BASE_URL}/startups/`, formData);
@@ -96,13 +101,16 @@ export const launchpadService = {
         if (data.tagline !== undefined) formData.append("tagline", data.tagline);
         if (data.description !== undefined) formData.append("description", data.description);
         if (data.website_url !== undefined) formData.append("website_url", data.website_url);
-        if (data.is_hiring !== undefined) formData.append("is_hiring", data.is_hiring.toString());
+        if (data.is_hiring !== undefined) formData.append("is_hiring", (data.is_hiring || false).toString());
+
         if (data.tech_stack !== undefined) formData.append("tech_stack", JSON.stringify(data.tech_stack));
         if (data.category_id !== undefined) formData.append("category_id", data.category_id || "");
         if (data.logo) formData.append("logo", data.logo);
+        if (data.pitch_data) formData.append("pitch_data", JSON.stringify(data.pitch_data));
 
         return api.patch<StartupDetail>(`${BASE_URL}/startups/${id}/`, formData);
     },
+
 
     /**
      * Delete a startup

@@ -4,7 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { StartupListItem } from "@/types/launchpad";
-import { ChevronUp, ExternalLink, Briefcase, CheckCircle2, MessageSquare } from "lucide-react";
+import { ChevronUp, ExternalLink, CheckCircle2, MessageSquare } from "lucide-react";
+
+import { TechIcon } from "./TechIcon";
+
 
 interface StartupCardProps {
     startup: StartupListItem;
@@ -34,8 +37,8 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                 {/* Rank Badge */}
                 {rank && rank <= 3 && (
                     <div className={`absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${rank === 1 ? "bg-yellow-500 text-black" :
-                            rank === 2 ? "bg-gray-400 text-black" :
-                                "bg-amber-700 text-white"
+                        rank === 2 ? "bg-gray-400 text-black" :
+                            "bg-amber-700 text-white"
                         }`}>
                         #{rank}
                     </div>
@@ -75,8 +78,8 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                                 onClick={handleVote}
                                 disabled={isVoting}
                                 className={`flex flex-col items-center justify-center px-3 py-2 rounded-xl border transition-all flex-shrink-0 ${startup.user_has_voted
-                                        ? "bg-primary/20 border-primary/30 text-primary"
-                                        : "bg-white/5 border-white/10 hover:border-primary/30 hover:bg-primary/10"
+                                    ? "bg-primary/20 border-primary/30 text-primary"
+                                    : "bg-white/5 border-white/10 hover:border-primary/30 hover:bg-primary/10"
                                     } ${isVoting ? "opacity-50" : ""}`}
                             >
                                 <ChevronUp className={`w-5 h-5 ${startup.user_has_voted ? "text-primary" : ""}`} />
@@ -92,12 +95,7 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                                     Lagu Dhisay Garaad
                                 </span>
                             )}
-                            {startup.is_hiring && (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full">
-                                    <Briefcase className="w-3 h-3" />
-                                    Shaqaalaynaya
-                                </span>
-                            )}
+
                             {startup.comments_count > 0 && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/10 text-muted-foreground text-xs font-medium rounded-full">
                                     <MessageSquare className="w-3 h-3" />
@@ -106,24 +104,24 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                             )}
                         </div>
 
-                        {/* Tech Stack */}
+                        {/* Tech Stack Icons */}
                         {startup.tech_stack.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                                {startup.tech_stack.slice(0, 4).map((tech) => (
-                                    <span
+                            <div className="flex flex-wrap gap-2 mt-3">
+                                {startup.tech_stack.slice(0, 5).map((tech) => (
+                                    <TechIcon
                                         key={tech}
-                                        className="px-2 py-0.5 bg-white/5 border border-white/10 text-xs text-muted-foreground rounded"
-                                    >
-                                        {tech}
-                                    </span>
+                                        name={tech}
+                                        className="w-4 h-4"
+                                    />
                                 ))}
-                                {startup.tech_stack.length > 4 && (
-                                    <span className="px-2 py-0.5 text-xs text-muted-foreground">
-                                        +{startup.tech_stack.length - 4}
+                                {startup.tech_stack.length > 5 && (
+                                    <span className="text-[10px] text-muted-foreground font-medium self-end">
+                                        +{startup.tech_stack.length - 5}
                                     </span>
                                 )}
                             </div>
                         )}
+
 
                         {/* Maker Info */}
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">

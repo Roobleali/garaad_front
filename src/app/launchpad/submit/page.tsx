@@ -7,9 +7,10 @@ import { FooterSection } from "@/components/sections/FooterSection";
 import { launchpadService } from "@/services/launchpad";
 import type { StartupCategory, StartupFormData } from "@/types/launchpad";
 import { TECH_STACK_OPTIONS } from "@/types/launchpad";
-import { Rocket, Upload, X, Check, Loader2, ArrowLeft } from "lucide-react";
+import { Rocket, Upload, X, Check, Loader2, ArrowLeft, ChevronDown, ChevronUp as ChevronUpIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { PITCH_QUESTIONS } from "@/constants/pitch_questions";
 
 export default function SubmitStartupPage() {
     const router = useRouter();
@@ -17,6 +18,9 @@ export default function SubmitStartupPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [currentStep, setCurrentStep] = useState(1);
+    const totalSteps = 3;
+
 
     const [formData, setFormData] = useState<StartupFormData>({
         title: "",
@@ -27,7 +31,11 @@ export default function SubmitStartupPage() {
         category_id: null,
         tech_stack: [],
         is_hiring: false,
+        pitch_data: PITCH_QUESTIONS.reduce((acc, q) => ({ ...acc, [q.id]: "" }), {}),
+
+
     });
+
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -121,186 +129,296 @@ export default function SubmitStartupPage() {
                     </p>
                 </div>
 
+                {/* Progress Bar */}
+                <div className="mb-12">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                            Tallaabada {currentStep} ee {totalSteps}
+                        </span>
+                        <span className="text-xs font-bold text-primary uppercase tracking-widest">
+                            {Math.round((currentStep / totalSteps) * 100)}% Dhammaystir
+                        </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-primary transition-all duration-500 ease-out"
+                            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                        />
+                    </div>
+                </div>
+
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Logo Upload */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Logo *</label>
-                        <div className="flex items-center gap-4">
-                            <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center">
-                                {logoPreview ? (
-                                    <>
-                                        <Image src={logoPreview} alt="Logo preview" fill className="object-cover" />
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {currentStep === 1 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div>
+                                <h2 className="text-xl font-bold mb-1">Xogta Guud (Basics)</h2>
+                                <p className="text-sm text-muted-foreground mb-6">Geli macluumaadka aasaasiga ah ee startup-kaaga.</p>
+                            </div>
+
+                            {/* Title */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Magaca Startup-ka *</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    placeholder="Tusaale: Garaad"
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    maxLength={100}
+                                />
+                            </div>
+
+                            {/* Logo Upload - Moved to Step 1 */}
+                            <div>
+                                <label className="block text-sm font-medium mb-4">Logo *</label>
+                                <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/10 border-dashed hover:border-primary/50 transition-colors">
+                                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                        {logoPreview ? (
+                                            <>
+                                                <Image src={logoPreview} alt="Logo preview" fill className="object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setLogoPreview(null);
+                                                        setFormData({ ...formData, logo: null });
+                                                    }}
+                                                    className="absolute top-1 right-1 p-1 bg-red-500 rounded-lg shadow-lg"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <label className="cursor-pointer flex flex-col items-center">
+                                                <Upload className="w-6 h-6 text-muted-foreground" />
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleLogoChange}
+                                                    className="hidden"
+                                                />
+                                            </label>
+                                        )}
+                                    </div>
+                                    <div className="text-sm text-center sm:text-left">
+                                        <p className="font-bold text-foreground mb-1">Soo geli logada mashruuca</p>
+                                        <p className="text-muted-foreground leading-relaxed">PNG ama JPG (200x200px). Logadu waa wajiga dhabta ah ee startup-kaaga.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {/* Tagline */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Qoraal Gaaban (Tagline) *</label>
+                                <input
+                                    type="text"
+                                    value={formData.tagline}
+                                    onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                                    placeholder="Tusaale: Platform-ka waxbarashada tech-ka ee ugu weyn Soomaaliya"
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                    maxLength={200}
+                                />
+                                <p className="text-xs text-muted-foreground mt-1">{formData.tagline.length}/200</p>
+                            </div>
+
+                            {/* Website URL */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Website URL *</label>
+                                <input
+                                    type="url"
+                                    value={formData.website_url}
+                                    onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                                    placeholder="https://example.com"
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
+                                />
+                            </div>
+
+                            {/* Category */}
+                            <div>
+                                <label className="block text-sm font-bold mb-4">Nooca (Category)</label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {categories.map((cat) => (
                                         <button
+                                            key={cat.id}
                                             type="button"
-                                            onClick={() => {
-                                                setLogoPreview(null);
-                                                setFormData({ ...formData, logo: null });
-                                            }}
-                                            className="absolute top-1 right-1 p-1 bg-red-500 rounded-full"
+                                            onClick={() =>
+                                                setFormData({
+                                                    ...formData,
+                                                    category_id: formData.category_id === cat.id ? null : cat.id,
+                                                })
+                                            }
+                                            className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all duration-300 ${formData.category_id === cat.id
+                                                ? "bg-primary/10 border-primary shadow-lg shadow-primary/10 scale-[1.02]"
+                                                : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
+                                                }`}
                                         >
-                                            <X className="w-3 h-3" />
+                                            <div className={`text-2xl p-2 rounded-xl transition-colors ${formData.category_id === cat.id ? 'bg-primary/20' : 'bg-white/5'
+                                                }`}>
+                                                {cat.icon}
+                                            </div>
+                                            <span className={`text-xs font-bold text-center transition-colors ${formData.category_id === cat.id ? 'text-primary' : 'text-muted-foreground'
+                                                }`}>
+                                                {cat.name_somali || cat.name}
+                                            </span>
+                                            {formData.category_id === cat.id && (
+                                                <div className="absolute top-2 right-2">
+                                                    <Check className="w-3 h-3 text-primary" />
+                                                </div>
+                                            )}
                                         </button>
-                                    </>
-                                ) : (
-                                    <label className="cursor-pointer flex flex-col items-center">
-                                        <Upload className="w-6 h-6 text-muted-foreground" />
-                                        <span className="text-xs text-muted-foreground mt-1">Soo geli</span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleLogoChange}
-                                            className="hidden"
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+
+                    {currentStep === 2 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div>
+                                <h2 className="text-xl font-bold mb-1">Murtida (The Pitch)</h2>
+                                <p className="text-sm text-muted-foreground mb-6">Ka jawaab su'aalahan si aad u sharaxdo aragtidaada iyo dhibaatada aad xallinayso.</p>
+                            </div>
+
+                            <div className="space-y-8">
+                                {PITCH_QUESTIONS.map((q, index) => (
+                                    <div key={q.id} className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-bold text-primary">
+                                                {index + 1}. {q.en}
+                                            </label>
+                                            <span className="block text-xs text-muted-foreground mt-1 italic">
+                                                {q.so}
+                                            </span>
+                                        </div>
+                                        <textarea
+                                            value={formData.pitch_data[q.id]}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                pitch_data: { ...formData.pitch_data, [q.id]: e.target.value }
+                                            })}
+                                            placeholder="..."
+                                            rows={2}
+                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
                                         />
-                                    </label>
-                                )}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                                <p>Sawir cad oo logo ah</p>
-                                <p className="text-xs">PNG ama JPG, ugu yaraan 200x200px</p>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Title */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Magaca Startup-ka *</label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            placeholder="Tusaale: Garaad"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
-                            maxLength={100}
-                        />
-                    </div>
+                    {currentStep === 3 && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div>
+                                <h2 className="text-xl font-bold mb-1">Xogta Dambe (Launch Details)</h2>
+                                <p className="text-sm text-muted-foreground mb-6">Waa tallabadii ugu dambaysay ee lagu habaynayo startup-kaaga.</p>
+                            </div>
 
-                    {/* Tagline */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Qoraal Gaaban (Tagline) *</label>
-                        <input
-                            type="text"
-                            value={formData.tagline}
-                            onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                            placeholder="Tusaale: Platform-ka waxbarashada tech-ka ee ugu weyn Soomaaliya"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
-                            maxLength={200}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">{formData.tagline.length}/200</p>
-                    </div>
 
-                    {/* Website URL */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Website URL *</label>
-                        <input
-                            type="url"
-                            value={formData.website_url}
-                            onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                            placeholder="https://example.com"
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none"
-                        />
-                    </div>
 
-                    {/* Description */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Sharaxaad</label>
-                        <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="Sharax startup-kaaga iyo waxa uu qabto..."
-                            rows={4}
-                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
-                        />
-                    </div>
+                            {/* Tech Stack */}
+                            <div>
+                                <label className="block text-sm font-medium mb-3">Tech Stack (Xulo wixii aad isticmaasheen)</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {TECH_STACK_OPTIONS.map((tech) => (
+                                        <button
+                                            key={tech}
+                                            type="button"
+                                            onClick={() => toggleTechStack(tech)}
+                                            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formData.tech_stack.includes(tech)
+                                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                : "bg-white/5 border border-white/10 hover:bg-white/10"
+                                                }`}
+                                        >
+                                            {tech}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
-                    {/* Category */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Nooca (Category)</label>
-                        <div className="flex flex-wrap gap-2">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    type="button"
-                                    onClick={() =>
-                                        setFormData({
-                                            ...formData,
-                                            category_id: formData.category_id === cat.id ? null : cat.id,
-                                        })
-                                    }
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${formData.category_id === cat.id
-                                            ? "bg-primary text-white"
-                                            : "bg-white/5 border border-white/10 hover:bg-white/10"
-                                        }`}
-                                >
-                                    {cat.icon} {cat.name_somali || cat.name}
-                                </button>
-                            ))}
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Sharaxaad Dheeri ah</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Sharax startup-kaaga iyo waxa uu qabto si faahfaahsan..."
+                                    rows={5}
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
+                                />
+                            </div>
+
+
                         </div>
-                    </div>
+                    )}
 
-                    {/* Tech Stack */}
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Tech Stack</label>
-                        <div className="flex flex-wrap gap-2">
-                            {TECH_STACK_OPTIONS.map((tech) => (
+                    {/* Navigation Buttons */}
+                    <div className="flex items-center justify-between gap-4 pt-8 border-t border-white/10">
+                        {currentStep > 1 ? (
+                            <button
+                                type="button"
+                                onClick={() => setCurrentStep(prev => prev - 1)}
+                                className="flex items-center gap-2 px-6 py-3 bg-white/5 text-foreground font-bold rounded-xl hover:bg-white/10 transition-all"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                                Dib u Noqo
+                            </button>
+                        ) : (
+                            <div />
+                        )}
+
+                        <div className="flex items-center gap-4">
+                            {currentStep < totalSteps ? (
                                 <button
-                                    key={tech}
                                     type="button"
-                                    onClick={() => toggleTechStack(tech)}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${formData.tech_stack.includes(tech)
-                                            ? "bg-primary text-white"
-                                            : "bg-white/5 border border-white/10 hover:bg-white/10"
-                                        }`}
-                                >
-                                    {formData.tech_stack.includes(tech) && <Check className="w-3 h-3 inline mr-1" />}
-                                    {tech}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                                    onClick={() => {
+                                        // Simple validation for step 1
+                                        if (currentStep === 1) {
+                                            if (!formData.title.trim() || !formData.tagline.trim() || !formData.website_url.trim() || !formData.logo) {
+                                                setError("Fadlan buuxi dhammaan meelaha muhiimka ah (ay ku jirto logadu)");
+                                                return;
+                                            }
+                                        }
 
-                    {/* Hiring Toggle */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, is_hiring: !formData.is_hiring })}
-                            className={`relative w-12 h-6 rounded-full transition-colors ${formData.is_hiring ? "bg-green-500" : "bg-white/20"
-                                }`}
-                        >
-                            <span
-                                className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${formData.is_hiring ? "translate-x-6" : ""
-                                    }`}
-                            />
-                        </button>
-                        <span className="text-sm">Waxaan raadineynaa shaqaale</span>
+                                        setError(null);
+                                        setCurrentStep(prev => prev + 1);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                                >
+                                    Tallaabada Xigta
+                                </button>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="flex items-center justify-center gap-2 px-10 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Waa la diraa...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Rocket className="w-5 h-5" />
+                                            Hadda Soo Dir
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Error */}
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm animate-shake">
                             {error}
                         </div>
                     )}
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                Waa la diraa...
-                            </>
-                        ) : (
-                            <>
-                                <Rocket className="w-5 h-5" />
-                                Soo Dir Startup-ka
-                            </>
-                        )}
-                    </button>
                 </form>
+
             </main>
 
             <FooterSection />
