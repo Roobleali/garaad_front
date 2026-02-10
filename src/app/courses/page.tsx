@@ -85,7 +85,7 @@ export default function CoursesPage() {
     }
   }, [searchParams]);
 
-  if (isError) {
+  if (hasMounted && isError) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-black">
         <Header />
@@ -112,7 +112,7 @@ export default function CoursesPage() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "ItemList",
-              "itemListElement": categories?.flatMap(cat => cat?.courses || []).map((course, index) => ({
+              "itemListElement": (categories || []).flatMap(cat => cat?.courses || []).map((course, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
                 "item": {
