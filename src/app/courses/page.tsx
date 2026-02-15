@@ -102,6 +102,8 @@ export default function CoursesPage() {
     );
   }
 
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
       {/* Course Schema */}
@@ -112,7 +114,7 @@ export default function CoursesPage() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "ItemList",
-              "itemListElement": (categories || []).flatMap(cat => cat?.courses || []).map((course, index) => ({
+              "itemListElement": safeCategories.flatMap(cat => cat?.courses || []).map((course, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
                 "item": {
@@ -185,7 +187,7 @@ export default function CoursesPage() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
         <div className="space-y-32">
-          {(isLoading ? Array(3).fill(null) : (categories ?? [])
+          {(isLoading ? Array(3).fill(null) : safeCategories
             .filter(cat => cat?.courses && cat.courses.length > 0)
             .sort((a, b) => {
               const seqA = (a?.sequence !== undefined && a.sequence !== null) ? a.sequence : Number.MAX_SAFE_INTEGER;

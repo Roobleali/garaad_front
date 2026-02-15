@@ -67,7 +67,12 @@ export default function EditStartupPage() {
 
                     const pitchData: Record<string, string> = {};
                     PITCH_QUESTIONS.forEach(q => {
-                        pitchData[q.id] = startup.pitch_data?.[q.id]?.answer || "";
+                        const answerData = startup.pitch_data?.[q.id];
+                        if (typeof answerData === 'string') {
+                            pitchData[q.id] = answerData;
+                        } else {
+                            pitchData[q.id] = answerData?.answer || "";
+                        }
                     });
 
                     setFormData({
@@ -183,11 +188,11 @@ export default function EditStartupPage() {
         try {
             const updatedStartup = await launchpadService.updateStartup(id, formData);
 
-            // Upload new screenshots if any
+            // Upload new screenshots sequentially to prevent server overload
             if (formData.images.length > 0) {
-                await Promise.all(
-                    formData.images.map(img => launchpadService.addImage(id, img))
-                );
+                for (const img of formData.images) {
+                    await launchpadService.addImage(id, img);
+                }
             }
 
             router.push(`/launchpad/${updatedStartup.slug || id}`);
