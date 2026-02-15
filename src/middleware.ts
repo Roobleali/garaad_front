@@ -39,6 +39,18 @@ const publicPaths = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Explicitly allow public assets and images to bypass middleware checks
+  if (
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/icons") ||
+    pathname.startsWith("/sounds") ||
+    pathname === "/logo.png" ||
+    pathname === "/logo_darkmode.png" ||
+    pathname === "/favicon.ico"
+  ) {
+    return NextResponse.next();
+  }
+
   // Allow public paths
   const isPublicPath = publicPaths.some((path) => {
     if (path === "/") return pathname === "/";
