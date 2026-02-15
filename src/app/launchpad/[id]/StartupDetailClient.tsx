@@ -218,7 +218,6 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                             {startup.is_built_on_garaad && (
                                 <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary text-sm font-medium rounded-full">
                                     <CheckCircle2 className="w-4 h-4" />
-                                    Lagu Dhisay Garaad
                                 </span>
                             )}
 
@@ -331,23 +330,28 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                             Sawirro (Screenshots)
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {startup.images.map((img, index) => (
-                                <div
-                                    key={img.id}
-                                    className="relative aspect-video rounded-2xl overflow-hidden bg-white/5 border border-white/10 cursor-pointer hover:border-primary/50 transition-all group"
-                                    onClick={() => setSelectedImage(img.image_url || img.image)}
-                                >
-                                    <Image
-                                        src={img.image_url || img.image}
-                                        alt={img.caption || `Screenshot ${index + 1}`}
-                                        fill
-                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <Maximize2 className="w-8 h-8 text-white" />
+                            {startup.images.map((img, index) => {
+                                const imgSrc = img.image_url || img.image;
+                                if (!imgSrc || typeof imgSrc !== 'string') return null;
+
+                                return (
+                                    <div
+                                        key={img.id}
+                                        className="relative aspect-video rounded-2xl overflow-hidden bg-white/5 border border-white/10 cursor-pointer hover:border-primary/50 transition-all group"
+                                        onClick={() => setSelectedImage(imgSrc)}
+                                    >
+                                        <Image
+                                            src={imgSrc}
+                                            alt={img.caption || `Screenshot ${index + 1}`}
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <Maximize2 className="w-8 h-8 text-white" />
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -431,17 +435,20 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                     <div className="mb-10">
                         <h2 className="text-sm font-medium text-muted-foreground mb-3">SAWIRRO</h2>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {startup.images.map((img) => (
-                                (img.image || img.image_url) && (
+                            {startup.images.map((img) => {
+                                const imgSrc = img.image_url || img.image;
+                                if (!imgSrc || typeof imgSrc !== 'string') return null;
+
+                                return (
                                     <button
                                         key={img.id}
-                                        onClick={() => setSelectedImage(img.image_url || img.image)}
+                                        onClick={() => setSelectedImage(imgSrc)}
                                         className="relative aspect-video rounded-xl overflow-hidden bg-white/5 hover:opacity-80 transition-opacity"
                                     >
-                                        <Image src={img.image_url || img.image} alt={img.caption || "Screenshot"} fill className="object-cover" />
+                                        <Image src={imgSrc} alt={img.caption || "Screenshot"} fill className="object-cover" />
                                     </button>
-                                )
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

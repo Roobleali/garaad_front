@@ -103,32 +103,6 @@ export function CoursesListClient() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
-            {/* Course Schema */}
-            {hasMounted && (
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "ItemList",
-                            "itemListElement": safeCategories.flatMap(cat => cat?.courses || []).map((course, index) => ({
-                                "@type": "ListItem",
-                                "position": index + 1,
-                                "item": {
-                                    "@type": "Course",
-                                    "name": course?.title,
-                                    "description": course?.description,
-                                    "provider": {
-                                        "@type": "EducationalOrganization",
-                                        "name": "Garaad STEM",
-                                        "sameAs": "https://garaad.so"
-                                    }
-                                }
-                            })) || []
-                        })
-                    }}
-                />
-            )}
             <Header />
 
             {/* Hero Section */}

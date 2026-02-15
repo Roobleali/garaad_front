@@ -11,7 +11,7 @@ export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const id = params.id;
+    const { id } = await params;
 
     try {
         const startup = await launchpadService.getStartup(id);
@@ -45,12 +45,66 @@ export async function generateMetadata(
 }
 
 export default async function StartupDetailPage({ params }: Props) {
+    const { id } = await params;
     let initialData = null;
     try {
-        initialData = await launchpadService.getStartup(params.id);
+        initialData = await launchpadService.getStartup(id);
     } catch (error) {
         console.error("Failed to fetch initial data for startup:", error);
     }
 
-    return <StartupDetailClient initialData={initialData} startupId={params.id} />;
+    const schemas = initialData ? [
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": initialData.title,
+            "description": initialData.description,
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "logo": initialData.logo_url || initialData.logo,
+            "url": `https://garaad.so/launchpad/${id}`,
+            "author": {
+                "@type": "Person",
+                "name": initialData.maker ? `${initialData.maker.first_name} ${initialData.maker.last_name}` : "Garaad Builder"
+            },
+            "datePublished": initialData.created_at
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://garaad.so"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Launchpad",
+                    "item": "https://garaad.so/launchpad"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": initialData.title,
+                    "item": `https://garaad.so/launchpad/${id}`
+                }
+            ]
+        }
+    ] : null;
+
+    return (
+        <>
+            {schemas?.map((schema, index) => (
+                <script
+                    key={index}
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+                />
+            ))}
+            <StartupDetailClient initialData={initialData} startupId={id} />
+        </>
+    );
 }

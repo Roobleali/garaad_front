@@ -93,7 +93,6 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                             {startup.is_built_on_garaad && (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/20 text-primary text-xs font-medium rounded-full">
                                     <CheckCircle2 className="w-3 h-3" />
-                                    Lagu Dhisay Garaad
                                 </span>
                             )}
 
@@ -128,16 +127,21 @@ export function StartupCard({ startup, rank, onVote }: StartupCardProps) {
                         {/* Gallery Thumbnails */}
                         {startup.images && startup.images.length > 0 && (
                             <div className="flex gap-2 mt-4 mb-2 overflow-hidden">
-                                {startup.images.slice(0, 3).map((img, index) => (
-                                    <div key={img.id} className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
-                                        <Image
-                                            src={img.image_url || img.image}
-                                            alt={img.caption || `Screenshot ${index + 1}`}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                ))}
+                                {startup.images.slice(0, 3).map((img, index) => {
+                                    const imgSrc = img.image_url || img.image;
+                                    if (!imgSrc || typeof imgSrc !== 'string') return null;
+
+                                    return (
+                                        <div key={img.id} className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                                            <Image
+                                                src={imgSrc}
+                                                alt={img.caption || `Screenshot ${index + 1}`}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        </div>
+                                    );
+                                })}
                                 {startup.images.length > 3 && (
                                     <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 bg-white/5 flex items-center justify-center">
                                         <span className="text-xs font-bold text-muted-foreground">+{startup.images.length - 3}</span>

@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: currentDate, changeFrequency: "daily", priority: 1 },
     { url: `${baseUrl}/courses`, lastModified: currentDate, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/launchpad`, lastModified: currentDate, changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/about`, lastModified: currentDate, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/community-preview`, lastModified: currentDate, changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/welcome`, lastModified: currentDate, changeFrequency: "monthly", priority: 0.8 },
@@ -61,7 +62,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     }
 
-    // 4. Community Threads (Public)
+    // 4. Dynamic Launchpad Startups
+    const startupsRes = await fetch(`${API_BASE_URL}/api/launchpad/startups/`, { next: { revalidate: 3600 } });
+    const startupsResponse = startupsRes.ok ? await startupsRes.json() : [];
+
+    // Handle both paginated and non-paginated responses
+    const startups = Array.isArray(startupsResponse) ? startupsResponse : (startupsResponse.results || []);
+
+    startups.forEach((startup: any) => {
+      dynamicRoutes.push({
+        url: `${baseUrl}/launchpad/${startup.slug || startup.id}`,
+        lastModified: new Date(startup.updated_at || currentDate),
+        changeFrequency: "daily",
+        priority: 0.8,
+      });
+    });
+
+    // 5. Community Threads (Public)
     const postsRes = await fetch(`${API_BASE_URL}/api/community/posts/public/`, { next: { revalidate: 3600 } });
     const posts = postsRes.ok ? await postsRes.json() : { results: [] };
 
