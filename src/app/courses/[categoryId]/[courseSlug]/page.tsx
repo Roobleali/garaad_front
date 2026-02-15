@@ -13,7 +13,16 @@ async function getCourse(categoryId: string, courseSlug: string) {
         });
         if (!res.ok) return null;
 
-        const courses = await res.json();
+        const response = await res.json();
+
+        // Normalize response: output might be an array or a paginated object with .results
+        let courses: any[] = [];
+        if (Array.isArray(response)) {
+            courses = response;
+        } else if (response && typeof response === 'object' && 'results' in response && Array.isArray((response as any).results)) {
+            courses = (response as any).results;
+        }
+
         return courses.find((c: any) => c.slug === courseSlug) || null;
     } catch (e) {
         return null;

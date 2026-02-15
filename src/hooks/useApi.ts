@@ -204,8 +204,17 @@ export function useEnrollments() {
     }
   );
 
+  const enrollments = useMemo(() => {
+    if (!data) return data;
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'object' && 'results' in data && Array.isArray((data as any).results)) {
+      return (data as any).results;
+    }
+    return [];
+  }, [data]);
+
   return {
-    enrollments: data,
+    enrollments,
     isLoading,
     isError: error,
     mutate,
@@ -223,8 +232,17 @@ export function useUserProgress() {
     }
   );
 
+  const progress = useMemo(() => {
+    if (!data) return data;
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'object' && 'results' in data && Array.isArray((data as any).results)) {
+      return (data as any).results;
+    }
+    return [];
+  }, [data]);
+
   return {
-    progress: data,
+    progress,
     isLoading,
     isError: error,
     mutate,
