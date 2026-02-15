@@ -1,133 +1,98 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define paths that require premium access
-const premiumPaths = ["/courses", "/lessons"];
-
-// Define paths that are always public
-const publicPaths = [
-  "/", // Home page is public
-  "/welcome",
-  "/login",
-  "/register",
-  "/subscribe",
-  "/verify-email",
-  "/reset-password",
-  "/loading",
-  "/api/payment",
-  "/api/payment/success",
-  "/api/auth",
-  "/_next",
-  "/favicon.ico",
-  "/logo.png",
-  "/logo_darkmode.png",
-  "/images",
-  "/icons",
-  "/sounds",
+// Define paths that are strictly protected (Blacklist)
+const protectedRoots = [
   "/admin",
-  "/courses",
-  "/challenge",
-  "/community-preview",
-  "/communitypreview",
-  "/terms",
-  "/privacy",
-  "/launchpad",
-  "/about",
-  "/wargeys",
+  "/dashboard",
+  "/profile",
+  "/settings",
+  "/orders",
+  "/referrals",
+  "/launchpad/submit",
+  "/launchpad/edit",
+];
+
+// Define paths that require premium subscription
+const premiumRoots = [
+  "/lessons",
+  // Note: /courses is public (catalogue), but specific lessons are premium
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Explicitly allow public assets and images to bypass middleware checks
+  // --- 1. Global Bypass for Assets ---
+  // Always allow static files, images, icons, etc.
   if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") || // Let API routes handle their own auth
     pathname.startsWith("/images") ||
     pathname.startsWith("/icons") ||
     pathname.startsWith("/sounds") ||
-    pathname === "/logo.png" ||
-    pathname === "/logo_darkmode.png" ||
-    pathname === "/favicon.ico"
+    pathname.includes(".") // Optimization: Assume files with extensions are public assets
   ) {
     return NextResponse.next();
   }
 
-  // Allow public paths
-  const isPublicPath = publicPaths.some((path) => {
-    if (path === "/") return pathname === "/";
-    // Lessons are never public by default
-    if (pathname.includes("/lessons/")) return false;
-    return pathname.startsWith(path);
-  });
+  // --- 2. Check Protected Routes ---
+  const isProtectedRoute = protectedRoots.some(root =>
+    pathname === root || pathname.startsWith(`${root}/`)
+  );
 
-  if (isPublicPath) {
+  // Specific check for /lessons/ (matches any lesson path)
+  const isLessonPath = pathname.includes("/lessons/");
+
+  // Specific check for /community (excluding -preview)
+  const isProtectedCommunity = pathname === "/community" || (pathname.startsWith("/community/") && !pathname.startsWith("/community-preview"));
+
+  if (!isProtectedRoute && !isLessonPath && !isProtectedCommunity) {
+    // IT IS PUBLIC. Allow access.
     return NextResponse.next();
   }
 
-  // Get access token and user data from cookies
-  const accessToken = request.cookies.get("accessToken");
+  // --- 3. Authentication Check ---
+  // If we are here, the path IS protected.
   const userCookie = request.cookies.get("user");
+  const isAuthenticated = !!userCookie?.value;
 
-  console.log("Access token exists:", !!accessToken?.value);
-  console.log("User cookie exists:", !!userCookie?.value);
-
-  // If no access token, redirect to welcome page
-  if (!accessToken?.value) {
-    console.log("No access token found, redirecting to welcome");
+  if (!isAuthenticated) {
+    // Redirect unauthenticated users
+    if (pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
     return NextResponse.redirect(new URL("/welcome", request.url));
   }
 
-  // If no user cookie, redirect to welcome page
-  if (!userCookie?.value) {
-    console.log("No user cookie found, redirecting to welcome");
-    return NextResponse.redirect(new URL("/welcome", request.url));
-  }
+  // --- 4. Premium Access Check ---
+  // If authenticated, check if they need premium for this specific path
 
-  try {
-    // Parse user data from cookie
-    const user = JSON.parse(userCookie.value);
+  // Only check premium for lessons or explicit premium roots
+  const isPremiumPath = isLessonPath || premiumRoots.some(root => pathname.startsWith(root));
 
-    // Check if user's email is verified
-    if (!user?.is_email_verified && !pathname.startsWith("/verify-email")) {
-      console.log("User email not verified, redirecting to email verification");
-      const verifyUrl = new URL("/verify-email", request.url);
-      if (user?.email) {
-        verifyUrl.searchParams.set("email", user.email);
+  if (isPremiumPath) {
+    try {
+      const user = JSON.parse(userCookie.value);
+
+      // Allow if user is premium
+      if (user?.is_premium) {
+        return NextResponse.next();
       }
-      return NextResponse.redirect(verifyUrl);
-    }
 
-    // If user is premium, allow access to all pages
-    if (user?.is_premium) {
-      console.log("User is premium, allowing access");
-      return NextResponse.next();
-    }
-
-    // If user is verified but trying to access subscribe page and is already premium, redirect to courses
-    if (pathname.startsWith("/subscribe") && user?.is_premium) {
-      console.log("Premium user trying to access subscribe, redirecting to courses");
-      return NextResponse.redirect(new URL("/courses", request.url));
-    }
-
-    // Check if the path requires premium access
-    const isPremiumPath = premiumPaths.some((path) =>
-      pathname.startsWith(path)
-    );
-    console.log("Is premium path:", isPremiumPath);
-
-    // If path requires premium and user is not premium, redirect to subscribe
-    if (isPremiumPath && !user?.is_premium) {
+      // Deny if not premium
       console.log("User is not premium, redirecting to subscribe");
       const subscribeUrl = new URL("/subscribe", request.url);
       subscribeUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(subscribeUrl);
-    }
 
-    // Allow access to non-premium paths
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Error parsing user cookie:", error);
-    return NextResponse.redirect(new URL("/welcome", request.url));
+    } catch (error) {
+      // Cookie parse error -> treat as unauthenticated
+      return NextResponse.redirect(new URL("/welcome", request.url));
+    }
   }
+
+  // Authenticated and passed all checks
+  return NextResponse.next();
 }
 
 export const config = {
