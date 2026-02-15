@@ -212,7 +212,7 @@ export class AuthService {
     return !!this.getToken() && !!this.getCurrentUser();
   }
 
-  private setTokens(access: string, refresh: string): void {
+  public setTokens(access: string, refresh: string): void {
     this.setCookie("accessToken", access, 1);
     this.setCookie("refreshToken", refresh, 7);
   }

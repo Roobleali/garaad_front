@@ -6,6 +6,8 @@ import { useAdminAuthStore } from "@/store/admin/auth";
 import { adminApi as api, ApiError } from "@/lib/admin-api";
 import { Lock, Mail, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
 
+import { AuthService } from "@/services/auth";
+
 interface User {
     id: number;
     username: string;
@@ -15,6 +17,7 @@ interface User {
     is_premium: boolean;
     is_superuser: boolean;
     has_completed_onboarding: boolean;
+    is_email_verified?: boolean;
 }
 
 interface LoginResponse {
@@ -54,7 +57,14 @@ export default function AdminLoginPage() {
                     return;
                 }
 
+                // First, set the tokens in the admin store (localStorage)
                 setTokens(tokens.access, tokens.refresh, user);
+
+                // Second, sync with AuthService to set COOKIES for the middleware
+                const authService = AuthService.getInstance();
+                authService.setCurrentUser(user as any);
+                authService.setTokens(tokens.access, tokens.refresh);
+
                 router.replace("/admin");
             } else {
                 throw new Error("Invalid response format - missing tokens");
