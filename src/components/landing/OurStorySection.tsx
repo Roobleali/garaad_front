@@ -116,6 +116,7 @@ export function OurStorySection() {
                                                 fill
                                                 className="object-contain group-hover:scale-105 transition-transform duration-500"
                                                 sizes="(max-width: 768px) 100vw, 50vw"
+                                                unoptimized
                                             />
                                         </div>
 

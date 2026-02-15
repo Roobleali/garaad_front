@@ -111,6 +111,7 @@ export function TestimonialsSection() {
                                         fill
                                         className="object-contain p-4 group-hover:scale-[1.02] transition-transform duration-500"
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        unoptimized
                                     />
                                     {/* Subtle gradient for depth */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none" />
