@@ -125,32 +125,34 @@ export class AuthService {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
     const expires = `expires=${date.toUTCString()}`;
 
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const isLocalhost =
       typeof window !== "undefined" &&
       (window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1");
-
-    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const encodedValue = encodeURIComponent(value);
 
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const domain = hostname.includes("garaad.org") ? "; domain=.garaad.org" : "";
+
     if (isLocalhost || !isHttps) {
-      document.cookie = `${name}=${encodedValue}; ${expires}; path=/; SameSite=Lax`;
+      document.cookie = `${name}=${encodedValue}; ${expires}; path=/; SameSite=Lax${domain}`;
     } else {
-      document.cookie = `${name}=${encodedValue}; ${expires}; path=/; SameSite=Lax; Secure`;
+      document.cookie = `${name}=${encodedValue}; ${expires}; path=/; SameSite=Lax; Secure${domain}`;
     }
   }
 
   private deleteCookie(name: string): void {
-    if (typeof document === "undefined") return;
-    const isLocalhost =
-      typeof window !== "undefined" &&
-      (window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1");
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    const isLocalhost = host === "localhost" || host === "127.0.0.1";
+    const domain = host.includes("garaad.org") ? "; domain=.garaad.org" : "";
 
     if (isLocalhost) {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
+      if (domain) document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax${domain}`;
     } else {
       document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax; Secure`;
+      if (domain) document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax; Secure${domain}`;
     }
   }
 
@@ -206,7 +208,15 @@ export class AuthService {
   public setCurrentUser(user: User): void {
     this.user = user;
     if (typeof window !== "undefined") {
-      this.setCookie("user", JSON.stringify(user));
+      // Only store minimal info in the cookie to avoid size issues
+      const minimalUser = {
+        id: user.id,
+        username: user.username,
+        is_premium: user.is_premium,
+        is_superuser: user.is_superuser
+      };
+      console.log("Setting minimal user cookie:", minimalUser);
+      this.setCookie("user", JSON.stringify(minimalUser));
     }
   }
 

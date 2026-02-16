@@ -61,14 +61,21 @@ export async function middleware(request: NextRequest) {
   // --- 3. Authentication Check ---
   // If we are here, the path IS protected.
   const userCookie = request.cookies.get("user");
-  const isAuthenticated = !!userCookie?.value;
+  const tokenCookie = request.cookies.get("accessToken");
+
+  // Robust check: either cookie being present is a strong indicator of a session
+  // user cookie is for UI/Premium metadata, accessToken is for API/Auth proof
+  const cookieNames = request.cookies.getAll().map(c => c.name);
+  console.log(`[Middleware] Path: ${pathname}, Cookies found: ${cookieNames.join(", ")}`);
+
+  const isAuthenticated = !!userCookie?.value || !!tokenCookie?.value;
 
   if (!isAuthenticated) {
     // Redirect unauthenticated users
-    if (pathname.startsWith("/admin")) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-    return NextResponse.redirect(new URL("/welcome", request.url));
+    const redirectUrl = pathname.startsWith("/admin") ? "/admin/login" : "/welcome";
+    const url = new URL(redirectUrl, request.url);
+    url.searchParams.set("reason", "unauthenticated");
+    return NextResponse.redirect(url);
   }
 
   // --- 4. Premium Access Check ---
@@ -78,6 +85,12 @@ export async function middleware(request: NextRequest) {
   const isPremiumPath = isLessonPath || premiumRoots.some(root => pathname.startsWith(root));
 
   if (isPremiumPath) {
+    if (!userCookie?.value) {
+      // Authenticated but missing user metadata for premium check
+      const welcomeUrl = new URL("/welcome", request.url);
+      welcomeUrl.searchParams.set("reason", "no_user_data");
+      return NextResponse.redirect(welcomeUrl);
+    }
     try {
       const decodedUser = decodeURIComponent(userCookie.value);
       const user = JSON.parse(decodedUser);
@@ -94,8 +107,10 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(subscribeUrl);
 
     } catch (error) {
-      // Cookie parse error -> treat as unauthenticated
-      return NextResponse.redirect(new URL("/welcome", request.url));
+      // Cookie parse error -> treat as session corrupted
+      const welcomeUrl = new URL("/welcome", request.url);
+      welcomeUrl.searchParams.set("reason", "session_parse_error");
+      return NextResponse.redirect(welcomeUrl);
     }
   }
 

@@ -39,6 +39,9 @@ export default function AdminLoginPage() {
     useEffect(() => {
         if (typeof window === "undefined") return;
 
+        const searchParams = new URLSearchParams(window.location.search);
+        const reason = searchParams.get("reason");
+
         // More robust loop detection using sessionStorage
         const lastRedirectTime = sessionStorage.getItem("admin_redirect_loop_check");
         const now = Date.now();
@@ -53,14 +56,39 @@ export default function AdminLoginPage() {
         }
 
         if (token && !isLoop) {
+            // Check if cookies are also present (these are what the middleware needs)
+            const hasCookies = document.cookie.includes("accessToken") || document.cookie.includes("user");
+
+            if (!hasCookies) {
+                console.warn("Storage token exists but cookies are missing. Attempting to restore cookies...");
+                const authService = AuthService.getInstance();
+                const storedUser = useAdminAuthStore.getState().user;
+                const refreshToken = useAdminAuthStore.getState().refreshToken;
+
+                if (storedUser) {
+                    authService.setCurrentUser(storedUser as any);
+                    authService.setTokens(token, refreshToken || "");
+                    console.log("Cookies restored from storage.");
+                }
+            }
+
             sessionStorage.setItem("admin_redirect_loop_check", now.toString());
             router.replace("/admin");
         } else if (token && isLoop) {
-            console.warn("Detected possible redirect loop, clearing admin session to break loop");
+            console.warn("Detected possible redirect loop, clearing admin session to break loop. Reason:", reason);
             sessionStorage.removeItem("admin_redirect_loop_check");
             clearTokens();
-            // Optional: force a slight delay or show an error
-            setError("Session-kaagii wuu dhacay ama waa khaldanyahay. Fadlan mar kale isku day.");
+
+            // Targeted error messages based on reason from middleware
+            let errorMsg = "Session-kaagii wuu dhacay ama waa khaldanyahay. Fadlan mar kale isku day.";
+            if (reason === "unauthenticated") {
+                errorMsg = "Session-kaagii waa la waayay (Cookies missing). Fadlan mar kale isku day.";
+            } else if (reason === "no_user_data") {
+                errorMsg = "Xogtaada maamulka lama helin. Fadlan mar kale isku day.";
+            }
+
+            // Add a hint about clearing cache if PWA is suspected
+            setError(`${errorMsg} (Haddii ay ku soo noqnoqoto, fadlan nadiifi cache-ka browser-ka ama isticmaal Incognito)`);
         }
     }, [token, router, clearTokens]);
 
