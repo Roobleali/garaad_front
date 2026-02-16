@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { adminApi as api, ApiError } from "@/lib/admin-api";
 import { Modal } from "@/components/admin/ui/Modal";
+import { Upload, ImageIcon, Loader2, X } from "lucide-react";
 
 interface Category {
     id: string;
@@ -59,6 +60,10 @@ function KoorsooyinkaContent() {
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState("");
 
+    // Image upload states
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadImageError, setUploadImageError] = useState("");
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -81,6 +86,36 @@ function KoorsooyinkaContent() {
             console.error("Error fetching data:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, mode: 'create' | 'edit') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingImage(true);
+        setUploadImageError("");
+
+        const formData = new FormData();
+        formData.append("photo", file);
+        formData.append("title", file.name);
+
+        try {
+            const res = await api.post("lms/photos/", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const imageUrl = res.data.photo_url || res.data.url;
+            if (mode === 'create') {
+                setNewThumbnail(imageUrl);
+            } else {
+                setEditThumbnail(imageUrl);
+            }
+        } catch (err: any) {
+            console.error("Image upload failed:", err);
+            setUploadImageError(err.response?.data?.detail || "Sawirka waa la soo daji waayay");
+        } finally {
+            setUploadingImage(false);
         }
     };
 
@@ -334,13 +369,79 @@ function KoorsooyinkaContent() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sawirka URL</label>
-                        <input
-                            type="text"
-                            className="w-full border rounded-lg px-4 py-2"
-                            value={newThumbnail}
-                            onChange={e => setNewThumbnail(e.target.value)}
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Sawirka</label>
+                        <div className="space-y-3">
+                            {newThumbnail ? (
+                                <div className="space-y-3">
+                                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 group shadow-sm">
+                                        <img src={newThumbnail} alt="Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    onChange={(e) => handleImageUpload(e, 'create')}
+                                                    disabled={uploadingImage}
+                                                />
+                                                <button type="button" className="px-3 py-1.5 bg-white text-gray-900 rounded-lg text-xs font-bold hover:bg-gray-50 flex items-center gap-2">
+                                                    <Upload className="w-3.5 h-3.5" />
+                                                    Beddel
+                                                </button>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewThumbnail("")}
+                                                className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 flex items-center gap-2"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                                Tirtir
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Sawirka URL</p>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600"
+                                            value={newThumbnail}
+                                            onChange={e => setNewThumbnail(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        onChange={(e) => handleImageUpload(e, 'create')}
+                                        disabled={uploadingImage}
+                                    />
+                                    <div className="w-full py-8 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-3 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100 text-blue-500">
+                                            {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-sm font-bold text-gray-700">{uploadingImage ? "Soo daji weynaa..." : "Guji si aad u soo daji sawir"}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">PNG, JPG ama WEBP</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {!newThumbnail && !uploadingImage && (
+                                <button
+                                    type="button"
+                                    onClick={() => setNewThumbnail("https://")}
+                                    className="text-[10px] text-blue-600 font-bold uppercase tracking-widest hover:underline"
+                                >
+                                    Ama URL geli gacanta
+                                </button>
+                            )}
+                            {uploadImageError && (
+                                <p className="text-xs text-red-500 font-medium">{uploadImageError}</p>
+                            )}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Qayb</label>
@@ -422,13 +523,79 @@ function KoorsooyinkaContent() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sawirka URL</label>
-                        <input
-                            type="text"
-                            className="w-full border rounded-lg px-4 py-2"
-                            value={editThumbnail}
-                            onChange={e => setEditThumbnail(e.target.value)}
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Sawirka</label>
+                        <div className="space-y-3">
+                            {editThumbnail ? (
+                                <div className="space-y-3">
+                                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-gray-100 group shadow-sm">
+                                        <img src={editThumbnail} alt="Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    onChange={(e) => handleImageUpload(e, 'edit')}
+                                                    disabled={uploadingImage}
+                                                />
+                                                <button type="button" className="px-3 py-1.5 bg-white text-gray-900 rounded-lg text-xs font-bold hover:bg-gray-50 flex items-center gap-2">
+                                                    <Upload className="w-3.5 h-3.5" />
+                                                    Beddel
+                                                </button>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditThumbnail("")}
+                                                className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 flex items-center gap-2"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                                Tirtir
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1.5">Sawirka URL</p>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-600"
+                                            value={editThumbnail}
+                                            onChange={e => setEditThumbnail(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        onChange={(e) => handleImageUpload(e, 'edit')}
+                                        disabled={uploadingImage}
+                                    />
+                                    <div className="w-full py-8 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-3 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-200 transition-all">
+                                        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100 text-blue-500">
+                                            {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-sm font-bold text-gray-700">{uploadingImage ? "Soo daji weynaa..." : "Guji si aad u soo daji sawir"}</p>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">PNG, JPG ama WEBP</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {!editThumbnail && !uploadingImage && (
+                                <button
+                                    type="button"
+                                    onClick={() => setEditThumbnail("https://")}
+                                    className="text-[10px] text-blue-600 font-bold uppercase tracking-widest hover:underline"
+                                >
+                                    Ama URL geli gacanta
+                                </button>
+                            )}
+                            {uploadImageError && (
+                                <p className="text-xs text-red-500 font-medium">{uploadImageError}</p>
+                            )}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Qayb</label>
