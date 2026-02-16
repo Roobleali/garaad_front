@@ -128,7 +128,7 @@ export class AuthService {
     if (isLocalhost || !isHttps) {
       document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Lax`;
     } else {
-      document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Strict; Secure`;
+      document.cookie = `${name}=${value}; ${expires}; path=/; SameSite=Lax; Secure`;
     }
   }
 

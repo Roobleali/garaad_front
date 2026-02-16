@@ -70,8 +70,13 @@ function KoorsooyinkaContent() {
                 api.get("lms/courses/"),
                 api.get("lms/categories/")
             ]);
-            setCourses(coursesRes.data);
-            setCategories(categoriesRes.data);
+
+            // Handle paginated responses
+            const coursesData = Array.isArray(coursesRes.data) ? coursesRes.data : (coursesRes.data.results || []);
+            const categoriesData = Array.isArray(categoriesRes.data) ? categoriesRes.data : (categoriesRes.data.results || []);
+
+            setCourses(coursesData);
+            setCategories(categoriesData);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {

@@ -52,7 +52,9 @@ export default function VideoManagementPage() {
         try {
             setLoading(true);
             const response = await api.get("/lms/videos/");
-            setVideos(response.data);
+            // Handle both paginated and non-paginated responses
+            const data = Array.isArray(response.data) ? response.data : (response.data.results || []);
+            setVideos(data);
         } catch (err) {
             console.error("Error fetching videos:", err);
             setError("Lama soo qaadan karo muuqaalada");

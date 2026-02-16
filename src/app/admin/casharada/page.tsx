@@ -63,8 +63,13 @@ function CasharadaContent() {
                 api.get("lms/lessons/"),
                 api.get("lms/courses/")
             ]);
-            setLessons(lessonsRes.data);
-            setCourses(coursesRes.data);
+
+            // Handle paginated responses
+            const lessonsData = Array.isArray(lessonsRes.data) ? lessonsRes.data : (lessonsRes.data.results || []);
+            const coursesData = Array.isArray(coursesRes.data) ? coursesRes.data : (coursesRes.data.results || []);
+
+            setLessons(lessonsData);
+            setCourses(coursesData);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
