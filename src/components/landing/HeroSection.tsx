@@ -79,11 +79,11 @@ export function HeroSection() {
                     {/* Headline */}
                     <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-foreground leading-[1.1] tracking-tight">
                         <span className="block mt-2 font-black transition-all duration-500">
-                            Noqo Developer{" "}
+                            Baro Full-Stack{" "}
                             <span className="relative inline-block">
                                 <span className="absolute -inset-4 blur-3xl bg-gradient-to-r from-primary/40 to-blue-600/40 opacity-40" />
                                 <span className="relative text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-primary">
-                                    Heer Caalami ah
+                                    Development & AI
                                 </span>
                             </span>
                         </span>
@@ -91,7 +91,7 @@ export function HeroSection() {
 
                     {/* Description */}
                     <p className="text-sm sm:text-lg lg:text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-medium px-4">
-                        Ka dhis mustaqbalkaaga Garaad. Baro <span className="text-foreground font-bold">Frontend (React), Backend (Node.js),</span> iyo <span className="text-foreground font-bold">Mobile Apps</span> adiga oo isticmaalaya Af-Soomaali. Ku biir kumanaan dhalinyaro ah oo dhisaya Startups-ka berrito—<span className="text-primary font-bold">macalin la'aan.</span>
+                        Garaad waa hoyga aqoonta casriga ah. Baro <span className="text-foreground font-bold">React, Next.js, AI,</span> iyo <span className="text-foreground font-bold">Cybersecurity</span> adiga oo isticmaalaya Af-Soomaali. Noqo Developer heer caalami ah—<span className="text-primary font-bold">macalin la'aan.</span>
                     </p>
                 </div>
 

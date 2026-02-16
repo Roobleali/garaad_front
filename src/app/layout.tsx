@@ -18,10 +18,13 @@ export const metadata: Metadata = {
     template: "%s | Garaad",
   },
   description:
-    "Garaad waa platform-ka waxbarasho ee ugu horreeya ee Soomaalida oo lagu barto STEM: Xisaabta, Physics, iyo Programming. Ku baro afkaaga hooyo casharo tayo leh meel kasta.",
+    "Garaad waa platform-ka waxbarasho ee ugu horreeya ee Soomaalida oo lagu barto STEM iyo Programming. Baro Full-Stack Development, AI, Cybersecurity, iyo Xisaabta adiga oo isticmaalaya Af-Soomaali.",
   keywords: [
-    "Garaad", "STEM", "Somali Tech", "Programming", "Mathematics", "Physics",
-    "Startup", "Launchpad", "Full-Stack Development", "AI Somali"
+    "Garaad", "STEM Soomaali", "Baro Programming", "Baro Coding", "Af-Soomaali",
+    "Full-Stack Development Soomaali", "React Soomaali", "Next.js Soomaali",
+    "Amniga Internetka", "Cybersecurity Somali", "Sirdoonka Macmalka ah", "AI Somali",
+    "Sayniska Xogta", "Data Science Somali", "Xisaabta Soomaali", "Physics Soomaali",
+    "Startup Soomaali", "Launchpad", "Somali Tech Academy", "First Somali Platform"
   ],
   authors: [{ name: "Garaad Team", url: "https://garaad.so" }],
   creator: "Garaad STEM",
