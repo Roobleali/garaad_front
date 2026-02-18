@@ -202,11 +202,10 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                     {/* Logo */}
                     <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-white/10 flex-shrink-0">
                         {startup.logo || startup.logo_url ? (
-                            <Image src={startup.logo_url || startup.logo} alt={startup.title} fill className="object-contain p-2" />
-
+                            <Image src={startup.logo_url || startup.logo} alt={startup.title} fill className="object-contain p-2" priority />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-primary">
-                                {startup.title.charAt(0)}
+                                {startup.title?.charAt(0) || "S"}
                             </div>
                         )}
                     </div>
@@ -260,7 +259,7 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                             </button>
 
                             {/* Edit Button for Maker */}
-                            {user && user.id === startup.maker.id && (
+                            {user && startup.maker && user.id === startup.maker.id && (
                                 <Link
                                     href={`/launchpad/edit/${startup.id}`}
                                     className="flex items-center gap-2 px-5 py-2.5 bg-primary/10 border border-primary/20 text-primary rounded-xl font-medium hover:bg-primary/20 transition-colors"
@@ -345,6 +344,7 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                                             alt={img.caption || `Screenshot ${index + 1}`}
                                             fill
                                             className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            unoptimized={imgSrc.startsWith('data:')}
                                         />
                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <Maximize2 className="w-8 h-8 text-white" />
@@ -399,7 +399,7 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                 </div>
 
                 {/* Startup Pitch Section */}
-                {startup.pitch_data && Object.keys(startup.pitch_data).length > 0 && (
+                {startup.pitch_data && typeof startup.pitch_data === 'object' && Object.keys(startup.pitch_data).length > 0 && (
                     <div className="mb-10 py-8 border-t border-white/10">
                         <div className="flex items-center gap-2 mb-6">
                             <HelpCircle className="w-5 h-5 text-primary" />
@@ -458,7 +458,7 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                     <h2 className="text-sm font-medium text-muted-foreground mb-4">DHISAHA</h2>
                     <div className="flex items-center gap-4">
                         <div className="relative w-12 h-12 rounded-full overflow-hidden bg-white/10">
-                            {startup.maker.profile_picture ? (
+                            {startup.maker?.profile_picture ? (
                                 <Image
                                     src={startup.maker.profile_picture}
                                     alt={startup.maker.first_name || startup.maker.username}
@@ -467,15 +467,15 @@ export function StartupDetailClient({ initialData, startupId }: StartupDetailCli
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-lg font-bold text-primary">
-                                    {(startup.maker.first_name || startup.maker.username).charAt(0)}
+                                    {(startup.maker?.first_name || startup.maker?.username || "G").charAt(0)}
                                 </div>
                             )}
                         </div>
                         <div>
                             <p className="font-medium">
-                                {startup.maker.first_name} {startup.maker.last_name || startup.maker.username}
+                                {startup.maker?.first_name} {startup.maker?.last_name || startup.maker?.username}
                             </p>
-                            {startup.maker_completed_courses.length > 0 && (
+                            {startup.maker_completed_courses && startup.maker_completed_courses.length > 0 && (
                                 <p className="text-sm text-muted-foreground">
                                     Dhamaysay: {startup.maker_completed_courses.join(", ")}
                                 </p>
