@@ -102,6 +102,12 @@ export default function SubmitStartupPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // If not on the last step, don't submit
+        if (currentStep < totalSteps) {
+            return;
+        }
+
         setError(null);
 
         // Validation
