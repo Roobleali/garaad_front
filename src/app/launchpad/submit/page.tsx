@@ -135,6 +135,11 @@ export default function SubmitStartupPage() {
             return;
         }
 
+        if (formData.images.length < 2) {
+            setError("Fadlan soo geli ugu yaraan 2 sawir (screenshots)");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const startup = await launchpadService.createStartup(formData);
