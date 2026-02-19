@@ -21,7 +21,7 @@ export default function SubmitStartupPage() {
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [screenshotPreviews, setScreenshotPreviews] = useState<string[]>([]);
     const [currentStep, setCurrentStep] = useState(1);
-    const totalSteps = 4;
+    const totalSteps = 3;
 
 
     const [formData, setFormData] = useState<StartupFormData>({
@@ -384,51 +384,6 @@ export default function SubmitStartupPage() {
                                 <p className="text-sm text-muted-foreground mb-6">Waa tallabadii ugu dambaysay ee lagu habaynayo startup-kaaga.</p>
                             </div>
 
-
-
-                            {/* Tech Stack */}
-                            <div>
-                                <label className="block text-sm font-medium mb-3">Tech Stack (Xulo wixii aad isticmaasheen)</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {TECH_STACK_OPTIONS.map((tech) => (
-                                        <button
-                                            key={tech}
-                                            type="button"
-                                            onClick={() => toggleTechStack(tech)}
-                                            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formData.tech_stack.includes(tech)
-                                                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                                : "bg-white/5 border border-white/10 hover:bg-white/10"
-                                                }`}
-                                        >
-                                            {tech}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Sharaxaad Dheeri ah</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Sharax startup-kaaga iyo waxa uu qabto si faahfaahsan..."
-                                    rows={5}
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
-                                />
-                            </div>
-
-
-                        </div>
-                    )}
-
-                    {currentStep === 4 && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div>
-                                <h2 className="text-xl font-bold mb-1">Xiriirada & Media (Links & Media)</h2>
-                                <p className="text-sm text-muted-foreground mb-6">Ku dar sawirro, video iyo boggaga bulshada.</p>
-                            </div>
-
                             {/* Screenshots Upload */}
                             <div>
                                 <label className="block text-sm font-medium mb-4">Screenshots (Ugu badnaan 5 sawir)</label>
@@ -528,10 +483,59 @@ export default function SubmitStartupPage() {
                                             className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
                                         />
                                     </div>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                            <Instagram className="w-4 h-4 text-muted-foreground" />
+                                        </div>
+                                        <input
+                                            type="url"
+                                            value={formData.instagram_url}
+                                            onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+                                            placeholder="Instagram URL"
+                                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none text-sm"
+                                        />
+                                    </div>
                                 </div>
                             </div>
+
+
+
+                            {/* Tech Stack */}
+                            <div>
+                                <label className="block text-sm font-medium mb-3">Tech Stack (Xulo wixii aad isticmaasheen)</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {TECH_STACK_OPTIONS.map((tech) => (
+                                        <button
+                                            key={tech}
+                                            type="button"
+                                            onClick={() => toggleTechStack(tech)}
+                                            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${formData.tech_stack.includes(tech)
+                                                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                : "bg-white/5 border border-white/10 hover:bg-white/10"
+                                                }`}
+                                        >
+                                            {tech}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Sharaxaad Dheeri ah</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Sharax startup-kaaga iyo waxa uu qabto si faahfaahsan..."
+                                    rows={5}
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none resize-none"
+                                />
+                            </div>
+
+
                         </div>
                     )}
+
 
                     {/* Navigation Buttons */}
                     <div className="flex items-center justify-between gap-4 pt-8 border-t border-white/10">
