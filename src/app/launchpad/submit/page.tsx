@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
 import { launchpadService } from "@/services/launchpad";
 
 import type { StartupCategory, StartupFormData } from "@/types/launchpad";
@@ -14,6 +15,7 @@ import { PITCH_QUESTIONS } from "@/constants/pitch_questions";
 export default function SubmitStartupPage() {
     const router = useRouter();
     const [categories, setCategories] = useState<StartupCategory[]>([]);
+    const { user, isAuthenticated, isLoading: authLoading } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -43,6 +45,11 @@ export default function SubmitStartupPage() {
 
 
     useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push("/admin/login?redirect=/launchpad/submit");
+            return;
+        }
+
         const fetchCategories = async () => {
             try {
                 const data = await launchpadService.getCategories();
