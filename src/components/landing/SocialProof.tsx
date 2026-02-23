@@ -1,149 +1,219 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+"use client";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Users, Rocket, Coins, CheckCircle2, GraduationCap, Heart } from "lucide-react";
+import { X, GraduationCap, Rocket, Star, Users, BookOpen } from "lucide-react";
 import { baseURL } from "@/config";
 import { useAuthStore } from "@/store/useAuthStore";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 
-interface BackendSignup {
-    first_name: string;
-    last_name: string;
-    date_joined: string;
-}
+// ──────────────────────────────────────────────────────────────────────────────
+// Fallback data — always shown if API is slow / fails
+// ──────────────────────────────────────────────────────────────────────────────
+const FALLBACK_NAMES = [
+    "Axmed C.", "Fadumo M.", "Cabdullahi Y.", "Xaawo I.", "Maxamed H.",
+    "Saciid A.", "Asha D.", "Yuusuf K.", "Hodan F.", "Cali O.",
+    "Nasteexo B.", "Ibraahim S.", "Amina J.", "Osman A.", "Maryan C.",
+    "Cabdi R.", "Sucaad N.", "Mahad L.", "Faadumo X.", "Bashiir W.",
+];
 
-interface Signup {
+const CITIES = [
+    "Muqdisho", "Hargeysa", "Kismaayo", "Boosaaso", "Garoowe",
+    "Baardheere", "Marka", "Berbera", "Baidoa", "Toronto", "Minneapolis", "London",
+];
+
+const ACTIVITIES: { text: string; emoji: string; icon: React.ReactNode; urgency?: string }[] = [
+    {
+        text: "ayaa hadda ku biirtay Garaad!",
+        emoji: "🚀",
+        icon: <Rocket className="w-5 h-5 text-primary" />,
+        urgency: "Bilaash ah · Hadda bilow",
+    },
+    {
+        text: "ayaa bilaabay koorsada Full-Stack!",
+        emoji: "💻",
+        icon: <BookOpen className="w-5 h-5 text-emerald-500" />,
+        urgency: "500+ ayaa wada baranaya",
+    },
+    {
+        text: "ayaa noqday xubin Premium!",
+        emoji: "⭐",
+        icon: <Star className="w-5 h-5 text-yellow-500" />,
+        urgency: "Hel Premium · Hore u bilow",
+    },
+    {
+        text: "ayaa soo dhammeeyay koorsadii ugu horreysey!",
+        emoji: "🎓",
+        icon: <GraduationCap className="w-5 h-5 text-primary" />,
+        urgency: "Adna samayn kartaa",
+    },
+    {
+        text: "ayaa ku biiray bulshada Garaad!",
+        emoji: "🤝",
+        icon: <Users className="w-5 h-5 text-blue-500" />,
+        urgency: "500+ xubnood · Ku biir",
+    },
+];
+
+const SESSION_KEY = "garaad_sp_count";
+const MAX_PER_SESSION = 12;
+const INITIAL_DELAY_MS = 3_000;    // Show first toast after 3s
+const MIN_INTERVAL_MS = 12_000;    // Minimum interval between toasts
+const MAX_INTERVAL_MS = 18_000;    // Maximum interval between toasts
+const VISIBLE_DURATION_MS = 8_000; // How long each toast stays visible
+
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface Toast {
     name: string;
-    activity: string;
-    icon: React.ReactNode;
+    city: string;
+    activity: typeof ACTIVITIES[number];
+    timeAgo: string;
 }
 
-const UNIVERSITIES = [
-    "Mogadishu University",
-    "SIMAD University",
-    "Jaamacadda Banaadir",
-    "Somali National University",
-    "Hormuud University",
-    "Jamhuriya University",
-    "Zamzam University",
-    "Hargeisa University",
-    "Amoud University",
-    "Puntland State University"
-];
+function randomItem<T>(arr: T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
 
-const ACTIVITIES = [
-    { text: "ayaa hadda ku soo biiray bulshada!", icon: <Users className="w-6 h-6 text-primary" /> },
-    { text: "ayaa bilaabay barashada Coding-ka!", icon: <Rocket className="w-6 h-6 text-primary" /> },
-    { text: "ayaa helay access-ka Garaad!", icon: <GraduationCap className="w-6 h-6 text-primary" /> },
-    { text: "ayaa hadda galay fadhiga waxbarashada!", icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" /> },
-    { text: "ayaa noqday Premium User!", icon: <Heart className="w-6 h-6 text-rose-500" /> }
-];
+function randomTimeAgo(): string {
+    const options = ["1 daqiiqo ka hor", "2 daqiiqo ka hor", "3 daqiiqo ka hor", "daqiiqo yaroo ka hor", "5 daqiiqo ka hor"];
+    return randomItem(options);
+}
 
-const SESSION_LIMIT_KEY = "garaad_social_proof_count";
-const MAX_NOTIFICATIONS_PER_SESSION = 10;
+function buildToast(backendNames: string[]): Toast {
+    const namePool = backendNames.length > 0 ? backendNames : FALLBACK_NAMES;
+    return {
+        name: randomItem(namePool),
+        city: randomItem(CITIES),
+        activity: randomItem(ACTIVITIES),
+        timeAgo: randomTimeAgo(),
+    };
+}
 
 export function SocialProof() {
     const { user } = useAuthStore();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const [signups, setSignups] = useState<BackendSignup[]>([]);
-    const [currentSignup, setCurrentSignup] = useState<Signup | null>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const [hasFetched, setHasFetched] = useState(false);
+    const [toast, setToast] = useState<Toast | null>(null);
+    const [visible, setVisible] = useState(false);
+    const [dismissed, setDismissed] = useState(false);
+    const backendNamesRef = useRef<string[]>([]);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Normalize pathname
+    // Only show on landing + welcome pages, and only to guests
     const normalizedPath = pathname?.replace(/\/$/, "") || "/";
     const isAllowedPage = normalizedPath === "" || normalizedPath === "/" || normalizedPath === "/welcome";
     const shouldShow = !user && isAllowedPage;
 
-    // Reset logic for developer testing
+    // Fetch real names once from backend (best-effort)
     useEffect(() => {
-        if (searchParams.get("reset_proof") === "true") {
-            sessionStorage.removeItem(SESSION_LIMIT_KEY);
-        }
-    }, [searchParams]);
+        if (!shouldShow) return;
+        fetch(`${baseURL}/api/public/social-proof/`)
+            .then((r) => r.ok ? r.json() : [])
+            .then((data: Array<{ first_name: string; last_name?: string }>) => {
+                if (Array.isArray(data) && data.length > 0) {
+                    backendNamesRef.current = data.map((d) =>
+                        `${d.first_name} ${d.last_name ? d.last_name[0] + "." : ""}`.trim()
+                    );
+                }
+            })
+            .catch(() => {/* silently use fallback */ });
+    }, [shouldShow]);
 
-    const fetchSignups = useCallback(async () => {
-        try {
-            const response = await fetch(`${baseURL}/api/public/social-proof/`);
-            if (response.ok) {
-                const data = await response.json();
-                setSignups(data);
-            }
-        } catch (error) {
-            console.error("[SocialProof] Error fetching:", error);
-        }
+    const showToast = useCallback(() => {
+        const count = parseInt(sessionStorage.getItem(SESSION_KEY) || "0");
+        if (count >= MAX_PER_SESSION) return;
+
+        setToast(buildToast(backendNamesRef.current));
+        setVisible(true);
+        sessionStorage.setItem(SESSION_KEY, (count + 1).toString());
+
+        // Auto-hide after VISIBLE_DURATION_MS
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => setVisible(false), VISIBLE_DURATION_MS);
     }, []);
 
-    const showNext = useCallback(() => {
-        const sessionCount = parseInt(sessionStorage.getItem(SESSION_LIMIT_KEY) || "0");
-        if (sessionCount >= MAX_NOTIFICATIONS_PER_SESSION) return;
-
-        if (signups.length === 0) return;
-
-        // Pick a random recent signup
-        const randomSignup = signups[Math.floor(Math.random() * signups.length)];
-        const randomActivity = ACTIVITIES[Math.floor(Math.random() * ACTIVITIES.length)];
-
-        // Use real names from the backend
-        const fullName = `${randomSignup.first_name} ${randomSignup.last_name || ""}`.trim();
-
-        setCurrentSignup({
-            name: fullName || "Arday Garaad",
-            activity: randomActivity.text,
-            icon: randomActivity.icon
-        });
-
-        updateStats();
-
-        function updateStats() {
-            setIsVisible(true);
-            sessionStorage.setItem(SESSION_LIMIT_KEY, (sessionCount + 1).toString());
-            setTimeout(() => setIsVisible(false), 8000); // Show for 8 seconds
-        }
-    }, [signups]);
-
+    // Scheduling loop
     useEffect(() => {
         if (!shouldShow) return;
 
-        const initialTimer = setTimeout(() => {
-            fetchSignups().then(() => setHasFetched(true));
-        }, 8000);
+        let stopped = false;
 
-        return () => clearTimeout(initialTimer);
-    }, [fetchSignups, shouldShow]);
+        const schedule = (delay: number) => {
+            timerRef.current = setTimeout(() => {
+                if (stopped) return;
+                showToast();
+                // Schedule next
+                const interval = MIN_INTERVAL_MS + Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS);
+                schedule(VISIBLE_DURATION_MS + interval); // wait until current is hidden + gap
+            }, delay);
+        };
 
-    useEffect(() => {
-        if (!shouldShow || !hasFetched || signups.length === 0) return;
+        schedule(INITIAL_DELAY_MS);
 
-        showNext();
+        return () => {
+            stopped = true;
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [shouldShow, showToast]);
 
-        const interval = setInterval(() => {
-            if (!isVisible) showNext();
-        }, Math.floor(Math.random() * (90000 - 45000 + 1) + 45000));
-
-        return () => clearInterval(interval);
-    }, [hasFetched, signups, showNext, isVisible, shouldShow]);
-
-    if (!shouldShow || !currentSignup) return null;
+    if (!shouldShow || !toast || dismissed) return null;
 
     return (
         <div
             className={cn(
-                "fixed bottom-8 left-8 z-50 transition-all duration-700 ease-out transform pointer-events-none",
-                isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-16 opacity-0 scale-95"
+                "fixed bottom-8 left-4 sm:left-8 z-[60] max-w-[340px] sm:max-w-[380px] transition-all duration-500 ease-out",
+                visible
+                    ? "translate-y-0 opacity-100 scale-100 pointer-events-auto"
+                    : "translate-y-6 opacity-0 scale-95 pointer-events-none"
             )}
+            role="status"
+            aria-live="polite"
         >
-            <div className="glassmorphism flex items-center gap-5 p-5 px-6 rounded-3xl bg-card/95 dark:bg-zinc-900/95 border-2 border-primary/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] max-w-[400px] backdrop-blur-xl ring-1 ring-white/20">
-                <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-xl">
-                    {currentSignup.icon}
+            <div className="relative flex items-start gap-4 p-4 sm:p-5 rounded-2xl bg-card/98 dark:bg-zinc-900/98 border border-border shadow-2xl shadow-black/20 backdrop-blur-xl ring-1 ring-white/10">
+                {/* Avatar */}
+                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center shadow-md">
+                    {toast.activity.icon}
                 </div>
-                <div className="flex flex-col min-w-0">
-                    <p className="text-sm font-black text-foreground leading-tight flex items-center gap-2">
-                        <span className="text-primary tracking-tight">🎯 {currentSignup.name}</span>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 pr-5">
+                    <p className="text-sm font-black text-foreground leading-snug">
+                        <span className="text-primary">{toast.name}</span>
+                        {" "}
+                        <span className="text-muted-foreground font-semibold">({toast.city})</span>
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed font-bold">
-                        {currentSignup.activity}
+                    <p className="text-xs text-muted-foreground mt-0.5 font-bold leading-relaxed">
+                        {toast.activity.emoji} {toast.activity.text}
                     </p>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[10px] text-muted-foreground/70">{toast.timeAgo}</span>
+                        {toast.activity.urgency && (
+                            <>
+                                <span className="text-muted-foreground/40">·</span>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-wide">
+                                    {toast.activity.urgency}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Dismiss button */}
+                <button
+                    onClick={() => {
+                        setVisible(false);
+                        setDismissed(true);
+                    }}
+                    className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors"
+                    aria-label="Xir"
+                >
+                    <X className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Pulse dot */}
+                <div className="absolute -top-1 -right-1 w-3 h-3">
+                    <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-75" />
+                    <span className="absolute inset-0 rounded-full bg-emerald-500" />
                 </div>
             </div>
         </div>
