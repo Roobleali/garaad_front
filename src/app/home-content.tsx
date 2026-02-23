@@ -19,6 +19,11 @@ const CommunityCTASection = dynamic(() => import("@/components/landing/Community
     ssr: true
 });
 
+const FreePreviewSection = dynamic(() => import("@/components/landing/FreePreviewSection").then(mod => mod.FreePreviewSection), {
+    loading: () => <SectionSkeleton />,
+    ssr: false
+});
+
 export function HomeContent() {
     const { user, isAuthenticated } = useAuthStore();
     const posthog = usePostHog();
@@ -39,6 +44,10 @@ export function HomeContent() {
             ) : (
                 <>
                     <HeroSection />
+
+                    <Suspense fallback={<SectionSkeleton />}>
+                        <FreePreviewSection />
+                    </Suspense>
 
                     <Suspense fallback={<SectionSkeleton />}>
                         <TestimonialsSection />
