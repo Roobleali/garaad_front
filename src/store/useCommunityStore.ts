@@ -119,7 +119,11 @@ export const useCommunityStore = create<CommunityStore>((set) => ({
         posts: state.posts.filter(p => p.id !== postId)
     })),
     updatePost: (updatedPost) => set((state) => ({
-        posts: state.posts.map(p => p.id === updatedPost.id ? updatedPost : p)
+        posts: state.posts.map(p =>
+            (p.id === updatedPost.id || (updatedPost.request_id && p.request_id === updatedPost.request_id))
+                ? { ...p, ...updatedPost }
+                : p
+        )
     })),
     toggleReaction: (postId, type, isAdding) => set((state) => ({
         posts: state.posts.map(p => {
