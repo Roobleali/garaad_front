@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { inter } from "@/lib/fonts";
+import { notoSansSC } from "@/lib/fonts";
 import ClientLayout from "./client-layout";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -125,7 +125,7 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${notoSansSC.variable} font-sans antialiased text-foreground bg-background`}>
         <Providers>
           <RootErrorBoundary>
             <ClientLayout>

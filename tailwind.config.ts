@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["'FK Grotesk Neue'", "'Source Han Sans'", "var(--font-noto-sans-sc)", "sans-serif"],
+        display: ["'FK Grotesk'", "'Source Han Sans'", "var(--font-noto-sans-sc)", "sans-serif"],
+      },
       borderRadius: {
         none: "0",
         sm: "0.125rem",

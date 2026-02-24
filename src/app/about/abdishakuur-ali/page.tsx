@@ -15,7 +15,7 @@ import {
   Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { playfair } from "@/lib/fonts";
+
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -80,7 +80,7 @@ export default function AboutPage() {
                   Founder & Visionary
                 </div>
 
-                <h1 className={cn(playfair.className, "text-5xl lg:text-7xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight")}>
+                <h1 className={cn("font-display", "text-5xl lg:text-7xl font-black text-gray-900 dark:text-white leading-[1.1] tracking-tight")}>
                   Abdishakur Ali
                 </h1>
 

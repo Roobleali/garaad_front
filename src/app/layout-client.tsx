@@ -2,7 +2,7 @@
 
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/ToasterUI";
-import { inter } from "@/lib/fonts";
+import { notoSansSC } from "@/lib/fonts";
 
 export default function RootLayoutClient({
   children,
@@ -11,7 +11,7 @@ export default function RootLayoutClient({
 }>) {
   return (
     <html lang="so">
-      <body className={inter.className}>
+      <body className={`${notoSansSC.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <Toaster />
