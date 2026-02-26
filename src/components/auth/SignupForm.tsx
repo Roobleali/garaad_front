@@ -94,6 +94,27 @@ export function SignupForm({ onClose }: SignupFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
+  const router = useRouter();
+  // Fetch user location in the background
+  React.useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.city && data.country_code) {
+          // Map country code to emoji flag (optional but nice)
+          const flag = data.country_code.toUpperCase().replace(/./g, (char: string) =>
+            String.fromCodePoint(char.charCodeAt(0) + 127397)
+          );
+          setFormData(prev => ({
+            ...prev,
+            location: data.city,
+            country_flag: flag
+          }));
+        }
+      })
+      .catch(err => console.error("Location fetch failed:", err));
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -102,12 +123,14 @@ export function SignupForm({ onClose }: SignupFormProps) {
     }
 
     try {
-      const signupData: SignUpData = {
+      const signupData: any = {
         email: formData.email.trim(),
         password: formData.password.trim(),
         name: formData.firstName.trim(),
         age: parseInt(formData.age),
         promo_code: formData.promoCode.trim() || undefined,
+        location: (formData as any).location,
+        country_flag: (formData as any).country_flag,
         onboarding_data: {
           goal: "learn_math", // Default goal
           preferred_study_time: "self_paced", // Default preferred study time

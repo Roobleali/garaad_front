@@ -127,6 +127,8 @@ export interface SignUpData {
       github?: string;
     };
   };
+  location?: string;
+  country_flag?: string;
 }
 
 export interface SignUpResponse {

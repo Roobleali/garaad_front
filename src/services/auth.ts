@@ -19,6 +19,8 @@ export interface SignUpData {
     math_level: string;
     minutes_per_day: number;
   };
+  location?: string;
+  country_flag?: string;
 }
 
 export interface OnboardingData {

@@ -67,6 +67,7 @@ const VISIBLE_DURATION_MS = 8_000; // How long each toast stays visible
 interface Toast {
     name: string;
     city: string;
+    flag?: string;
     activity: typeof ACTIVITIES[number];
     timeAgo: string;
 }
@@ -80,10 +81,19 @@ function randomTimeAgo(): string {
     return randomItem(options);
 }
 
-function buildToast(backendNames: string[]): Toast {
-    const namePool = backendNames.length > 0 ? backendNames : FALLBACK_NAMES;
+function buildToast(backendData: any[]): Toast {
+    if (backendData.length > 0) {
+        const item = randomItem(backendData);
+        return {
+            name: `${item.first_name} ${item.last_name ? item.last_name[0] + "." : ""}`.trim(),
+            city: item.location || randomItem(CITIES),
+            flag: item.country_flag,
+            activity: randomItem(ACTIVITIES),
+            timeAgo: randomTimeAgo(),
+        };
+    }
     return {
-        name: randomItem(namePool),
+        name: randomItem(FALLBACK_NAMES),
         city: randomItem(CITIES),
         activity: randomItem(ACTIVITIES),
         timeAgo: randomTimeAgo(),
@@ -109,11 +119,9 @@ export function SocialProof() {
         if (!shouldShow) return;
         fetch(`${baseURL}/api/public/social-proof/`)
             .then((r) => r.ok ? r.json() : [])
-            .then((data: Array<{ first_name: string; last_name?: string }>) => {
+            .then((data) => {
                 if (Array.isArray(data) && data.length > 0) {
-                    backendNamesRef.current = data.map((d) =>
-                        `${d.first_name} ${d.last_name ? d.last_name[0] + "." : ""}`.trim()
-                    );
+                    backendNamesRef.current = data;
                 }
             })
             .catch(() => {/* silently use fallback */ });
@@ -181,6 +189,7 @@ export function SocialProof() {
                         <span className="text-primary">{toast.name}</span>
                         {" "}
                         <span className="text-muted-foreground font-semibold">({toast.city})</span>
+                        {toast.flag && <span className="ml-1.5 text-base" title="Country Flag">{toast.flag}</span>}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5 font-bold leading-relaxed">
                         {toast.activity.emoji} {toast.activity.text}

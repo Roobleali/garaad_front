@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { StudentDashboard } from "@/components/dashboard/StudentDashboard";
 import { usePostHog } from 'posthog-js/react';
 import { Loader2 } from "lucide-react";
+import { InspirationalQuotes } from "@/components/landing/InspirationalQuotes";
 
 const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection").then(mod => mod.TestimonialsSection), {
     loading: () => <SectionSkeleton />,
@@ -56,6 +57,8 @@ export function HomeContent() {
                     <Suspense fallback={<SectionSkeleton />}>
                         <CommunityCTASection />
                     </Suspense>
+
+                    <InspirationalQuotes />
                 </>
             )}
         </main>
