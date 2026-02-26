@@ -35,7 +35,7 @@ const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => (
             alt={alt}
             fill
             className="object-contain"
-            quality={30}
+            unoptimized={true}
         />
     </div>
 );
@@ -52,7 +52,7 @@ const CourseImage = ({ src, alt, priority = false }: { src?: string; alt: string
                 priority={priority}
                 className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                quality={30}
+                unoptimized={true}
             />
         </div>
     );
