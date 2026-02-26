@@ -29,6 +29,7 @@ const AuthDialog = dynamic(
 export function Header() {
   const { user } = useAuthStore();
   const pathname = usePathname();
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
@@ -88,7 +89,7 @@ export function Header() {
     authService.logout();
     if (typeof window !== "undefined") {
       localStorage.clear();
-      window.location.href = "/";
+      router.push("/");
     }
   };
 

@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { usePathname, useRouter } from "next/navigation";
 import { Eye, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -53,6 +54,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
     error,
     setError
   } = useAuthStore();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showPassword, setIsShowPassword] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'forgot-password' | 'success'>('login');
@@ -86,7 +88,7 @@ export function AuthDialog({ trigger }: AuthDialogProps) {
       if (authView === 'login') {
         await login({ email: values.email, password: values.password });
         setIsOpen(false);
-        window.location.href = '/courses';
+        router.push('/courses');
       }
     } catch (error: any) {
       console.error("Auth error:", error);

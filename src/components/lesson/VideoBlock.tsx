@@ -73,7 +73,7 @@ const VideoBlock: React.FC<{
         finalAfter = after;
       }
 
-      return `${before}/video/upload/f_mp4,q_auto/${finalAfter}.mp4`;
+      return `${before}/video/upload/f_auto,q_30/${finalAfter}.mp4`;
     }
 
     return videoUrl;
@@ -103,7 +103,7 @@ const VideoBlock: React.FC<{
       if (versionMatch) {
         finalAfter = versionMatch[1];
       }
-      return `${before}/video/upload/f_auto,q_auto,so_0/${finalAfter}.jpg`;
+      return `${before}/video/upload/f_auto,q_30,so_0/${finalAfter}.jpg`;
     }
 
     return undefined;

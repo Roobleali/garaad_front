@@ -113,13 +113,13 @@ const ErrorCard = ({
                             asChild
                             className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                         >
-                            <a
+                            <Link
                                 href={coursePath}
                                 className="flex items-center justify-center gap-2"
                             >
                                 <Home className="w-4 h-4" />
                                 Ku laabo bogga koorsada
-                            </a>
+                            </Link>
                         </Button>
                         <Button
                             variant="outline"

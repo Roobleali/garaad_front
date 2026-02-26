@@ -11,7 +11,7 @@ export const optimizeCloudinaryUrl = (url: string | undefined): string => {
         if (url.includes("/upload/")) {
             // Don't double-inject if already present
             if (!url.includes("q_auto") && !url.includes("f_auto")) {
-                return url.replace("/upload/", "/upload/f_auto,q_auto/");
+                return url.replace("/upload/", "/upload/f_auto,q_30/");
             }
         }
     }
@@ -25,6 +25,6 @@ export const optimizeCloudinaryUrl = (url: string | undefined): string => {
 export const getCloudinaryVideoPoster = (url: string | undefined): string | undefined => {
     if (!url || !url.includes("res.cloudinary.com")) return undefined;
     return url
-        .replace("/video/upload/", "/video/upload/f_auto,q_auto,so_0/")
+        .replace("/video/upload/", "/video/upload/f_auto,q_30,so_0/")
         .replace(/\.[^/.]+$/, ".jpg");
 };

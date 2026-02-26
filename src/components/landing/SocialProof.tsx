@@ -17,41 +17,31 @@ const FALLBACK_NAMES = [
     "Cabdi R.", "Sucaad N.", "Mahad L.", "Faadumo X.", "Bashiir W.",
 ];
 
-const CITIES = [
-    "Muqdisho", "Hargeysa", "Kismaayo", "Boosaaso", "Garoowe",
-    "Baardheere", "Marka", "Berbera", "Baidoa", "Toronto", "Minneapolis", "London",
-];
-
-const ACTIVITIES: { text: string; emoji: string; icon: React.ReactNode; urgency?: string }[] = [
+const ACTIVITIES: { text: string; emoji: string; icon: React.ReactNode }[] = [
     {
         text: "ayaa hadda ku biirtay Garaad!",
         emoji: "🚀",
         icon: <Rocket className="w-5 h-5 text-primary" />,
-        urgency: "Bilaash ah · Hadda bilow",
     },
     {
         text: "ayaa bilaabay koorsada Full-Stack!",
         emoji: "💻",
         icon: <BookOpen className="w-5 h-5 text-emerald-500" />,
-        urgency: "500+ ayaa wada baranaya",
     },
     {
         text: "ayaa noqday xubin Premium!",
         emoji: "⭐",
         icon: <Star className="w-5 h-5 text-yellow-500" />,
-        urgency: "Hel Premium · Hore u bilow",
     },
     {
         text: "ayaa soo dhammeeyay koorsadii ugu horreysey!",
         emoji: "🎓",
         icon: <GraduationCap className="w-5 h-5 text-primary" />,
-        urgency: "Adna samayn kartaa",
     },
     {
         text: "ayaa ku biiray bulshada Garaad!",
         emoji: "🤝",
         icon: <Users className="w-5 h-5 text-blue-500" />,
-        urgency: "500+ xubnood · Ku biir",
     },
 ];
 
@@ -66,19 +56,12 @@ const VISIBLE_DURATION_MS = 8_000; // How long each toast stays visible
 
 interface Toast {
     name: string;
-    city: string;
     flag?: string;
     activity: typeof ACTIVITIES[number];
-    timeAgo: string;
 }
 
 function randomItem<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randomTimeAgo(): string {
-    const options = ["1 daqiiqo ka hor", "2 daqiiqo ka hor", "3 daqiiqo ka hor", "daqiiqo yaroo ka hor", "5 daqiiqo ka hor"];
-    return randomItem(options);
 }
 
 function buildToast(backendData: any[]): Toast {
@@ -86,17 +69,13 @@ function buildToast(backendData: any[]): Toast {
         const item = randomItem(backendData);
         return {
             name: `${item.first_name} ${item.last_name ? item.last_name[0] + "." : ""}`.trim(),
-            city: item.location || randomItem(CITIES),
             flag: item.country_flag,
             activity: randomItem(ACTIVITIES),
-            timeAgo: randomTimeAgo(),
         };
     }
     return {
         name: randomItem(FALLBACK_NAMES),
-        city: randomItem(CITIES),
         activity: randomItem(ACTIVITIES),
-        timeAgo: randomTimeAgo(),
     };
 }
 
@@ -187,23 +166,15 @@ export function SocialProof() {
                 <div className="flex-1 min-w-0 pr-5">
                     <p className="text-sm font-black text-foreground leading-snug">
                         <span className="text-primary">{toast.name}</span>
-                        {" "}
-                        <span className="text-muted-foreground font-semibold">({toast.city})</span>
                         {toast.flag && <span className="ml-1.5 text-base" title="Country Flag">{toast.flag}</span>}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5 font-bold leading-relaxed">
                         {toast.activity.emoji} {toast.activity.text}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] text-muted-foreground/70">{toast.timeAgo}</span>
-                        {toast.activity.urgency && (
-                            <>
-                                <span className="text-muted-foreground/40">·</span>
-                                <span className="text-[10px] font-black text-primary uppercase tracking-wide">
-                                    {toast.activity.urgency}
-                                </span>
-                            </>
-                        )}
+                        <span className="text-[10px] font-black text-primary uppercase tracking-wide">
+                            Garaad
+                        </span>
                     </div>
                 </div>
 
