@@ -171,13 +171,13 @@ export default function SubscribePage() {
                 const fullPhoneNumber = prefixNumbers + (formData.accountNo || "");
 
                 const paymentData = {
-                    amount: parseFloat(order.total_amount),
                     description: order.description,
                     accountNo: fullPhoneNumber,
                     walletType: walletType,
                     // Add order reference for tracking
                     referenceId: order.order_number,
                     invoiceId: `INV-${order.id}`,
+                    subscriptionType: "monthly",
                 };
 
                 // Process the payment
@@ -429,8 +429,8 @@ export default function SubscribePage() {
                                     <h2 className="text-sm font-semibold text-gray-700 mb-2">Lagu xisaabi doono</h2>
                                     <Input
                                         placeholder="Magaca buuxa"
-                                        className="w-full h-12 text-base bg-white"
-                                        value={currentUser?.name || currentUser?.username || (currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : "")}
+                                        className="w-full h-12 text-base bg-white disabled:opacity-100 disabled:text-gray-900"
+                                        value={currentUser?.first_name || currentUser?.last_name ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : (currentUser?.name || currentUser?.username || "")}
                                         disabled
                                     />
                                 </div>

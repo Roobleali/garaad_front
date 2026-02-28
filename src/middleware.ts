@@ -11,12 +11,13 @@ const protectedRoots = [
   "/referrals",
   "/launchpad/submit",
   "/launchpad/edit",
+  "/courses",
 ];
 
 // Define paths that require premium subscription
 const premiumRoots = [
   "/lessons",
-  // Note: /courses is public (catalogue), but specific lessons are premium
+  "/courses",
 ];
 
 export async function middleware(request: NextRequest) {

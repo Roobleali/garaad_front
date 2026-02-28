@@ -7,8 +7,8 @@ interface WaafiPayError extends Error {
 
 interface PaymentRequest {
   accountNo?: string;
-  amount: number;
   description: string;
+  subscriptionType?: string;
   cardInfo?: {
     cardNumber: string;
     cardHolderName: string;
@@ -21,14 +21,23 @@ interface PaymentRequest {
 export async function POST(request: Request) {
   try {
     const body: PaymentRequest = await request.json();
-    const { accountNo, amount, description, cardInfo } = body;
+    const { accountNo, description, cardInfo, subscriptionType = "monthly" } = body;
 
     // Validate required fields
-    if (!amount || !description) {
+    if (!description) {
       return NextResponse.json(
-        { error: "Missing required fields: amount and description" },
+        { error: "Missing required fields: description" },
         { status: 400 }
       );
+    }
+
+    // STRICT PRICE VALIDATION & ENFORCEMENT:
+    // Compute amount entirely server-side so attacker cannot manipulate it.
+    let currentPrice = 49.0;
+    if (subscriptionType === "yearly") {
+      currentPrice = 99.99;
+    } else if (subscriptionType === "lifetime") {
+      currentPrice = 299.99;
     }
 
     // Validate payment method
@@ -90,7 +99,7 @@ export async function POST(request: Request) {
     // Log the request (without sensitive card data)
     console.log("Payment request:", {
       paymentMethod: cardInfo ? "CARD" : "MWALLET",
-      amount,
+      amount: currentPrice,
       description,
       timestamp: new Date().toISOString(),
     });
@@ -107,7 +116,7 @@ export async function POST(request: Request) {
     if (cardInfo) {
       const referenceId = `INV-${Date.now()}`;
       const invoiceId = referenceId;
-      const amountNum = parseFloat(amount.toString());
+      const amountNum = currentPrice;
       const currency = "USD";
       const descriptionStr = description;
       const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.garaad.org"
@@ -160,7 +169,7 @@ export async function POST(request: Request) {
     // Process payment using WaafiPay
     const response = await waafipayService.purchase({
       accountNo,
-      amount: parseFloat(amount.toString()),
+      amount: currentPrice,
       description,
       invoiceId: `INV-${Date.now()}`, // Generate a unique invoice ID
       cardInfo,
