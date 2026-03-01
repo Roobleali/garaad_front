@@ -1,93 +1,303 @@
-import { Target, Rocket, Code, Clock, BookOpen, Briefcase, GraduationCap, Laptop, Palette, BarChart, Database, BrainCircuit, Coins, Users, Calculator, Dumbbell } from "lucide-react";
+import {
+    Target, Rocket, Code, Clock, BookOpen, Briefcase,
+    Laptop, BarChart, Database,
+    BrainCircuit, Lightbulb, Wrench
+} from "lucide-react";
 import React from "react";
 
+// ─────────────────────────────────────────────
+// STEP TITLES
+// ─────────────────────────────────────────────
+// 6 steps: goal → track → level → time → project idea → personal info
 export const stepTitles = [
-    "Waa maxey hadafkaaga?",
-    "Waxa aad rabto inaad barato?",
-    "Heerkaaga?",
-    "Immisa daqiiqo ayad rabtaa inad wax-barato maalin walba?",
-    "Fadlan geli Xogtaaga:",
+    "Maxaad rabtaa inaad gaarto?",           // 1. What outcome do you want?
+    "Xirfadee kugu haboon ?", // 2. Which track fits you?
+    "Heerkaaga hadda?",                       // 3. Current level
+    "Immisa waqti ayad u haysataa maalin kastaa?", // 4. Daily time
+    "Ma leedahay fikrad project ah?",         // 5. Project idea (new)
+    "Geli macluumaadkaaga:",                  // 6. Personal info
 ];
 
+// ─────────────────────────────────────────────
+// STEP 1 — GOALS  (outcome-first framing)
+// ─────────────────────────────────────────────
 export const goals = [
-    { id: "build_project", text: "Dhis Project (Web, App, AI)", badge: "Ka bax dhibka lacag la'aanta - dhis projectkaaga oo noqo ganacsade guuleysta oo xor ah!", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
-    { id: "learn_programming", text: "Baro Programming", badge: "Ka daa shaqo la'aanta - baro xirfado cusub oo hel shaqooyin lacag wanaagsan leh oo caalami ah!", icon: React.createElement(Code, { className: "w-5 h-5" }) },
-    { id: "improve_stem", text: "Kobci STEM (Xisaab, Saynis)", badge: "Ka bax dhibka aqoon la'aanta - kobci maskaxdaada oo dhis mustaqbal ifaya oo guul leh!", icon: React.createElement(Target, { className: "w-5 h-5" }) },
-    { id: "financial_freedom", text: "Baro Lacagta & Maalgashiga", badge: "Ka daa walwalka lacagta - noqo mid madaxbannaan oo kasbo xoriyad maaliyadeed oo dhab ah!", icon: React.createElement(Coins, { className: "w-5 h-5" }) },
-    { id: "fitness", text: "Jirdhis & Fitness", badge: "Ka bax caajisnimada iyo daciifnimada - noqo mid firfircoon oo caafimaad qaba oo faraxsan!", icon: React.createElement(Dumbbell, { className: "w-5 h-5" }) },
+    {
+        id: "get_hired",
+        text: "Hel Shaqo Tech ah",
+        badge: "Junior Developer, Full-Stack, AI Engineer — dhis CV iyo portfolio kuu furaya albaabada shaqo caalamiga ah.",
+        icon: React.createElement(Briefcase, { className: "w-5 h-5" }),
+    },
+    {
+        id: "build_product",
+        text: "Dhis ganacsi ad adiga ledahay",
+        badge: "Ka fikradda ilaa MVP — dhis product dhabta ah oo kasbo lacagtaada ugu horreysa.",
+        icon: React.createElement(Rocket, { className: "w-5 h-5" }),
+    },
+    {
+        id: "freelance",
+        text: "Bilaaw Freelancing",
+        badge: "Noqo contractor madax-bannaan — hel clients, samee projects, kasbo lacag ka baaxad kasta oo adduunka ah.",
+        icon: React.createElement(Laptop, { className: "w-5 h-5" }),
+    },
+    {
+        id: "level_up",
+        text: "Kor u Qaad Xirfadahaaga",
+        badge: "Horumar shaqadaada hadda — baro Next.js, AI, Cloud ama Backend si aad uga qiimo batido shaqadaada.",
+        icon: React.createElement(Target, { className: "w-5 h-5" }),
+    },
+    {
+        id: "understand_tech",
+        text: "Faham Tech si Aad Ganacsiga Uga Maamusho",
+        badge: "Entrepreneur ama founder ah? Faham xirfad farsamo si aad kooxdaada uga xukunto oo go'aamo firfircoon gasho.",
+        icon: React.createElement(Lightbulb, { className: "w-5 h-5" }),
+    },
 ];
 
+// ─────────────────────────────────────────────
+// STEP 2 — LEARNING TRACKS
+// ─────────────────────────────────────────────
 export const topics = [
-    { id: "saas_challenge", text: "SaaS & Startup Challenge", badge: "Ka bax dhibka ganacsi la'aanta - dhis ganacsigaaga 5 usbuuc gudahood oo noqo guuleyste lacag kasbaya!", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
-    { id: "web_development", text: "Next.js & Software Development", badge: "Ka daa xirfad la'aanta - noqo horumariye web oo xirfadle ah oo hel shaqooyin caalami oo farxad leh!", icon: React.createElement(Laptop, { className: "w-5 h-5" }) },
-    { id: "ai_python", text: "Artificial Intelligence & Python", badge: "Ka bax welwelka mustaqbalka - baro tignoolajiyada cusub oo kasbo lacag badan oo xor ah!", icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }) },
-    { id: "ui_ux_design", text: "UI/UX & Product Design", badge: "Ka daa naqshad la'aanta - abuur alaabo qurux badan oo suuqa ku guuleysta oo farxad ku siiya!", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
-    { id: "math_engineering", text: "Mathematics & Engineering", badge: "Ka bax dhibka xisaab la'aanta - dhis aasaas adag oo STEM ah oo kuu furaya guul sare!", icon: React.createElement(Target, { className: "w-5 h-5" }) },
-    { id: "community_building", text: "Community Building & Social Media", badge: "Ka daa kelinimada - dhis bulsho xoog leh oo kasbo lacag iyo farxad dhab ah!", icon: React.createElement(Users, { className: "w-5 h-5" }) },
-    { id: "financial_math", text: "Financial Math & Investing", badge: "Ka bax walwalka maaliyadeed - baro sida lacagta loo maamulo oo noqo maalgeliye guuleyste!", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-    { id: "crypto_blockchain", text: "Crypto & Blockchain", badge: "Ka daa fursad la'aanta - fur siraha lacagta dhijitaalka oo kasbo xoriyad cusub oo guul leh!", icon: React.createElement(Coins, { className: "w-5 h-5" }) },
-    { id: "fitness_training", text: "Jirdhis & Fitness Training", badge: "Ka bax daciifnimada - baro jimicsiyo cusub oo noqo mid firfircoon oo caafimaad qaba oo faraxsan!", icon: React.createElement(Dumbbell, { className: "w-5 h-5" }) },
+    {
+        id: "fullstack_mern",
+        text: "Full-Stack MERN Development",
+        badge: "MongoDB, Express, React, Node.js — dhis web apps dhamaystiran oo la geli karo shaqo ama la iibsan karo.",
+        icon: React.createElement(Database, { className: "w-5 h-5" }),
+    },
+    {
+        id: "nextjs_frontend",
+        text: "Next.js & Frontend Engineering",
+        badge: "React, Next.js, Tailwind, TypeScript — dhis UIs casri ah oo xawli leh oo suuqa ku tartama.",
+        icon: React.createElement(Laptop, { className: "w-5 h-5" }),
+    },
+    {
+        id: "ai_python",
+        text: "AI, Machine Learning & Python",
+        badge: "Python, LLMs, OpenAI API, LangChain — dhis apps intelligent ah oo automating leh oo mustaqbalka saabsan.",
+        icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }),
+    },
+    {
+        id: "saas_startup",
+        text: "SaaS Business & Product Building",
+        badge: "Fikrad → MVP → Lacag — baro sida loo dhiso, la iibsado oo loo ballaarinno SaaS product dhabta ah.",
+        icon: React.createElement(Rocket, { className: "w-5 h-5" }),
+    },
+    {
+        id: "backend_apis",
+        text: "Backend Engineering & APIs",
+        badge: "REST, GraphQL, Databases, Auth, Deployment — dhis infrastructure adag oo apps kugu taageerta.",
+        icon: React.createElement(Wrench, { className: "w-5 h-5" }),
+    },
 ];
 
+// ─────────────────────────────────────────────
+// TRACK → GOAL MAPPING  (which tracks show per goal)
+// ─────────────────────────────────────────────
 export const topicsByGoal: Record<string, string[]> = {
-    build_project: ["saas_challenge", "web_development", "ai_python", "ui_ux_design", "community_building", "crypto_blockchain"],
-    learn_programming: ["web_development", "ai_python", "saas_challenge", "crypto_blockchain"],
-    improve_stem: ["math_engineering", "ai_python", "financial_math"],
-    financial_freedom: ["financial_math", "crypto_blockchain", "saas_challenge", "community_building"],
-    fitness: ["fitness_training"],
+    get_hired: ["fullstack_mern", "nextjs_frontend", "backend_apis", "ai_python"],
+    build_product: ["saas_startup", "fullstack_mern", "nextjs_frontend", "ai_python"],
+    freelance: ["nextjs_frontend", "fullstack_mern", "backend_apis", "ai_python"],
+    level_up: ["ai_python", "backend_apis", "nextjs_frontend", "fullstack_mern"],
+    understand_tech: ["saas_startup", "ai_python", "nextjs_frontend"],
 };
 
-export const topicLevelsByTopic = {
-    "saas_challenge": [
-        { title: "Bilow Cusub (Genesis)", description: "Ka bax eberka - bilaabo dhisidda MVP-kaaga oo kasbo lacagtaada ugu horreysa oo guul leh!", example: "Beddel fikraddaada ganacsi kasbaya oo xor ah.", level: "beginner", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
-        { title: "Dhisidda (Builder)", description: "Ka daa aasaaska - kobci ganacsigaaga oo hel users lacag leh oo farxad ku siiya!", example: "Samee lacag-ururin iyo maamulka users si guul leh.", level: "intermediate", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
-        { title: "Ballaarinta (Scaling)", description: "Ka bax xadka - gaarsii ganacsigaaga caalamka oo kasbo xoriyad badan!", example: "Automation suuqgeyn iyo horumarin database si guul dheeraad ah.", level: "advanced", icon: React.createElement(Rocket, { className: "w-5 h-5" }) },
+// ─────────────────────────────────────────────
+// STEP 3 — LEVELS PER TRACK
+// ─────────────────────────────────────────────
+export const topicLevelsByTopic: Record<string, Array<{
+    title: string;
+    description: string;
+    example: string;
+    level: string;
+    icon: React.ReactElement;
+}>> = {
+
+    fullstack_mern: [
+        {
+            title: "MERN Foundations",
+            description: "Baro HTML, CSS, JavaScript iyo Node.js aasaaska — ka dib waxaad dhisi doontaa server iyo webpage koowaad.",
+            example: "Dhis to-do app leh Node backend iyo React frontend.",
+            level: "beginner",
+            icon: React.createElement(Code, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Full-Stack Apps",
+            description: "Isku xir React, Express, MongoDB iyo REST API — dhis app la geli karo dhabta ah.",
+            example: "Dhis e-commerce app leh auth, cart iyo database.",
+            level: "intermediate",
+            icon: React.createElement(Database, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Production-Ready Engineer",
+            description: "Docker, CI/CD, testing, performance — deploy gareey apps heer shaqo ah oo xowli ah.",
+            example: "Deploy SaaS app leh Stripe payments iyo role-based auth.",
+            level: "advanced",
+            icon: React.createElement(Wrench, { className: "w-5 h-5" }),
+        },
     ],
-    web_development: [
-        { title: "Barashada Aasaaska", description: "Ka bax bilow la'aanta - baro aasaaska si aad u bilaabato xirfad guuleysta!", example: "Dhis bog qurxoon oo suuqa ku guuleysta.", level: "beginner", icon: React.createElement(Code, { className: "w-5 h-5" }) },
-        { title: "Next.js Mastery", description: "Ka daa heerka dhexe - dhis apps casri ah oo hel shaqo farxad leh!", example: "Dhis app leh xiriir iyo APIs kasbaya.", level: "intermediate", icon: React.createElement(Laptop, { className: "w-5 h-5" }) },
-        { title: "Full-Stack Engineer", description: "Ka bax xadka - noqo injineer dhamaystiran oo guuleysta caalamka!", example: "Dhis dashboard data leh oo xor ah.", level: "advanced", icon: React.createElement(Database, { className: "w-5 h-5" }) },
+
+    nextjs_frontend: [
+        {
+            title: "React & Next.js Basics",
+            description: "Components, props, state, routing — dhis pages xawli leh oo qurxoon.",
+            example: "Dhis portfolio website ama blog leh Next.js App Router.",
+            level: "beginner",
+            icon: React.createElement(Laptop, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Dynamic UI & APIs",
+            description: "Server Components, data fetching, Tailwind, Shadcn/UI — dhis apps leh xiriir live ah.",
+            example: "Dhis dashboard xiriira REST API oo data muujiya.",
+            level: "intermediate",
+            icon: React.createElement(Laptop, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Senior Frontend Engineer",
+            description: "Performance optimization, TypeScript strict, testing, monorepos — code heer enterprise ah.",
+            example: "Dhis design system leh Storybook iyo automated tests.",
+            level: "advanced",
+            icon: React.createElement(Code, { className: "w-5 h-5" }),
+        },
     ],
+
     ai_python: [
-        { title: "Python Fundamentals", description: "Ka bax aqoon la'aanta - bilaabo xirfad lacag leh oo mustaqbal leh!", example: "Qor scripts automate ah oo kasbaya farxad.", level: "beginner", icon: React.createElement(Code, { className: "w-5 h-5" }) },
-        { title: "Data Analysis", description: "Ka daa xog la'aanta - hel fursado cusub oo guul leh!", example: "Isticmaal tools xirfad leh si farxad.", level: "intermediate", icon: React.createElement(BarChart, { className: "w-5 h-5" }) },
-        { title: "AI and Machine Learning", description: "Ka bax welwelka - dhis apps smart oo kasbo lacag badan!", example: "Isticmaal API si abuur ganacsi guuleysta.", level: "advanced", icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }) },
+        {
+            title: "Python Essentials",
+            description: "Variables, functions, loops, files — baro Python si aad u bilaabato automating iyo data.",
+            example: "Qor script ka akhridaya CSV oo warqad email ah soo saara.",
+            level: "beginner",
+            icon: React.createElement(Code, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Data & APIs",
+            description: "Pandas, NumPy, REST APIs, visualization — falanqayn xog iyo ka shaqaynta APIs dibadda.",
+            example: "Falanqayn xog sales ah oo samee dashboard Chart.js leh.",
+            level: "intermediate",
+            icon: React.createElement(BarChart, { className: "w-5 h-5" }),
+        },
+        {
+            title: "AI & LLM Engineering",
+            description: "OpenAI API, LangChain, RAG, fine-tuning, vector databases — dhis apps intelligent ah.",
+            example: "Dhis AI chatbot leh RAG ka akhridaya PDF-yaada ganacsigaaga.",
+            level: "advanced",
+            icon: React.createElement(BrainCircuit, { className: "w-5 h-5" }),
+        },
     ],
-    ui_ux_design: [
-        { title: "Aasaaska Visual Design", description: "Ka bax abuur la'aanta - bilaabo xirfad hal abuur leh oo farxad!", example: "Naqshad logo fudud oo guuleysta.", level: "beginner", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
-        { title: "UX Research & Wiring", description: "Ka daa faham la'aanta - hel users badan oo kasbaya!", example: "Dhis prototype tijaabo leh oo farxad.", level: "intermediate", icon: React.createElement(BookOpen, { className: "w-5 h-5" }) },
-        { title: "Product Design", description: "Ka bax xadka - dhis system suuq leh oo guul badan!", example: "Naqshad app dhan oo lacag leh.", level: "advanced", icon: React.createElement(Palette, { className: "w-5 h-5" }) },
+
+    saas_startup: [
+        {
+            title: "Idea → MVP",
+            description: "Validation, problem framing, no-code tools, landing page — xaqiiji fikradda ka hor intaadan code galin.",
+            example: "Dhis landing page leh waitlist oo hel 100 emails usbuuc gudahood.",
+            level: "beginner",
+            icon: React.createElement(Lightbulb, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Build & Monetize",
+            description: "Stripe, auth, onboarding, pricing — dhis MVP lacag keenaya oo la gaarsiin karo users.",
+            example: "Wax ku bixi Stripe Checkout iyo free/paid tier subscription.",
+            level: "intermediate",
+            icon: React.createElement(Rocket, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Scale & Grow",
+            description: "Churn reduction, growth loops, hiring, metrics — ka shaqee kordhinaanta oo gaarsii $10K MRR.",
+            example: "Dhis referral program iyo automated onboarding emails.",
+            level: "advanced",
+            icon: React.createElement(BarChart, { className: "w-5 h-5" }),
+        },
     ],
-    math_engineering: [
-        { title: "Foundation Math", description: "Ka bax dhibka aasaas la'aanta - dhis xirfad adag oo guuleysta!", example: "Xisaab muhiim ah oo farxad leh.", level: "beginner", icon: React.createElement(Target, { className: "w-5 h-5" }) },
-        { title: "Engineering Physics", description: "Ka daa faham la'aanta - hel shaqooyin sare oo xor ah!", example: "Xal mashaakil injineernimo leh guul.", level: "intermediate", icon: React.createElement(Target, { className: "w-5 h-5" }) },
-        { title: "Calculus & Beyond", description: "Ka bax welwelka - isticmaal xisaab sare oo kasbo lacag badan!", example: "Falanqayn adag oo xirfad leh.", level: "advanced", icon: React.createElement(Target, { className: "w-5 h-5" }) },
-    ],
-    community_building: [
-        { title: "Aasaaska Bulshada", description: "Ka bax kelinimada - bilaabo bulsho fudud oo farxad leh!", example: "Isticmaal social si bilaab group.", level: "beginner", icon: React.createElement(Users, { className: "w-5 h-5" }) },
-        { title: "Kobcinta Bulshada", description: "Ka daa yaraynta - kordhi users oo kasbo lacag guuleysta!", example: "Abuur content oo engagement leh.", level: "intermediate", icon: React.createElement(Users, { className: "w-5 h-5" }) },
-        { title: "Monetization Bulshada", description: "Ka bax lacag la'aanta - beddel bulshada ganacsi xor ah!", example: "Marketing iyo content premium leh.", level: "advanced", icon: React.createElement(Users, { className: "w-5 h-5" }) },
-    ],
-    financial_math: [
-        { title: "Aasaaska Maaliyadda", description: "Ka bax walwalka - baro xisaab lacag leh oo bilaab guul!", example: "Miisaaniyad iyo faa'iido fudud.", level: "beginner", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Maalgashiga Dhexe", description: "Ka daa khatarta - falanqee maalgashiga oo dhis xoriyad!", example: "Falanqayn saamiyada iyo dhis portfolio.", level: "intermediate", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-        { title: "Maaliyad Sare", description: "Ka bax xadka - isticmaal algorithms trading guuleysta!", example: "Finance quantitative oo algorithmic leh.", level: "advanced", icon: React.createElement(Calculator, { className: "w-5 h-5" }) },
-    ],
-    crypto_blockchain: [
-        { title: "Aasaaska Crypto", description: "Ka bax aqoon la'aanta - faham blockchain oo bilaab kasbasho!", example: "Iibso oo iibiyo Bitcoin si fudud.", level: "beginner", icon: React.createElement(Coins, { className: "w-5 h-5" }) },
-        { title: "Dhisidda DApps", description: "Ka daa yaraynta - dhis apps decentralized oo guuleysta!", example: "Contracts smart iyo wallet xiriir.", level: "intermediate", icon: React.createElement(Coins, { className: "w-5 h-5" }) },
-        { title: "Crypto Trading Sare", description: "Ka bax welwelka - strategies sare oo DeFi oo xor ah!", example: "Farming yield iyo NFT horumarin.", level: "advanced", icon: React.createElement(Coins, { className: "w-5 h-5" }) },
-    ],
-    fitness_training: [
-        { title: "Bilow Cusub", description: "Ka bax caajisnimada - bilaabo jimicsi fudud oo caafimaad leh oo farxad!", example: "Jimicsiyo yar iyo talo cunno wanaagsan.", level: "beginner", icon: React.createElement(Dumbbell, { className: "w-5 h-5" }) },
-        { title: "Dhexe", description: "Ka daa daciifnimada - kobci xoogga oo noqo firfircoon guuleysta!", example: "Tababarro dhexe iyo qorshe cunno.", level: "intermediate", icon: React.createElement(Dumbbell, { className: "w-5 h-5" }) },
-        { title: "Sare", description: "Ka bax xadka - tababarro adag oo caafimaad xor ah oo farxad badan!", example: "Workouts xoog leh iyo horumarin cunno.", level: "advanced", icon: React.createElement(Dumbbell, { className: "w-5 h-5" }) },
+
+    backend_apis: [
+        {
+            title: "Server & Database Basics",
+            description: "Node.js, Express, SQL/PostgreSQL, REST — dhis API fudud oo xiriira database.",
+            example: "Dhis CRUD API users iyo posts leh JWT auth.",
+            level: "beginner",
+            icon: React.createElement(Database, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Advanced APIs & Auth",
+            description: "GraphQL, OAuth 2.0, Redis caching, webhooks — dhis backend adag oo heer lacag leh.",
+            example: "Wax ku bixi OAuth Google/GitHub iyo rate limiting.",
+            level: "intermediate",
+            icon: React.createElement(Wrench, { className: "w-5 h-5" }),
+        },
+        {
+            title: "Cloud & DevOps",
+            description: "AWS/GCP, Docker, Kubernetes, monitoring — deploy gareey oo maamul infrastructure heer enterprise ah.",
+            example: "Deploy microservices leh Docker Compose iyo auto-scaling.",
+            level: "advanced",
+            icon: React.createElement(Database, { className: "w-5 h-5" }),
+        },
     ],
 };
 
+// ─────────────────────────────────────────────
+// STEP 4 — DAILY TIME COMMITMENT
+// ─────────────────────────────────────────────
 export const learningGoals = [
-    { id: "10_min", text: "10 daqiiqo maalin walba", badge: "Ka bax waqti la'aanta - bilaab talaabo yar oo guul weyn kuu keenta si fudud!", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
-    { id: "20_min", text: "20 daqiiqo maalin walba", badge: "Ka daa caajisnimada - isticmaal waqtigaaga si fiican oo samee horumar dhab ah!", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
-    { id: "30_min", text: "30 daqiiqo maalin walba", badge: "Ka bax adkaysi la'aanta - dadaal oo kasbo xirfado cusub oo farxad leh!", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
-    { id: "60_min", text: "1 saac maalin walba", badge: "Ka daa welwelka - waxbar si joogto ah oo noqo xirfadle guuleyste oo xor ah!", icon: React.createElement(Clock, { className: "w-5 h-5" }) },
+    {
+        id: "15_min",
+        text: "15 daqiiqo — Cashar maalinlaha ah",
+        badge: "Ku habboon kuwa mashquulsan — talaabo yar maalin kasta ayaa guul weyn ku keenta.",
+        icon: React.createElement(Clock, { className: "w-5 h-5" }),
+    },
+    {
+        id: "30_min",
+        text: "30 daqiiqo — Waxbarasho joogto ah",
+        badge: "Xawli ku meelmaraya — baro xirfad cusub 3 bilood gudahood.",
+        icon: React.createElement(Clock, { className: "w-5 h-5" }),
+    },
+    {
+        id: "60_min",
+        text: "1 saac — Xirfadle xuubsibixi ah",
+        badge: "Noqo developer shaqo-diyaar ah 6 bilood gudahood.",
+        icon: React.createElement(Clock, { className: "w-5 h-5" }),
+    },
+    {
+        id: "90_min",
+        text: "1.5 saac+ — Dhis si degdeg ah",
+        badge: "Heerkan waxaad ku dhisi kartaa MVP dhabta ah 4–6 usbuuc gudahood.",
+        icon: React.createElement(Clock, { className: "w-5 h-5" }),
+    },
 ];
+
+// ─────────────────────────────────────────────
+// STEP 5 — PROJECT IDEA  (NEW STEP)
+// ─────────────────────────────────────────────
+// This drives curriculum personalisation: if student has an idea,
+// lessons and projects revolve around building *their* product.
+export const projectIdeaOptions = [
+    {
+        id: "yes_clear",
+        text: "Haa — Fikrad cad ayaan leeyahay",
+        badge: "Aad! Waxbarashadaada waxaan ku haynaa project-kaaga si aad si dhakhso ah ugu dhisin.",
+        description: "Gabagabo onboarding-ka waxaad geli doontaa sharaxaad kooban oo projectgaaga ah.",
+        icon: React.createElement(Rocket, { className: "w-5 h-5" }),
+    },
+    {
+        id: "yes_vague",
+        text: "Wax baan hayaa — laakiin weli kama cadda",
+        badge: "Waa caadi — casharyadu kaa caawinayaan inaad sifayso oo aad xaqiijiso fikraddaada.",
+        description: "Waxaan ku tusin doonaa sida validation loo sameeyo ka hor dhisid.",
+        icon: React.createElement(Lightbulb, { className: "w-5 h-5" }),
+    },
+    {
+        id: "no_idea",
+        text: "Maya — Waxaan rabaa inad ii soo jeediso",
+        badge: "Dhib ma aha — waxaanu ku siineynaa project ideas la xiriira xirfadahaaga iyo hadafkaaga.",
+        description: "Curriculum default waxaan kuu dooran doonaa project faa'iido leh oo heer-kaaga ku habboon.",
+        icon: React.createElement(BookOpen, { className: "w-5 h-5" }),
+    },
+];
+
+// ─────────────────────────────────────────────
+// STEP 5b — PROJECT IDEA TEXT INPUT (conditional)
+// Shown only when user picks "yes_clear" or "yes_vague"
+// ─────────────────────────────────────────────
+export const projectIdeaPrompt = {
+    label: "Sharax project-kaaga:",
+    placeholder: "Tusaale: Waxaan dhisi rabaa SaaS tool u ah freelancers si ay invoices u maamulaan...",
+    helpText: "Hal jumlad oo ku filan. Casharyada iyo projects-ka waxaan ku habayn doonaa fikraddaada.",
+};
