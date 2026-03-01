@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,18 @@ interface BlogListClientProps {
 }
 
 export function BlogListClient({ initialPosts }: BlogListClientProps) {
+    const searchParams = useSearchParams();
+    const querySearch = searchParams.get("search");
+
     const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState(querySearch || "");
     const [activeTab, setActiveTab] = useState("all");
+
+    useEffect(() => {
+        if (querySearch) {
+            setSearchTerm(querySearch);
+        }
+    }, [querySearch]);
 
     const filteredPosts = useMemo(() => {
         return posts.filter(post => {

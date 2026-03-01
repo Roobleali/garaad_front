@@ -66,14 +66,14 @@ export function Header() {
       user
         ? [
           { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-          { name: " Challenge", href: "/challenge", icon: Home },
+          { name: "Challenge", href: "/challenge", icon: Home },
           { name: "Bulshada", href: "/community", icon: Users },
           { name: "Blog", href: "/blog", icon: Newspaper },
           { name: "Launchpad", href: "/launchpad", icon: Rocket },
         ]
         : [
           { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
-          { name: " Challenge", href: "/challenge", icon: Home },
+          { name: "Challenge", href: "/challenge", icon: Home },
           { name: "Bulshada", href: "/communitypreview", icon: Users },
           { name: "Blog", href: "/blog", icon: Newspaper },
           { name: "Launchpad", href: "/launchpad", icon: Rocket },
@@ -107,12 +107,12 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo & Desktop Nav */}
-          <div className="items-center gap-10 flex">
+          <div className="items-center gap-6 flex">
             <Link href="/" className="group flex items-center gap-2">
               <Logo priority={true} loading="eager" />
             </Link>
 
-            <nav className="hidden md:flex items-center gap-10">
+            <nav className="hidden md:flex items-center gap-6">
               {navLinks.map(({ name, href, icon: Icon }) => {
                 const active = isLinkActive(href);
                 return (

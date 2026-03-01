@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
     Calendar,
@@ -11,7 +12,8 @@ import {
     ArrowRight,
     Facebook,
     Twitter as TwitterIcon,
-    Linkedin
+    Linkedin,
+    Search
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +26,7 @@ interface BlogDetailClientProps {
 }
 
 export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) {
+    const router = useRouter();
     const [scrollProgress, setScrollProgress] = useState(0);
     const [toc, setToc] = useState<{ id: string; text: string; level: number }[]>([]);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -87,68 +90,81 @@ export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) 
                 />
             </div>
 
-            <main className="bg-white min-h-screen pb-24">
-                {/* Hero Header */}
-                <div className="relative w-full h-[60vh] md:h-[70vh] bg-slate-900 overflow-hidden">
-                    {coverImage ? (
-                        <Image
-                            src={coverImage}
-                            alt={post.title}
-                            fill
-                            priority
-                            className="object-cover opacity-60 scale-105"
-                        />
-                    ) : (
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/10 to-transparent" />
+            <main className="bg-white min-h-screen pb-24 pt-10">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+                    <Link
+                        href="/blog"
+                        className="inline-flex items-center text-sm font-bold text-slate-500 hover:text-primary mb-10 transition-colors group"
+                    >
+                        <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        Dhammaan Qoraalada
+                    </Link>
 
-                    <div className="absolute inset-0 flex items-end">
-                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-16">
-                            <Link
-                                href="/blog"
-                                className="inline-flex items-center text-sm font-medium text-slate-800 hover:text-primary mb-8 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full transition-all"
-                            >
-                                <ChevronLeft className="mr-1 h-4 w-4" />
-                                Dib ugu noqo
-                            </Link>
-
-                            <div className="space-y-6">
-                                <div className="flex flex-wrap gap-2">
-                                    {post.tags.map(tag => (
-                                        <Badge key={tag.id} className="bg-primary text-white border-none px-3">
-                                            {tag.name}
-                                        </Badge>
-                                    ))}
+                    <div className="space-y-6">
+                        <div className="flex flex-wrap gap-2">
+                            {post.tags.map(tag => (
+                                <Badge key={tag.id} className="bg-primary/10 text-primary border-none px-3 font-bold hover:bg-primary/20">
+                                    {tag.name}
+                                </Badge>
+                            ))}
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                            {post.title}
+                        </h1>
+                        <div className="flex flex-wrap items-center gap-6 text-slate-500 font-semibold pt-4 border-t border-slate-100">
+                            <div className="flex items-center">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold mr-3 border border-primary/20">
+                                    {post.author_name?.[0]?.toUpperCase()}
                                 </div>
-                                <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-tight tracking-tight">
-                                    {post.title}
-                                </h1>
-                                <div className="flex flex-wrap items-center gap-6 text-slate-600 font-medium border-t border-slate-200 pt-6">
-                                    <div className="flex items-center">
-                                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold mr-3 border border-primary/20">
-                                            {post.author_name?.[0]?.toUpperCase()}
-                                        </div>
-                                        <span>{post.author_name}</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Calendar className="mr-2 h-4 w-4 text-primary" />
-                                        {formatDate(post.published_at)}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Clock className="mr-2 h-4 w-4 text-primary" />
-                                        {calculateReadingTime(post.body)} daqiiqo akhris ah
-                                    </div>
-                                </div>
+                                <span>{post.author_name}</span>
+                            </div>
+                            <div className="flex items-center">
+                                <Calendar className="mr-2 h-4 w-4 text-slate-400" />
+                                {formatDate(post.published_at)}
+                            </div>
+                            <div className="flex items-center">
+                                <Clock className="mr-2 h-4 w-4 text-slate-400" />
+                                {calculateReadingTime(post.body)} daqiiqo
                             </div>
                         </div>
                     </div>
+
+                    {coverImage && (
+                        <div className="mt-12 relative aspect-[21/10] w-full rounded-3xl overflow-hidden shadow-2xl shadow-primary/5">
+                            <Image
+                                src={coverImage}
+                                alt={post.title}
+                                fill
+                                priority
+                                className="object-cover"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16">
                         {/* Sidebar Left: TOC & Share */}
                         <aside className="lg:col-span-3 hidden lg:block sticky top-24 h-fit space-y-10">
+                            {/* Quick Search */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center">
+                                    <Search className="mr-2 h-4 w-4" /> Raadi Blogga
+                                </h3>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Raadi qoraal kale..."
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                router.push(`/blog?search=${(e.target as HTMLInputElement).value}`);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
                             {toc.length > 0 && (
                                 <div className="space-y-4">
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center">
