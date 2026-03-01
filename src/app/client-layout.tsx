@@ -29,12 +29,17 @@ export default function ClientLayout({
           setUser(user);
 
           try {
-            const [profile, notifs] = await Promise.all([
-              communityService.profile.getUserProfile(),
-              communityService.notification.getNotifications()
-            ]);
-            setUserProfile(profile as any);
-            setNotifications(((notifs as any).results || notifs) as any[]);
+            const profile = await communityService.profile.getUserProfile().catch(err => {
+              console.warn("Failed to fetch community profile:", err);
+              return null;
+            });
+            const notifs = await communityService.notification.getNotifications().catch(err => {
+              console.warn("Failed to fetch notifications:", err);
+              return { results: [] };
+            });
+
+            if (profile) setUserProfile(profile as any);
+            if (notifs) setNotifications(((notifs as any).results || notifs) as any[]);
           } catch (err) {
             console.error("Failed to fetch initial community data:", err);
           }

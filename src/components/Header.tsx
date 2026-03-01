@@ -4,7 +4,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePathname, useRouter } from "next/navigation";
-import { FolderDot, Home, X, Users, Menu, User, LogOut, LogIn, GraduationCap, Rocket } from "lucide-react";
+import { FolderDot, Home, X, Users, Menu, User, LogOut, LogIn, GraduationCap, Rocket, Newspaper } from "lucide-react";
 import clsx from "clsx";
 import { useMemo, useCallback, useState, useEffect } from "react";
 import AuthService from "@/services/auth";
@@ -68,12 +68,14 @@ export function Header() {
           { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
           { name: " Challenge", href: "/challenge", icon: Home },
           { name: "Bulshada", href: "/community", icon: Users },
+          { name: "Blog", href: "/blog", icon: Newspaper },
           { name: "Launchpad", href: "/launchpad", icon: Rocket },
         ]
         : [
           { name: "Koorsooyinka", href: "/courses", icon: FolderDot },
           { name: " Challenge", href: "/challenge", icon: Home },
           { name: "Bulshada", href: "/communitypreview", icon: Users },
+          { name: "Blog", href: "/blog", icon: Newspaper },
           { name: "Launchpad", href: "/launchpad", icon: Rocket },
         ],
     [user]
@@ -110,7 +112,7 @@ export function Header() {
               <Logo priority={true} loading="eager" />
             </Link>
 
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-10">
               {navLinks.map(({ name, href, icon: Icon }) => {
                 const active = isLinkActive(href);
                 return (
@@ -118,22 +120,25 @@ export function Header() {
                     key={href}
                     href={href}
                     className={clsx(
-                      "group relative flex items-center gap-2 text-xs font-bold transition-colors",
+                      "group relative flex items-center gap-2.5 text-[13px] font-bold transition-all duration-300",
                       active
                         ? "text-primary"
-                        : "text-slate-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
+                        : "text-slate-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
                     )}
                   >
                     <Icon
                       className={clsx(
-                        "w-3.5 h-3.5 transition-transform group-hover:scale-110",
+                        "w-[18px] h-[18px] transition-transform duration-300 group-hover:scale-110",
                         active && "animate-pulse"
                       )}
                     />
-                    <span>{name}</span>
-                    {active && (
-                      <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                    )}
+                    <span className="relative">
+                      {name}
+                      <span className={clsx(
+                        "absolute -bottom-1.5 left-0 h-[2px] bg-primary transition-all duration-300 rounded-full",
+                        active ? "w-full" : "w-0 group-hover:w-full"
+                      )} />
+                    </span>
                   </Link>
                 );
               })}

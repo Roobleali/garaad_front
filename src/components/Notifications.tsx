@@ -109,10 +109,14 @@ export default function NotificationPanel() {
   const fetchAllNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await communityService.notification.getNotifications();
-      setNotifications(response.results || response);
+      const response = await communityService.notification.getNotifications().catch(err => {
+        console.warn("Notifications system unavailable", err);
+        return { results: [] };
+      });
+      setNotifications(response.results || response || []);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
+      setNotifications([]);
     } finally {
       setIsLoading(false);
     }
@@ -241,7 +245,7 @@ export default function NotificationPanel() {
                                     await communityService.notification.markNotificationRead(notif.id);
                                     markNotificationReadLocal(notif.id);
                                   } catch (err) {
-                                    console.error("Failed to mark read:", err);
+                                    console.warn("Failed to mark read (Notifications unavailable):", err);
                                   }
                                 }
                                 setOpen(false);
@@ -257,7 +261,7 @@ export default function NotificationPanel() {
                                     await communityService.notification.markNotificationRead(notif.id);
                                     markNotificationReadLocal(notif.id);
                                   } catch (err) {
-                                    console.error("Failed to mark read:", err);
+                                    console.warn("Failed to mark read (Notifications unavailable):", err);
                                   }
                                 }
                               }}
@@ -371,7 +375,7 @@ export default function NotificationPanel() {
                       await communityService.notification.markAllNotificationsRead();
                       markAllNotificationsReadLocal();
                     } catch (err) {
-                      console.error("Failed to mark all read:", err);
+                      console.warn("Failed to mark all read (Notifications unavailable):", err);
                     }
                   }}
                 >
