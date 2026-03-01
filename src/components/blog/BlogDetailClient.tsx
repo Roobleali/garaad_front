@@ -111,6 +111,12 @@ export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) 
                         <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] tracking-tight">
                             {post.title}
                         </h1>
+
+                        {post.excerpt && (
+                            <p className="text-xl md:text-2xl font-medium text-slate-600 leading-relaxed border-l-4 border-primary/20 pl-6 py-2 italic bg-slate-50/50 rounded-r-xl">
+                                {post.excerpt}
+                            </p>
+                        )}
                         <div className="flex flex-wrap items-center gap-6 text-slate-500 font-semibold pt-4 border-t border-slate-100">
                             <div className="flex items-center">
                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold mr-3 border border-primary/20">

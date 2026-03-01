@@ -43,6 +43,7 @@ export function BlogListClient({ initialPosts }: BlogListClientProps) {
             const matchesSearch =
                 post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                post.meta_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 post.tags.some(tag => tag.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
             if (activeTab === "all") return matchesSearch;
@@ -128,7 +129,7 @@ export function BlogListClient({ initialPosts }: BlogListClientProps) {
                         </h3>
                     </Link>
 
-                    <p className="line-clamp-2 text-sm text-slate-600 mb-6 leading-relaxed">
+                    <p className="line-clamp-3 text-sm text-slate-600 mb-6 leading-relaxed">
                         {post.excerpt || post.meta_description}
                     </p>
 

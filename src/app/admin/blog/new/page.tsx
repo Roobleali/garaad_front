@@ -18,6 +18,7 @@ export default function NewBlogPostPage() {
     const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState("");
     const [body, setBody] = useState("");
+    const [excerpt, setExcerpt] = useState("");
     const [metaDescription, setMetaDescription] = useState("");
     const [tags, setTags] = useState("");
     const [coverImage, setCoverImage] = useState<File | null>(null);
@@ -42,6 +43,7 @@ export default function NewBlogPostPage() {
             const formData = new FormData();
             formData.append("title", title);
             formData.append("body", body);
+            formData.append("excerpt", excerpt);
             formData.append("meta_description", metaDescription);
             formData.append("is_published", String(publish));
             if (coverImage) {
@@ -133,11 +135,22 @@ export default function NewBlogPostPage() {
 
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="meta-description" className="font-medium">Meta Description (Max 160 xaraf)</Label>
+                            <Label htmlFor="excerpt" className="font-medium">Nuxurka Qoraalka (Excerpt/Teaser)</Label>
+                            <Textarea
+                                id="excerpt"
+                                placeholder="Qoraalka kooban ee lagu soo bandhigayo liiska..."
+                                className="h-[100px] resize-none"
+                                value={excerpt}
+                                onChange={(e) => setExcerpt(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="meta-description" className="font-medium">SEO Meta Description (Max 160 xaraf)</Label>
                             <Textarea
                                 id="meta-description"
                                 placeholder="Qoraalka kooban oo SEO-ga loo isticmaalayo..."
-                                className="h-[120px] resize-none"
+                                className="h-[80px] resize-none"
                                 maxLength={160}
                                 value={metaDescription}
                                 onChange={(e) => setMetaDescription(e.target.value)}
@@ -160,7 +173,7 @@ export default function NewBlogPostPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label className="text-lg font-semibold">Nuxurka Qoraalka</Label>
+                    <Label className="text-lg font-semibold">Faahfaahinta Qoraalka (Main Content)</Label>
                     <TipTapEditor content={body} onChange={setBody} />
                 </div>
             </div>
