@@ -134,6 +134,26 @@ export default function AdminHomePage() {
                         Maamul su'aalaha iyo dhibaatooyinka
                     </p>
                 </Link>
+
+                <Link
+                    href="/admin/blog"
+                    className="group bg-white rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100"
+                >
+                    <div className="flex items-center gap-3.5 mb-3">
+                        <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                            📰
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-gray-800 group-hover:text-orange-700 transition-colors leading-tight">
+                                Blog-ga
+                            </h2>
+                            <p className="text-gray-400 text-[8px] font-black uppercase tracking-widest">Blog Management</p>
+                        </div>
+                    </div>
+                    <p className="text-gray-500 text-xs font-medium">
+                        Maamul qoraalada blog-ga ee standalone-ka ah
+                    </p>
+                </Link>
             </div>
         </div>
     );

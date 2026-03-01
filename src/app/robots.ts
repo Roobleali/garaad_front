@@ -15,11 +15,13 @@ export default function robots(): MetadataRoute.Robots {
           "/somali-physics*",
           "/somali-ai*",
           "/ai-soomaali*",
+          "/blog*",
         ],
         disallow: [
           "/api/",
           "/_next/",
           "/admin/",
+          "/admin/blog*",
           "/dashboard/",
           "/profile/",
           "/verify-email/",
@@ -31,8 +33,8 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "Googlebot",
-        allow: ["/", "/courses", "/courses/*", "/about", "/somali-math*", "/somali-ai*"],
-        disallow: ["/api/", "/_next/", "/admin/"],
+        allow: ["/", "/courses", "/courses/*", "/about", "/somali-math*", "/somali-ai*", "/blog*"],
+        disallow: ["/api/", "/_next/", "/admin/", "/admin/blog*"],
       }
     ],
     sitemap: "https://garaad.so/sitemap.xml",

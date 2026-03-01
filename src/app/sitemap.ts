@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/welcome`, lastModified: currentDate, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/privacy`, lastModified: currentDate, changeFrequency: "yearly", priority: 0.3 },
     { url: `${baseUrl}/terms`, lastModified: currentDate, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${baseUrl}/blog`, lastModified: currentDate, changeFrequency: "daily", priority: 0.8 },
   ];
 
   const dynamicRoutes: MetadataRoute.Sitemap = [];
@@ -88,6 +89,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(post.updated_at || currentDate),
         changeFrequency: "daily",
         priority: 0.6,
+      });
+    });
+
+    // 6. Blog Posts
+    const blogPostsRes = await fetch(`${API_BASE_URL}/api/blog/posts/`, { next: { revalidate: 3600 } });
+    const blogPosts = blogPostsRes.ok ? await blogPostsRes.json() : [];
+
+    blogPosts.forEach((post: any) => {
+      dynamicRoutes.push({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.updated_at || post.published_at || currentDate),
+        changeFrequency: "weekly",
+        priority: 0.9,
+      });
+    });
+
+    // 7. Blog Tags
+    const blogTagsRes = await fetch(`${API_BASE_URL}/api/blog/tags/`, { next: { revalidate: 3600 } });
+    const blogTags = blogTagsRes.ok ? await blogTagsRes.json() : [];
+
+    blogTags.forEach((tag: any) => {
+      dynamicRoutes.push({
+        url: `${baseUrl}/blog/tag/${tag.slug}`,
+        lastModified: currentDate,
+        changeFrequency: "weekly",
+        priority: 0.7,
       });
     });
 
