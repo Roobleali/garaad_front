@@ -2,7 +2,8 @@
 import React, { useState, useMemo, memo, Suspense, lazy } from "react";
 import { X } from "lucide-react";
 import Image from "next/image";
-import Latex from "react-latex-next";
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import { ExplanationText } from "@/types/learning";
 
 // Lazy‑load markdown renderer
