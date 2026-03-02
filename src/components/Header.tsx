@@ -112,7 +112,7 @@ export function Header() {
               <Logo priority={true} loading="eager" />
             </Link>
 
-            <nav className="hidden md:flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-8">
               {navLinks.map(({ name, href, icon: Icon }) => {
                 const active = isLinkActive(href);
                 return (
