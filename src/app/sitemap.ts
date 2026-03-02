@@ -24,7 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 2. Dynamic Categories and Courses
     // Using a longer revalidate for sitemap
     const categoriesRes = await fetch(`${API_BASE_URL}/api/lms/categories/`, { next: { revalidate: 86400 } });
-    const categories = categoriesRes.ok ? await categoriesRes.json() : [];
+    const categoriesData = categoriesRes.ok ? await categoriesRes.json() : [];
+    const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.results || []);
 
     for (const cat of categories) {
       // Category Landing Page
@@ -37,7 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       // Courses for this category
       const coursesRes = await fetch(`${API_BASE_URL}/api/lms/courses/?category=${cat.id}`, { next: { revalidate: 86400 } });
-      const courses = coursesRes.ok ? await coursesRes.json() : [];
+      const coursesData = coursesRes.ok ? await coursesRes.json() : [];
+      const courses = Array.isArray(coursesData) ? coursesData : (coursesData.results || []);
 
       for (const course of courses) {
         const coursePath = `/courses/${cat.id}/${course.slug}`;
@@ -50,7 +52,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
         // 3. Dynamic Lessons for each course
         const lessonsRes = await fetch(`${API_BASE_URL}/api/lms/lessons/?course=${course.id}`, { next: { revalidate: 86400 } });
-        const lessons = lessonsRes.ok ? await lessonsRes.json() : [];
+        const lessonsData = lessonsRes.ok ? await lessonsRes.json() : [];
+        const lessons = Array.isArray(lessonsData) ? lessonsData : (lessonsData.results || []);
 
         for (const lesson of lessons) {
           dynamicRoutes.push({
@@ -94,7 +97,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 6. Blog Posts
     const blogPostsRes = await fetch(`${API_BASE_URL}/api/blog/posts/`, { next: { revalidate: 3600 } });
-    const blogPosts = blogPostsRes.ok ? await blogPostsRes.json() : [];
+    const blogPostsData = blogPostsRes.ok ? await blogPostsRes.json() : [];
+    const blogPosts = Array.isArray(blogPostsData) ? blogPostsData : (blogPostsData.results || []);
 
     blogPosts.forEach((post: any) => {
       dynamicRoutes.push({
@@ -107,7 +111,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // 7. Blog Tags
     const blogTagsRes = await fetch(`${API_BASE_URL}/api/blog/tags/`, { next: { revalidate: 3600 } });
-    const blogTags = blogTagsRes.ok ? await blogTagsRes.json() : [];
+    const blogTagsData = blogTagsRes.ok ? await blogTagsRes.json() : [];
+    const blogTags = Array.isArray(blogTagsData) ? blogTagsData : (blogTagsData.results || []);
 
     blogTags.forEach((tag: any) => {
       dynamicRoutes.push({

@@ -72,10 +72,27 @@ export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) 
 
     const coverImage = post.cover_image_url || post.cover_image;
 
-    // Inject IDs into body for TOC
+    // Inject IDs into body for TOC and handle plain text newlines
     const processedBody = post.body ? (() => {
+        let content = post.body;
+
+        // Check if the content has any block-level HTML tags
+        const hasBlockTags = /<(p|div|ul|ol|table|blockquote|h1|h2|h3|h4|h5|h6)/i.test(content);
+
+        if (!hasBlockTags) {
+            // Convert plain text to HTML paragraphs
+            content = content
+                .split(/\n\s*\n/) // Split by double newlines (paragraphs)
+                .map(para => {
+                    if (!para.trim()) return '';
+                    // Convert single newlines inside paragraph to <br />
+                    return `<p>${para.replace(/\n/g, '<br />')}</p>`;
+                })
+                .join('');
+        }
+
         let count = 0;
-        return post.body.replace(/<(h2|h3)(.*?)>/g, (match, p1, p2) => {
+        return content.replace(/<(h2|h3)(.*?)>/g, (match, p1, p2) => {
             return `<${p1}${p2} id="heading-${count++}">`;
         });
     })() : "";
