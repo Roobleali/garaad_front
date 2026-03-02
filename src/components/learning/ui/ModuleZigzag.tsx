@@ -65,28 +65,31 @@ export default function ModuleZigzag({
         const isAuthenticated = !!user;
         const isPremium = authService.isPremium();
 
-        if (!isAuthenticated || !isPremium) {
-            router.push('/welcome');
+        // not logged in → welcome (or login) page
+        if (!isAuthenticated) {
+            router.push("/welcome"); // or "/login"
             return;
         }
 
+        // logged in but not premium → subscription page
+        if (!isPremium) {
+            router.push("/subscribe");  // <-- your subscribe route
+            return;
+        }
+
+        // premium user → start lesson
         if (selectedModule) {
             setIsLoading(true);
             try {
-                // Call the synchronous onModuleClick function
                 onModuleClick(selectedModule.id);
-
-                // Keep loading state for a short time to show the loading indicator
-                // This gives users feedback that the action was triggered
-                setTimeout(() => {
-                    setIsLoading(false);
-                }, 1000);
+                setTimeout(() => setIsLoading(false), 1000);
             } catch (error) {
-                console.error('Error starting lesson:', error);
+                console.error("Error starting lesson:", error);
                 setIsLoading(false);
             }
         }
     };
+
 
     // Update selected module when activeModuleId changes
     useEffect(() => {
