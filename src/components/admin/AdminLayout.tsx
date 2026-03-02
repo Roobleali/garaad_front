@@ -79,11 +79,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </button>
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                                <img src="https://www.garaad.org/favicon.ico" alt="Garaad Logo" className="w-6 h-6" />
+                                <img src="https://www.garaad.org/logo.png" alt="Garaad Logo" className="w-6 h-6" />
                             </div>
-                            <span className="font-bold text-xl bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent">
-                                Garaad Maamul
-                            </span>
+
                         </div>
                     </div>
                 </div>
