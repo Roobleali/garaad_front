@@ -32,7 +32,7 @@ export default async function BlogListPage() {
     return (
         <>
             <Header />
-            <main className="min-h-screen bg-slate-50/30">
+            <main className="min-h-screen bg-slate-50/30 dark:bg-black transition-colors duration-500">
                 <BlogListClient initialPosts={posts} />
             </main>
             <Footer />

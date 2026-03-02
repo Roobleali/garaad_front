@@ -11,6 +11,7 @@ const SECTIONS = [
     { key: "casharada", label: "Casharada", icon: "📖", path: "/admin/casharada" },
     { key: "muuqaalada", label: "Muuqaalada", icon: "🎥", path: "/admin/muuqaalada" },
     { key: "sualaha", label: "Su'aalaha", icon: "❓", path: "/admin/sualaha" },
+    { key: "marketing", label: "Marketing", icon: "✉️", path: "/admin/marketing" },
 ];
 
 interface AdminSidebarProps {

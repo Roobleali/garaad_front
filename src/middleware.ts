@@ -63,16 +63,12 @@ export async function middleware(request: NextRequest) {
   // If we are here, the path IS protected.
   const userCookie = request.cookies.get("user");
   const tokenCookie = request.cookies.get("accessToken");
+  const refreshTokenCookie = request.cookies.get("refreshToken");
 
-  // Robust check: either cookie being present is a strong indicator of a session
-  // user cookie is for UI/Premium metadata, accessToken is for API/Auth proof
-  const cookieNames = request.cookies.getAll().map(c => c.name);
-  console.log(`[Middleware] Path: ${pathname}, Cookies found: ${cookieNames.join(", ")}`);
-
-  const isAuthenticated = !!userCookie?.value || !!tokenCookie?.value;
+  const isAuthenticated = !!userCookie?.value || !!tokenCookie?.value || !!refreshTokenCookie?.value;
 
   if (!isAuthenticated) {
-    // Redirect unauthenticated users
+    console.log(`[Middleware] No valid session cookies found for ${pathname}. Redirecting to auth page.`);
     const redirectUrl = pathname.startsWith("/admin") ? "/admin/login" : "/welcome";
     const url = new URL(redirectUrl, request.url);
     url.searchParams.set("reason", "unauthenticated");
