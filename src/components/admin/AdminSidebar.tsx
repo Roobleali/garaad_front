@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Logo from '../ui/Logo';
 
 const SECTIONS = [
     { key: "home", label: "Home", icon: "🏠", path: "/admin" },
@@ -25,12 +26,15 @@ export default function AdminSidebar({ isCollapsed, onToggle }: AdminSidebarProp
     return (
         <div className="h-full flex flex-col bg-white shadow-xl">
             {/* Logo section - only visible on desktop */}
-            <Link href="/admin" className={`hidden lg:flex items-center gap-3 p-6 border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${isCollapsed ? 'justify-center px-2' : ''}`}>
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <img src="https://www.garaad.org/logo.png" alt="Garaad Logo" className="w-6 h-6" />
-                </div>
+            <Logo
+                width={180}
+                height={54}
+                className="h-12 w-auto sm:h-14 md:h-16 max-w-[140px] sm:max-w-[160px] md:max-w-[180px] mb-4 drop-shadow-md rounded-xl"
+                priority={true}
+                loading="eager"
+                sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, 180px"
+            />
 
-            </Link>
 
             {/* Navigation */}
             <nav className={`flex-1 overflow-y-auto py-6 ${isCollapsed ? 'px-2' : 'px-4'}`}>

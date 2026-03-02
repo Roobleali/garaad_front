@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAdminAuthStore } from "@/store/admin/auth";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Loader2 } from "lucide-react";
+import Logo from "../ui/Logo";
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -78,9 +79,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             )}
                         </button>
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
-                                <img src="https://www.garaad.org/logo.png" alt="Garaad Logo" className="w-6 h-6" />
-                            </div>
+                            <Logo
+                                width={180}
+                                height={54}
+                                className="h-12 w-auto sm:h-14 md:h-16 max-w-[140px] sm:max-w-[160px] md:max-w-[180px] mb-4 drop-shadow-md rounded-xl"
+                                priority={true}
+                                loading="eager"
+                                sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, 180px"
+                            />
 
                         </div>
                     </div>
