@@ -1,6 +1,7 @@
 import { Header as SiteHeader } from "@/components/Header";
 import { FooterSection } from "@/components/sections/FooterSection";
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
     title: "Startups | Sida loo dhiso MVP iyo Tech Stack | Garaad",
@@ -43,7 +44,7 @@ export default function StartupsPage() {
                 <div className="mt-20 p-12 rounded-[3rem] bg-gradient-to-r from-primary/20 to-blue-600/20 border border-primary/20 text-center">
                     <h2 className="text-3xl font-black mb-4">Ma u diyaarsan tahay inaad noqoto Founder?</h2>
                     <p className="mb-8 text-lg opacity-80">Ku biir kumannaan arday ah oo dhisaya mustaqbalka.</p>
-                    <a href="/welcome" className="inline-block px-12 py-4 bg-primary text-white font-black rounded-2xl hover:scale-105 transition-transform">
+                    <Link href="/welcome" className="inline-block px-12 py-4 bg-primary text-white font-black rounded-2xl hover:scale-105 transition-transform">
                         BILOW HADDA
                     </a>
                 </div>
