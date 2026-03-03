@@ -227,7 +227,7 @@ export function CoursesListClient() {
                                                             key={course?.id ?? index}
                                                             className={cn(
                                                                 "group relative h-full flex flex-col overflow-hidden bg-white dark:bg-slate-950 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-800/50 shadow-sm transition-all duration-500",
-                                                                isLocked ? "opacity-50 pointer-events-none" : ""
+                                                                isLocked ? "opacity-80 pointer-events-none" : ""
                                                             )}
                                                         >
                                                             {isLoading ? (
@@ -244,12 +244,15 @@ export function CoursesListClient() {
                                                                 </div>
                                                             ) : (
                                                                 <div className="p-0 flex-1 flex flex-col">
-                                                                    <div className="relative h-40 bg-slate-50 dark:bg-slate-950/50 overflow-hidden flex items-center justify-center rounded-t-[2.5rem] opacity-40 grayscale-[0.5]">
+                                                                    <div className="relative h-40 bg-slate-50 dark:bg-slate-950/50 overflow-hidden flex items-center justify-center rounded-t-[2.5rem] opacity-80 grayscale-[0.2]">
                                                                         <CourseImage
                                                                             src={course?.thumbnail}
                                                                             alt={course?.title ?? ""}
                                                                         />
                                                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+                                                                        <div className="absolute top-4 right-4 bg-slate-900/80 dark:bg-slate-50 text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl z-20 shadow-lg">
+                                                                            dhowaan
+                                                                        </div>
                                                                     </div>
                                                                     <div className="p-6 flex-1 flex flex-col">
                                                                         <h3 className="font-black text-xl mb-3 line-clamp-1 leading-tight text-slate-400 dark:text-slate-600">
@@ -260,11 +263,6 @@ export function CoursesListClient() {
                                                                                 {course.description}
                                                                             </p>
                                                                         )}
-                                                                        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900">
-                                                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                                                                <span>Lama helayo (Soon)</span>
-                                                                            </div>
-                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             )}
