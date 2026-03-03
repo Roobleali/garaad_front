@@ -46,7 +46,7 @@ export default function StartupsPage() {
                     <p className="mb-8 text-lg opacity-80">Ku biir kumannaan arday ah oo dhisaya mustaqbalka.</p>
                     <Link href="/welcome" className="inline-block px-12 py-4 bg-primary text-white font-black rounded-2xl hover:scale-105 transition-transform">
                         BILOW HADDA
-                    </a>
+                    </Link>
                 </div>
             </main>
 
