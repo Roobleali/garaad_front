@@ -22,6 +22,73 @@ import axios from 'axios';
 import { DEFAULT_CONTENT, DIAGRAM_EXAMPLE, MULTIPLE_CHOICE_EXAMPLE, TABLE_EXAMPLE, DEFAULT_DIAGRAM_CONFIG, LIST_EXAMPLE } from '@/lib/admin/Block_Examples';
 import { RichTextEditor } from './ui/RichTextEditor';
 
+/** Parse pasted table data (JSON or YAML-like) into { header, rows }. */
+function parseTablePaste(paste: string): { header: string[]; rows: string[][] } | null {
+    const raw = paste.trim();
+    if (!raw) return null;
+    try {
+        const obj = JSON.parse(raw);
+        if (obj && Array.isArray(obj.header) && Array.isArray(obj.rows)) {
+            return {
+                header: obj.header.map((c: unknown) => String(c ?? '')),
+                rows: obj.rows.map((r: unknown) => Array.isArray(r) ? r.map((c: unknown) => String(c ?? '')) : [String(r)]),
+            };
+        }
+    } catch (_) {}
+    try {
+        const asJson = raw.replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*$/, '$1');
+        const obj = JSON.parse(asJson);
+        if (obj && Array.isArray(obj.header) && Array.isArray(obj.rows)) {
+            return {
+                header: obj.header.map((c: unknown) => String(c ?? '')),
+                rows: obj.rows.map((r: unknown) => Array.isArray(r) ? r.map((c: unknown) => String(c ?? '')) : [String(r)]),
+            };
+        }
+    } catch (_) {}
+    try {
+        const lines = raw.split(/\r?\n/);
+        let header: string[] = [];
+        const rows: string[][] = [];
+        let inRows = false;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const headerMatch = line.match(/^\s*header\s*:\s*(.+)$/);
+            if (headerMatch) {
+                const rest = headerMatch[1].trim();
+                if (rest.startsWith('[')) {
+                    let json = rest;
+                    let depth = (rest.match(/\[/g) || []).length - (rest.match(/\]/g) || []).length;
+                    while (depth > 0 && i + 1 < lines.length) {
+                        i++;
+                        json += '\n' + lines[i];
+                        depth = (lines[i].match(/\[/g) || []).length - (lines[i].match(/\]/g) || []).length + depth;
+                    }
+                    header = JSON.parse(json);
+                }
+                continue;
+            }
+            if (line.match(/^\s*rows\s*:/)) {
+                inRows = true;
+                continue;
+            }
+            const rowMatch = inRows && line.match(/^\s*-\s*(.+)$/);
+            if (rowMatch) {
+                const rest = rowMatch[1].trim();
+                if (rest.startsWith('[')) {
+                    try {
+                        const row = JSON.parse(rest);
+                        rows.push(Array.isArray(row) ? row.map((c: unknown) => String(c ?? '')) : [String(row)]);
+                    } catch (_) {
+                        rows.push([rest]);
+                    }
+                }
+            }
+        }
+        if (header.length || rows.length) return { header, rows };
+    } catch (_) {}
+    return null;
+}
+
 interface LessonContentBlocksProps {
     lessonId: number;
     onUpdate?: () => void;
@@ -728,8 +795,10 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                         setContent({ ...MULTIPLE_CHOICE_EXAMPLE, order: content.order });
                                     } else if (newType === 'list') {
                                         setContent({ ...LIST_EXAMPLE, order: content.order });
-                                    } else if (newType === 'table' || newType === 'table-grid') {
+                                    } else if (newType === 'table') {
                                         setContent({ ...TABLE_EXAMPLE, type: newType, order: content.order });
+                                    } else if (newType === 'table-grid') {
+                                        setContent({ ...DEFAULT_CONTENT, type: 'table-grid', table: { header: [], rows: [] }, order: content.order });
                                     } else {
                                         setContent({ ...DEFAULT_CONTENT, type: newType, order: content.order });
                                     }
@@ -745,27 +814,27 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                             </select>
                         </div>
 
-                        {/* Video Content Form */}
+                        {/* Video Content Form — Soo Geli Cusub first, then URL; Cinwaanka after body */}
                         {content.type === 'video' && (
                             <div className="space-y-4">
                                 <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
                                     <button
                                         type="button"
-                                        onClick={() => setContent({ ...content, isDirectUpload: false })}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${!content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                                    >
-                                        Dooro Muuqaal (URL)
-                                    </button>
-                                    <button
-                                        type="button"
                                         onClick={() => setContent({ ...content, isDirectUpload: true })}
-                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${content.isDirectUpload ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${content.isDirectUpload !== false ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
                                     >
                                         Soo Geli Cusub
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setContent({ ...content, isDirectUpload: false })}
+                                        className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${content.isDirectUpload === false ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    >
+                                        Dooro Muuqaal (URL)
+                                    </button>
                                 </div>
 
-                                {content.isDirectUpload ? (
+                                {content.isDirectUpload !== false ? (
                                     <div className="space-y-3 p-4 border-2 border-dashed border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-center relative">
                                         {!content.directFile && (
                                             <input
@@ -797,7 +866,7 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <p className="font-bold text-sm text-gray-700">Guji si aad u soo geliso</p>
+                                                <p className="font-bold text-sm text-gray-700">Guji halkan si aad u soo geliso muuqaal (No file chosen)</p>
                                             )}
                                             {!content.directFile && <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold">MP4, WebM (Max 2GB)</p>}
                                         </div>
@@ -1045,6 +1114,34 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                         {/* Table Content Form */}
                         {(content.type === 'table' || content.type === 'table-grid') && (
                             <div className="space-y-6">
+                                {/* Paste table data (YAML/JSON) — first option */}
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                                    <h5 className="text-xs font-black text-gray-900 dark:text-white uppercase">Soo Geli Jadwal (Paste)</h5>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400">Ku koob JSON ama YAML (header + rows) halkan, ka dib guji Ku koob.</p>
+                                    <textarea
+                                        id="table-paste-input"
+                                        placeholder={'header: ["", "Barnaamij Caadi ah", "AI"]\nrows:\n  - ["Xeerarka...", "...", "..."]\n  - ["Ma isbeddelaan...", "...", "..."]'}
+                                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-slate-600 text-xs font-mono bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 resize-y min-h-[100px]"
+                                        rows={4}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const el = document.getElementById('table-paste-input') as HTMLTextAreaElement | null;
+                                            const pasted = el?.value?.trim();
+                                            if (!pasted) return;
+                                            const parsed = parseTablePaste(pasted);
+                                            if (parsed) {
+                                                setContent({ ...content, table: { header: parsed.header, rows: parsed.rows } });
+                                                if (el) el.value = '';
+                                            }
+                                        }}
+                                        className="text-[10px] font-bold text-white bg-primary px-4 py-2 rounded-xl hover:opacity-90"
+                                    >
+                                        Ku koob Jadwalka
+                                    </button>
+                                </div>
+
                                 <div className="space-y-1">
                                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1">Qoraalka Guud</label>
                                     <RichTextEditor
@@ -1053,7 +1150,8 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                     />
                                 </div>
 
-                                {/* Features Editor */}
+                                {/* Features Editor (table type only; table-grid uses header+rows only) */}
+                                {content.type === 'table' && (
                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h5 className="text-xs font-black text-gray-900 uppercase">Astaamaha (Features)</h5>
@@ -1103,6 +1201,7 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                         ))}
                                     </div>
                                 </div>
+                                )}
 
                                 {/* Table Data Editor */}
                                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-4 overflow-x-auto">

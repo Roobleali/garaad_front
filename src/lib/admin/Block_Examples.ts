@@ -32,8 +32,7 @@ export const DEFAULT_CONTENT: ContentBlockData = {
     },
 };
 
-export // Add table example template
-    const TABLE_EXAMPLE: ContentBlockData = {
+export const TABLE_EXAMPLE: ContentBlockData = {
         type: "table",
         title: "",
         text: "Nidaamka hadda jira, tuugtu waxay xadi karaan qoraallo bannaan ama way beddeli karaan markii wax dhacaan ka dib. Tixgeli liiskan astaamaha amniga ee aan ku dari karno:",

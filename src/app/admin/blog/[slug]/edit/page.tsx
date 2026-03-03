@@ -82,6 +82,9 @@ export default function EditBlogPostPage() {
             if (coverImage) {
                 formData.append("cover_image", coverImage);
             }
+            if (tags.trim()) {
+                formData.append("tags", tags.trim());
+            }
 
             await blogAdminApi.updatePost(slug, formData);
             toast.success("Isbeddelada waa la kaydiyey");

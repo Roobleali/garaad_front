@@ -50,12 +50,8 @@ export default function NewBlogPostPage() {
                 formData.append("cover_image", coverImage);
             }
 
-            // Handle tags - simple comma separated for now
-            if (tags) {
-                // Backend handles many-to-many, this might need adjustment based on how the API expects tags
-                // For the MVP, we'll send it as a comma-separated string if the backend supports it, 
-                // or we'll need a separate step to create/get tags. 
-                // Let's assume the backend handles basic tag names for now.
+            if (tags.trim()) {
+                formData.append("tags", tags.trim());
             }
 
             const response = await blogAdminApi.createPost(formData);
