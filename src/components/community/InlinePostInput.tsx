@@ -149,8 +149,9 @@ export function InlinePostInput({ categoryId }: InlinePostInputProps) {
                 requestId,
             }) as any;
 
-            if (response && response.id) {
-                // updatePost(response);
+            if (response && (response.id || response.data?.id)) {
+                const serverPost = response.data ?? response;
+                updatePost({ ...serverPost, request_id: requestId });
             }
         } catch (error) {
             console.error("Failed to create post:", error);

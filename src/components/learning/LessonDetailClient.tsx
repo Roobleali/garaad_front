@@ -394,7 +394,29 @@ export function LessonDetailClient() {
         }
     }, [currentLesson, isLoading, sortedBlocks?.length, playSound, hasPlayedStartSound]);
 
-    // Use derived indices for problems
+    // Warm bridge: on lesson load, silent fetch first video URL with Range to prime cache/session
+    useEffect(() => {
+        if (!sortedBlocks?.length) return;
+        const firstVideoBlock = sortedBlocks.find((b) => b.block_type === "video");
+        if (!firstVideoBlock?.content) return;
+        const c = typeof firstVideoBlock.content === "string" ? JSON.parse(firstVideoBlock.content) : firstVideoBlock.content;
+        const url = c?.source || c?.url;
+        if (url && typeof url === "string" && url.includes("/bridge/dl/")) {
+            fetch(url, { headers: { Range: "bytes=0-65535" } }).catch(() => {});
+        }
+    }, [sortedBlocks]);
+
+    // Prefetch next block when current block is not video and next block is video
+    useEffect(() => {
+        if (!sortedBlocks?.length || currentBlockIndex < 0) return;
+        const nextBlock = sortedBlocks[currentBlockIndex + 1];
+        if (nextBlock?.block_type !== "video" || !nextBlock.content) return;
+        const c = typeof nextBlock.content === "string" ? JSON.parse(nextBlock.content) : nextBlock.content;
+        const url = c?.source || c?.url;
+        if (url && typeof url === "string" && url.includes("/bridge/dl/")) {
+            fetch(url, { headers: { Range: "bytes=0-65535" } }).catch(() => {});
+        }
+    }, [currentBlockIndex, sortedBlocks]);
 
     // Fetch all problems
     const fetchAllProblems = useCallback(async () => {

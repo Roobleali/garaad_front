@@ -220,7 +220,7 @@ self.addEventListener('message', (event) => {
     }
 });
 
-// Push subscription change event
+// Push subscription change event (e.g. subscription refreshed)
 self.addEventListener('pushsubscriptionchange', (event) => {
     console.log('[SW] Push subscription changed');
 
@@ -229,16 +229,17 @@ self.addEventListener('pushsubscriptionchange', (event) => {
             .subscribe(event.oldSubscription.options)
             .then((subscription) => {
                 console.log('[SW] Resubscribed to push notifications');
-                // Send new subscription to backend
+                const keys = subscription.toJSON().keys || {};
                 return fetch('/api/community/push-subscriptions/', {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         endpoint: subscription.endpoint,
-                        p256dh_key: subscription.toJSON().keys.p256dh,
-                        auth_key: subscription.toJSON().keys.auth,
+                        p256dh_key: keys.p256dh || '',
+                        auth_key: keys.auth || '',
                     }),
                 });
             })

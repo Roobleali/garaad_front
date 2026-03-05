@@ -13,6 +13,9 @@ const VideoBlock: React.FC<{
     title?: string;
     controls?: boolean;
     description?: string;
+    thumbnail_url?: string;
+    img_url?: string;
+    thumbnail?: string;
   };
   onContinue: () => void;
   isLastBlock: boolean;
@@ -28,6 +31,9 @@ const VideoBlock: React.FC<{
   const [isEnded, setIsEnded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [showTryAgain, setShowTryAgain] = useState(false);
 
   // Handle fullscreen state changes
   useEffect(() => {
@@ -80,14 +86,12 @@ const VideoBlock: React.FC<{
   }, [videoUrl]);
 
   const posterUrl = React.useMemo(() => {
-    // 1. Check for explicit thumbnail/img_url in content
-    if ((content as any).thumbnail_url) return (content as any).thumbnail_url;
-    if ((content as any).img_url) return (content as any).img_url;
-    if ((content as any).thumbnail) return (content as any).thumbnail;
-
     if (!videoUrl) return undefined;
+    if (content.thumbnail_url) return content.thumbnail_url;
+    if (content.img_url) return content.img_url;
+    if (content.thumbnail) return content.thumbnail;
 
-    // 2. Handle Cloudinary auto-poster
+    // Cloudinary-derived poster
     if (videoUrl.includes("res.cloudinary.com")) {
       const cleanUrl = videoUrl.replace(/\.[^/.]+$/, "");
       const parts = cleanUrl.split("/video/upload/");
@@ -183,12 +187,38 @@ const VideoBlock: React.FC<{
               </div>
             )}
 
+            {isBuffering && !isLoading && (
+              <div className="absolute inset-0 z-25 flex items-center justify-center bg-black/20 pointer-events-none">
+                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              </div>
+            )}
+
+            {showTryAgain && (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/60">
+                <p className="text-sm text-white/90">Muuqaalka lama soo dejin karin.</p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowTryAgain(false);
+                    setRetryCount(0);
+                    if (videoRef.current) {
+                      videoRef.current.src = optimizedUrl;
+                      videoRef.current.load();
+                    }
+                  }}
+                >
+                  Isku day mar kale
+                </Button>
+              </div>
+            )}
+
             <video
               ref={videoRef}
               src={optimizedUrl}
-              poster={posterUrl}
+              poster={posterUrl ?? undefined}
               playsInline
-              preload="auto"
+              preload="metadata"
               className={cn(
                 "w-full object-contain bg-black",
                 isFullscreen ? "h-full" : "h-auto max-h-[70vh] rounded-xl"
@@ -197,9 +227,10 @@ const VideoBlock: React.FC<{
               onPause={() => setIsPlaying(false)}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
-              onCanPlay={() => setIsLoading(false)}
-              onWaiting={() => setIsLoading(true)}
-              onPlaying={() => setIsLoading(false)}
+              onCanPlay={() => { setIsLoading(false); setIsBuffering(false); }}
+              onWaiting={() => setIsBuffering(true)}
+              onStalled={() => setIsBuffering(true)}
+              onPlaying={() => setIsBuffering(false)}
               onEnded={() => {
                 setIsPlaying(false);
                 setIsEnded(true);
@@ -209,9 +240,16 @@ const VideoBlock: React.FC<{
                 if (el.src !== videoUrl && videoUrl) {
                   console.warn("Optimized source failed, switching to fallback:", videoUrl);
                   el.src = videoUrl;
+                } else if (retryCount < 2) {
+                  setRetryCount((c) => c + 1);
+                  const src = el.src;
+                  el.src = "";
+                  el.load();
+                  setTimeout(() => { el.src = src; el.load(); }, 100);
                 } else {
-                  console.error("Video load error (both sources failed):", el.error);
-                  setIsLoading(false); // Stop loading if error
+                  setShowTryAgain(true);
+                  setIsLoading(false);
+                  setIsBuffering(false);
                 }
               }}
             />

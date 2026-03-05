@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -62,8 +61,6 @@ const journeyHighlights = [
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F172A] selection:bg-primary/30">
-      <Header />
-
       <main>
         {/* Hero Section */}
         <section className="relative pt-20 pb-32 overflow-hidden">
