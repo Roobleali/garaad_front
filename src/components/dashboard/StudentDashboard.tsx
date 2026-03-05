@@ -55,7 +55,7 @@ export function StudentDashboard() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center max-w-7xl mx-auto justify-center min-h-[400px]">
+            <div className="flex items-center max-w-7xl mx-auto justify-center min-h-[400px] bg-background dark:bg-[#09090b] transition-colors duration-300">
                 <div className="relative">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -67,14 +67,14 @@ export function StudentDashboard() {
     }
 
     return (
-        <div className="space-y-8 pb-12 animate-in fade-in duration-500  max-w-7xl mx-auto">
+        <div className="space-y-8 pb-12 pt-6 px-4 sm:px-6 animate-in fade-in duration-500 max-w-7xl mx-auto min-h-screen bg-background dark:bg-[#09090b] transition-colors duration-300">
             {/* Hero Welcome Section */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 p-8 md:p-12 text-white shadow-2xl shadow-primary/20">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/95 to-primary/80 dark:from-primary dark:via-primary/90 dark:to-primary/80 p-8 md:p-12 text-white shadow-2xl shadow-primary/20 dark:shadow-primary/25 dark:ring-1 dark:ring-white/10">
                 <div className="relative z-10 max-w-2xl">
-                    <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+                    <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
                         Ku soo dhawaaw, {user?.name || "Arday"}! 👋
                     </h1>
-                    <p className="text-primary-foreground/90 text-lg mb-8 leading-relaxed">
+                    <p className="text-white/90 text-lg mb-8 leading-relaxed">
                         Maanta waa maalin cusub oo aad wax badan ku baran karto.
                         Halkaan ka eeg horumarkaaga iyo dhibcaha aad heshay.
                     </p>
@@ -139,7 +139,7 @@ export function StudentDashboard() {
                 {/* Left Column: Progress hierarchy */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
                             <Activity className="w-6 h-6 text-primary" />
                             Horumarkaaga
                         </h2>
@@ -151,7 +151,7 @@ export function StudentDashboard() {
                 <div className="space-y-8">
                     {/* Level Progress */}
                     {gamification && (
-                        <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+                        <Card className="overflow-hidden border border-border dark:border-slate-800 shadow-xl dark:shadow-none bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/80 dark:to-slate-950/80">
                             <CardHeader className="pb-4">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
@@ -161,16 +161,16 @@ export function StudentDashboard() {
                             <CardContent className="space-y-4">
                                 <div className="flex items-end justify-between">
                                     <span className="text-4xl font-black text-primary">Lvl {gamification.level}</span>
-                                    <span className="text-sm font-medium text-slate-500">{gamification.xp_to_next_level} XP u dhiman</span>
+                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{gamification.xp_to_next_level} XP u dhiman</span>
                                 </div>
                                 <Progress value={gamification.progress_percent} className="h-3 bg-slate-200 dark:bg-slate-800" />
-                                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                                <div className="p-3 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                                         <Trophy className="w-5 h-5 text-primary" />
                                     </div>
                                     <div className="text-xs">
                                         <p className="font-bold text-primary">{gamification.league?.name || "Beginner"} League</p>
-                                        <p className="text-slate-500">Rank #{gamification.league?.rank || 1} toddobaadkan</p>
+                                        <p className="text-slate-500 dark:text-slate-400">Rank #{gamification.league?.rank || 1} toddobaadkan</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -236,7 +236,7 @@ function StatCard({ icon, title, value, description, progress, color }: StatCard
     };
 
     return (
-        <Card className={`overflow-hidden border shadow-md bg-gradient-to-br ${colorClasses[color]} hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
+        <Card className={`overflow-hidden border border-border dark:border-slate-800 shadow-md bg-gradient-to-br ${colorClasses[color]} hover:shadow-lg dark:hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1`}>
             <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
@@ -274,8 +274,8 @@ function StatCard({ icon, title, value, description, progress, color }: StatCard
                 <div>
                     <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">{title}</h3>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black tracking-tight">{value}</span>
-                        <span className="text-xs font-medium text-slate-400">{description}</span>
+                        <span className="text-3xl font-black tracking-tight text-foreground">{value}</span>
+                        <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{description}</span>
                     </div>
                 </div>
             </CardContent>

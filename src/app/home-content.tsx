@@ -39,7 +39,7 @@ export function HomeContent() {
 
 
     return (
-        <main>
+        <main className="min-h-screen bg-background dark:bg-[#09090b] transition-colors duration-300">
             {isAuthenticated ? (
                 <StudentDashboard />
             ) : (

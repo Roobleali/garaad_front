@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { Header } from "@/components/Header";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCourse, useEnrollments, useUserProgress } from "@/hooks/useApi";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
@@ -114,7 +113,6 @@ export function CourseDetailClient() {
     if (error) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
-                <Header />
                 <div className="max-w-7xl mx-auto p-8">
                     <Alert variant="destructive" className="rounded-3xl border-2">
                         <AlertCircle className="h-5 w-5" />
@@ -129,7 +127,6 @@ export function CourseDetailClient() {
     if (isLoading || !currentCourse) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-black">
-                <Header />
                 <div className="max-w-7xl mx-auto p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                         <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
@@ -148,7 +145,6 @@ export function CourseDetailClient() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-500">
-            <Header />
             <div className="max-w-7xl mx-auto p-8 mb-20">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Course Info */}

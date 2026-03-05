@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-[#09090b] transition-colors duration-300">
       {/* JSON-LD for Search Engines */}
       <script
         type="application/ld+json"
