@@ -12,11 +12,11 @@ export async function generateMetadata() {
             "Garaad Blog", "Wargeys Soomaali", "STEM Soomaali", "Programming Soomaali",
             "Tech Soomaali", "AI Soomaali", "SaaS Soomaali", "Wararka Garaad",
         ],
-        alternates: { canonical: "https://garaad.so/blog" },
+        alternates: { canonical: "https://garaad.org/blog" },
         openGraph: {
             type: "website",
             locale: "so_SO",
-            url: "https://garaad.so/blog",
+            url: "https://garaad.org/blog",
             siteName: "Garaad STEM",
             title: "Wargeyska Garaad | Blog",
             description: "Nagala soco waxyaalaha cusub: casharada, wararka iyo STEM iyo Programming.",

@@ -3,11 +3,11 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Use | Garaad",
   description: "Terms of Use for Garaad.org – access, subscriptions, and use of the Platform.",
-  alternates: { canonical: "https://garaad.so/terms" },
+  alternates: { canonical: "https://garaad.org/terms" },
   openGraph: {
     type: "website",
     locale: "so_SO",
-    url: "https://garaad.so/terms",
+    url: "https://garaad.org/terms",
     siteName: "Garaad STEM",
     title: "Terms of Use | Garaad",
   },

@@ -148,7 +148,7 @@ export class EmailValidator {
     "yahoo.co.jp",
     "googlemail.com",
     "garaad.org",
-    "garaad.so",
+    "garaad.org",
     ".edu", // Educational institutions
     ".gov", // Government
     ".org", // Organizations

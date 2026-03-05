@@ -23,7 +23,7 @@ export async function generateMetadata(
             openGraph: {
                 title: startup.title,
                 description: startup.tagline,
-                url: `https://garaad.so/launchpad/${id}`,
+                url: `https://garaad.org/launchpad/${id}`,
                 images: [
                     startup.logo_url || startup.logo || "",
                     ...startup.images.map((img) => img.image_url || img.image || "").filter(Boolean),
@@ -62,7 +62,7 @@ export default async function StartupDetailPage({ params }: Props) {
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "logo": initialData.logo_url || initialData.logo,
-            "url": `https://garaad.so/launchpad/${id}`,
+            "url": `https://garaad.org/launchpad/${id}`,
             "author": {
                 "@type": "Person",
                 "name": initialData.maker ? `${initialData.maker.first_name} ${initialData.maker.last_name}` : "Garaad Builder"
@@ -77,19 +77,19 @@ export default async function StartupDetailPage({ params }: Props) {
                     "@type": "ListItem",
                     "position": 1,
                     "name": "Home",
-                    "item": "https://garaad.so"
+                    "item": "https://garaad.org"
                 },
                 {
                     "@type": "ListItem",
                     "position": 2,
                     "name": "Launchpad",
-                    "item": "https://garaad.so/launchpad"
+                    "item": "https://garaad.org/launchpad"
                 },
                 {
                     "@type": "ListItem",
                     "position": 3,
                     "name": initialData.title,
-                    "item": `https://garaad.so/launchpad/${id}`
+                    "item": `https://garaad.org/launchpad/${id}`
                 }
             ]
         }

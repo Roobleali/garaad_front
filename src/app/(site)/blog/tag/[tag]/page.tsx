@@ -14,7 +14,7 @@ interface TagPageProps {
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
     const { tag } = await params;
     const tagName = tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ");
-    const canonicalUrl = `https://garaad.so/blog/tag/${tag}`;
+    const canonicalUrl = `https://garaad.org/blog/tag/${tag}`;
     return {
         title: `Qoraalada ku saabsan ${tagName} | Garaad Blog`,
         description: `Ka dhex baadh dhammaan qoraalada ku saabsan ${tagName} ee ku jira wargeyska Garaad.`,

@@ -22,11 +22,11 @@ export const metadata: Metadata = {
         "Garaad Academy",
         "AI for business Somalia",
     ],
-    alternates: { canonical: "https://garaad.so/challenge" },
+    alternates: { canonical: "https://garaad.org/challenge" },
     openGraph: {
         type: "website",
         locale: "so_SO",
-        url: "https://garaad.so/challenge",
+        url: "https://garaad.org/challenge",
         siteName: "Garaad STEM",
         title: "Bilow Safarkaaga Tech-ga ee Garaad",
         description: "Dhis oo daabac software-kaaga ugu horreeya 5 toddobaad gudahood. Ku soo biir bahda wax dhisidda Soomaaliya.",

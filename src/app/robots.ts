@@ -37,7 +37,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/_next/", "/admin/", "/admin/blog*"],
       }
     ],
-    sitemap: "https://garaad.so/sitemap.xml",
-    host: "https://garaad.so",
+    sitemap: "https://garaad.org/sitemap.xml",
+    host: "https://garaad.org",
   };
 }

@@ -9,14 +9,14 @@ export default function HomepageSEO() {
             <meta name="keywords" content="Garaad, Xisaab Soomaali, Algebra Soomaali, Geometry Soomaali, Physics Soomaali, AI Soomaali, Crypto Soomaali, STEM Soomaali, Somali Math, Somali Algebra, Somali Geometry, Somali Physics, Somali AI, Somali Crypto, Somali STEM, Barashada Xisaabta Soomaalida, Barashada Algebra Soomaalida, Barashada Geometry Soomaalida, Barashada Physics Soomaalida, Barashada AI Soomaalida, Barashada Crypto Soomaalida, Barashada STEM Soomaalida" />
 
             {/* Canonical URL */}
-            <link rel="canonical" href="https://garaad.so" />
+            <link rel="canonical" href="https://garaad.org" />
 
             {/* Open Graph Meta Tags */}
             <meta property="og:title" content="Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto" />
             <meta property="og:description" content="Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan." />
             <meta property="og:type" content="website" />
-            <meta property="og:url" content="https://garaad.so" />
-            <meta property="og:image" content="https://garaad.so/images/og-image.jpg" />
+            <meta property="og:url" content="https://garaad.org" />
+            <meta property="og:image" content="https://garaad.org/images/og-image.jpg" />
             <meta property="og:image:width" content="1200" />
             <meta property="og:image:height" content="630" />
             <meta property="og:site_name" content="Garaad - Somali STEM Education" />
@@ -26,7 +26,7 @@ export default function HomepageSEO() {
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content="Garaad - #1 Somali STEM Platform | Xisaab, Algebra, Geometry, Physics, AI, Crypto" />
             <meta name="twitter:description" content="Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan." />
-            <meta name="twitter:image" content="https://garaad.so/images/twitter-image.jpg" />
+            <meta name="twitter:image" content="https://garaad.org/images/twitter-image.jpg" />
             <meta name="twitter:site" content="@garaad_so" />
             <meta name="twitter:creator" content="@garaad_so" />
 
@@ -48,24 +48,24 @@ export default function HomepageSEO() {
                         "@type": "WebSite",
                         "name": "Garaad",
                         "alternateName": "Garaad Somali STEM Platform",
-                        "url": "https://garaad.so",
+                        "url": "https://garaad.org",
                         "description": "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
                         "inLanguage": "so-SO",
                         "potentialAction": {
                             "@type": "SearchAction",
                             "target": {
                                 "@type": "EntryPoint",
-                                "urlTemplate": "https://garaad.so/search?q={search_term_string}"
+                                "urlTemplate": "https://garaad.org/search?q={search_term_string}"
                             },
                             "query-input": "required name=search_term_string"
                         },
                         "publisher": {
                             "@type": "Organization",
                             "name": "Garaad",
-                            "url": "https://garaad.so",
+                            "url": "https://garaad.org",
                             "logo": {
                                 "@type": "ImageObject",
-                                "url": "https://garaad.so/logo.png"
+                                "url": "https://garaad.org/logo.png"
                             }
                         }
                     })
@@ -82,14 +82,14 @@ export default function HomepageSEO() {
                         "name": "Garaad",
                         "alternateName": "Garaad Somali STEM Platform",
                         "description": "Garaad waa platform-ka ugu horreeya ee Soomaalida oo ku saabsan barashada xisaabta, algebra, geometry, physics, AI, crypto iyo STEM-ka oo dhan.",
-                        "url": "https://garaad.so",
-                        "logo": "https://garaad.so/logo.png",
-                        "image": "https://garaad.so/images/og-image.jpg",
+                        "url": "https://garaad.org",
+                        "logo": "https://garaad.org/logo.png",
+                        "image": "https://garaad.org/images/og-image.jpg",
                         "sameAs": [
                             "https://twitter.com/garaad_so",
-                            "https://facebook.com/garaad.so",
-                            "https://instagram.com/garaad.so",
-                            "https://youtube.com/@garaad.so"
+                            "https://facebook.com/garaad.org",
+                            "https://instagram.com/garaad.org",
+                            "https://youtube.com/@garaad.org"
                         ],
                         "address": {
                             "@type": "PostalAddress",
@@ -99,7 +99,7 @@ export default function HomepageSEO() {
                         "contactPoint": {
                             "@type": "ContactPoint",
                             "contactType": "customer service",
-                            "email": "info@garaad.so",
+                            "email": "info@garaad.org",
                             "availableLanguage": ["Somali", "English"]
                         },
                         "hasOfferCatalog": {
@@ -205,7 +205,7 @@ export default function HomepageSEO() {
                         "@type": "LocalBusiness",
                         "name": "Garaad",
                         "description": "Somali STEM Education Platform",
-                        "url": "https://garaad.so",
+                        "url": "https://garaad.org",
                         "telephone": "+252-XX-XXXXXXX",
                         "address": {
                             "@type": "PostalAddress",

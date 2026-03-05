@@ -36,12 +36,12 @@ export default function SEOHead({
         "Somali STEM"
     ],
     image = "/images/og-image.jpg",
-    url = "https://garaad.so",
+    url = "https://garaad.org",
     type = "website",
     courseData
 }: SEOHeadProps) {
-    const fullUrl = url.startsWith('http') ? url : `https://garaad.so${url}`;
-    const fullImageUrl = image.startsWith('http') ? image : `https://garaad.so${image}`;
+    const fullUrl = url.startsWith('http') ? url : `https://garaad.org${url}`;
+    const fullImageUrl = image.startsWith('http') ? image : `https://garaad.org${image}`;
 
     return (
         <Head>
@@ -97,7 +97,7 @@ export default function SEOHead({
                             "provider": {
                                 "@type": "Organization",
                                 "name": "Garaad",
-                                "url": "https://garaad.so"
+                                "url": "https://garaad.org"
                             },
                             "educationalLevel": courseData.level,
                             "inLanguage": "so-SO",
@@ -127,19 +127,19 @@ export default function SEOHead({
                                 "@type": "ListItem",
                                 "position": 1,
                                 "name": "Home",
-                                "item": "https://garaad.so"
+                                "item": "https://garaad.org"
                             },
                             {
                                 "@type": "ListItem",
                                 "position": 2,
                                 "name": "Courses",
-                                "item": "https://garaad.so/courses"
+                                "item": "https://garaad.org/courses"
                             },
                             courseData && {
                                 "@type": "ListItem",
                                 "position": 3,
                                 "name": courseData.category,
-                                "item": `https://garaad.so/courses/${courseData.category.toLowerCase().replace(/\s+/g, '-')}`
+                                "item": `https://garaad.org/courses/${courseData.category.toLowerCase().replace(/\s+/g, '-')}`
                             },
                             courseData && {
                                 "@type": "ListItem",
@@ -161,18 +161,18 @@ export default function SEOHead({
                         "@type": "Organization",
                         "name": "Garaad",
                         "alternateName": "Garaad Somali STEM Platform",
-                        "url": "https://garaad.so",
-                        "logo": "https://garaad.so/logo.png",
+                        "url": "https://garaad.org",
+                        "logo": "https://garaad.org/logo.png",
                         "sameAs": [
                             "https://twitter.com/garaad_so",
-                            "https://facebook.com/garaad.so",
-                            "https://instagram.com/garaad.so",
-                            "https://youtube.com/@garaad.so"
+                            "https://facebook.com/garaad.org",
+                            "https://instagram.com/garaad.org",
+                            "https://youtube.com/@garaad.org"
                         ],
                         "contactPoint": {
                             "@type": "ContactPoint",
                             "contactType": "customer service",
-                            "email": "info@garaad.so",
+                            "email": "info@garaad.org",
                             "availableLanguage": ["Somali", "English"]
                         },
                         "address": {
@@ -192,13 +192,13 @@ export default function SEOHead({
                         "@context": "https://schema.org",
                         "@type": "WebSite",
                         "name": "Garaad",
-                        "url": "https://garaad.so",
+                        "url": "https://garaad.org",
                         "description": "Somali STEM Education Platform",
                         "potentialAction": {
                             "@type": "SearchAction",
                             "target": {
                                 "@type": "EntryPoint",
-                                "urlTemplate": "https://garaad.so/search?q={search_term_string}"
+                                "urlTemplate": "https://garaad.org/search?q={search_term_string}"
                             },
                             "query-input": "required name=search_term_string"
                         }

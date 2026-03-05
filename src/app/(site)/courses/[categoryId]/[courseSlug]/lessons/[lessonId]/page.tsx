@@ -34,10 +34,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title,
             description: lesson.description || `Baro ${lesson.title} oo ku hadla Af-Soomaali hufan.`,
             type: 'article',
-            url: `https://garaad.so/courses/${categoryId}/${courseSlug}/lessons/${lessonId}`,
+            url: `https://garaad.org/courses/${categoryId}/${courseSlug}/lessons/${lessonId}`,
         },
         alternates: {
-            canonical: `https://garaad.so/courses/${categoryId}/${courseSlug}/lessons/${lessonId}`,
+            canonical: `https://garaad.org/courses/${categoryId}/${courseSlug}/lessons/${lessonId}`,
         }
     };
 }

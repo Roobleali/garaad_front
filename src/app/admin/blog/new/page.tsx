@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { blogAdminApi } from "@/lib/admin-blog";
 import TipTapEditor from "@/components/blog/TipTapEditor";
@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Loader2, ArrowLeft, Image as ImageIcon, Upload } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export default function NewBlogPostPage() {
     const router = useRouter();
@@ -23,14 +24,45 @@ export default function NewBlogPostPage() {
     const [tags, setTags] = useState("");
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const setFileFrom = useCallback((file: File | null) => {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+            toast.error("Fadlan dooro fayl sawir ah (PNG, JPG, ...)");
+            return;
+        }
+        setCoverImage(file);
+        setImagePreview((prev) => {
+            if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file);
+        });
+    }, []);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setCoverImage(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
+        if (file) setFileFrom(file);
     };
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) setFileFrom(file);
+    }, [setFileFrom]);
 
     const handleSubmit = async (publish: boolean = false) => {
         if (!title || !body || !metaDescription) {
@@ -111,7 +143,7 @@ export default function NewBlogPostPage() {
                                 onClick={() => document.getElementById("cover-image")?.click()}
                             >
                                 {imagePreview ? (
-                                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                                    <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized={imagePreview.startsWith("blob:")} />
                                 ) : (
                                     <>
                                         <ImageIcon className="h-10 w-10 text-slate-300 mb-2" />

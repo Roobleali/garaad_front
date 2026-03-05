@@ -70,7 +70,7 @@ export const generateReferralLink = async (): Promise<ReferralLink> => {
         const status = error?.response?.status;
         if (status === 404) {
             const user = authService.getCurrentUser() as { username?: string } | null;
-            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://garaad.so';
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://garaad.org';
             const username = user?.username || 'friend';
             const fallbackLink = `${baseUrl}/?ref=${encodeURIComponent(username)}`;
 

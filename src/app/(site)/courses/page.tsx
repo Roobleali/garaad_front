@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     "Next.js Somali", "Full-Stack Development Somali", "STEM Somali",
     "Soomaali Programming", "Barashada Computer-ka", "Garaad Courses"
   ],
-  alternates: { canonical: "https://garaad.so/courses" },
+  alternates: { canonical: "https://garaad.org/courses" },
   openGraph: {
     type: "website",
     locale: "so_SO",
-    url: "https://garaad.so/courses",
+    url: "https://garaad.org/courses",
     siteName: "Garaad STEM",
     title: "Koorsooyinka STEM-ka ee Garaad STEM",
     description: "Ku biir jiilka dhisaya mustaqbalka tech-ka Soomaaliya. Baro Full-Stack, AI, iyo Tiknoolajiyadda afkaaga hooyo.",
@@ -55,9 +55,9 @@ export default async function CoursesPage() {
         "provider": {
           "@type": "EducationalOrganization",
           "name": "Garaad STEM",
-          "sameAs": "https://garaad.so"
+          "sameAs": "https://garaad.org"
         },
-        "url": `https://garaad.so/courses/${course.category}/${course.slug}`
+        "url": `https://garaad.org/courses/${course.category}/${course.slug}`
       }
     }))
   };

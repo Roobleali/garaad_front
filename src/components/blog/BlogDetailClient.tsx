@@ -72,6 +72,15 @@ export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) 
 
     const coverImage = post.cover_image_url || post.cover_image;
 
+    const [shareBaseUrl, setShareBaseUrl] = useState("https://garaad.org");
+    useEffect(() => {
+        if (typeof window !== "undefined") setShareBaseUrl(window.location.origin);
+    }, []);
+    const shareUrl = `${shareBaseUrl}/blog/${post.slug}`;
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`;
+    const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+
     // Inject IDs into body for TOC and handle plain text newlines
     const processedBody = post.body ? (() => {
         let content = post.body;
@@ -215,15 +224,21 @@ export function BlogDetailClient({ post, relatedPosts }: BlogDetailClientProps) 
                                     <Share2 className="mr-2 h-4 w-4" /> La wadaag
                                 </h3>
                                 <div className="flex flex-col gap-2">
-                                    <Button variant="outline" size="sm" className="justify-start hover:bg-[#1877F2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
-                                        <Facebook className="mr-2 h-4 w-4" /> Facebook
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="justify-start hover:bg-[#1DA1F2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
-                                        <TwitterIcon className="mr-2 h-4 w-4" /> Twitter
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="justify-start hover:bg-[#0A66C2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
-                                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
-                                    </Button>
+                                    <a href={facebookShareUrl} target="_blank" rel="noopener noreferrer" className="inline-flex">
+                                        <Button variant="outline" size="sm" className="w-full justify-start hover:bg-[#1877F2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
+                                            <Facebook className="mr-2 h-4 w-4" /> Facebook
+                                        </Button>
+                                    </a>
+                                    <a href={twitterShareUrl} target="_blank" rel="noopener noreferrer" className="inline-flex">
+                                        <Button variant="outline" size="sm" className="w-full justify-start hover:bg-[#1DA1F2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
+                                            <TwitterIcon className="mr-2 h-4 w-4" /> Twitter
+                                        </Button>
+                                    </a>
+                                    <a href={linkedInShareUrl} target="_blank" rel="noopener noreferrer" className="inline-flex">
+                                        <Button variant="outline" size="sm" className="w-full justify-start hover:bg-[#0A66C2] hover:text-white transition-colors dark:border-zinc-800 dark:text-zinc-300">
+                                            <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                                        </Button>
+                                    </a>
                                 </div>
                             </div>
                         </aside>

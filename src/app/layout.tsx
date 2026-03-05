@@ -13,7 +13,7 @@ import PWARegister from "@/components/PWARegister";
 import VersionCheck from "@/components/VersionCheck";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://garaad.so"),
+  metadataBase: new URL("https://garaad.org"),
   title: {
     default: "Garaad STEM - #1 Somali Learning Platform for Tech & Coding",
     template: "%s | Garaad STEM",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "Startup Soomaali", "Launchpad Soomaali", "Somali Tech Academy", "First Somali Platform",
     "Online Somali Courses", "Somali Education Technology", "Garaad Academy"
   ],
-  authors: [{ name: "Garaad Team", url: "https://garaad.so" }],
+  authors: [{ name: "Garaad Team", url: "https://garaad.org" }],
   creator: "Garaad STEM",
   publisher: "Garaad STEM",
   alternates: {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "so_SO",
-    url: "https://garaad.so",
+    url: "https://garaad.org",
     siteName: "Garaad STEM",
     title: "Garaad STEM - Baro STEM iyo Programming oo Soomaali ah",
     description: "Platform-ka ugu horreeya ee Soomaalida loogu talagalay barashada STEM. Ku baro afkaaga hooyo adiga oo dhisaya mustaqbalkaaga tech.",
@@ -101,8 +101,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "EducationalOrganization",
               name: "Garaad",
-              url: "https://garaad.so",
-              logo: "https://garaad.so/logo.png",
+              url: "https://garaad.org",
+              logo: "https://garaad.org/logo.png",
               sameAs: [
                 "https://www.linkedin.com/company/garaad",
                 "https://x.com/Garaadstem",

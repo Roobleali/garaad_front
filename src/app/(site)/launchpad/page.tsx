@@ -5,11 +5,11 @@ import { API_BASE_URL } from "@/lib/constants";
 export const metadata: Metadata = {
     title: "Garaad Launchpad | Soo Bandhig Startup-kaaga",
     description: "Xarunta startup-yada Soomaaliyeed. Hel mashruucyo cusub, codee kuwa aad jeceshahay, ama soo bandhig mashruucaaga tech-ka ah.",
-    alternates: { canonical: "https://garaad.so/launchpad" },
+    alternates: { canonical: "https://garaad.org/launchpad" },
     openGraph: {
         type: "website",
         locale: "so_SO",
-        url: "https://garaad.so/launchpad",
+        url: "https://garaad.org/launchpad",
         siteName: "Garaad STEM",
         title: "Garaad Launchpad - Builders to Founders",
         description: "Hel mashaariicda ugu xiisaha badan ee ay dhisayaan dhalinyarada Soomaaliyeed. Launch, Vote & Grow.",
@@ -49,7 +49,7 @@ export default async function LaunchpadPage() {
                 "description": startup.tagline || startup.description,
                 "applicationCategory": "BusinessApplication",
                 "operatingSystem": "Web",
-                "url": `https://garaad.so/launchpad/${startup.slug || startup.id}`
+                "url": `https://garaad.org/launchpad/${startup.slug || startup.id}`
             }
         }))
     };

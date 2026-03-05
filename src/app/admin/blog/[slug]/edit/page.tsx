@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { blogAdminApi } from "@/lib/admin-blog";
 import TipTapEditor from "@/components/blog/TipTapEditor";
@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Loader2, ArrowLeft, Image as ImageIcon, Upload } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export default function EditBlogPostPage() {
     const router = useRouter();
@@ -28,6 +29,7 @@ export default function EditBlogPostPage() {
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isPublished, setIsPublished] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     useEffect(() => {
         const fetchPost = async () => {
@@ -57,13 +59,43 @@ export default function EditBlogPostPage() {
         }
     }, [slug, router]);
 
+    const setFileFrom = useCallback((file: File | null) => {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+            toast.error("Fadlan dooro fayl sawir ah (PNG, JPG, ...)");
+            return;
+        }
+        setCoverImage(file);
+        setImagePreview((prev) => {
+            if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file);
+        });
+    }, []);
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setCoverImage(file);
-            setImagePreview(URL.createObjectURL(file));
-        }
+        if (file) setFileFrom(file);
     };
+
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    }, []);
+
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) setFileFrom(file);
+    }, [setFileFrom]);
 
     const handleSubmit = async (publish: boolean = isPublished) => {
         if (!title || !body || !metaDescription) {
@@ -146,15 +178,26 @@ export default function EditBlogPostPage() {
                         <div className="space-y-2">
                             <Label htmlFor="cover-image" className="font-medium">Sawirka Daboolka (Cover Image)</Label>
                             <div
-                                className="border-2 border-dashed border-slate-200 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden relative"
+                                role="button"
+                                tabIndex={0}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
                                 onClick={() => document.getElementById("cover-image")?.click()}
+                                onKeyDown={(e) => e.key === "Enter" && document.getElementById("cover-image")?.click()}
+                                className={cn(
+                                    "border-2 border-dashed rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer transition-colors overflow-hidden relative",
+                                    isDragging ? "border-primary bg-primary/5" : "border-slate-200 hover:border-primary"
+                                )}
                             >
                                 {imagePreview ? (
-                                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                                    <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized={imagePreview.startsWith("blob:")} />
                                 ) : (
                                     <>
-                                        <ImageIcon className="h-10 w-10 text-slate-300 mb-2" />
-                                        <span className="text-sm text-slate-400">Guji si aad sawir u soo geliso</span>
+                                        <Upload className="h-10 w-10 text-slate-300 mb-2" />
+                                        <span className="text-sm text-slate-400 text-center px-4">
+                                            Guji si aad sawir u soo geliso ama jiid oo tuur halkan
+                                        </span>
                                     </>
                                 )}
                             </div>

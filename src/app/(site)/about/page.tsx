@@ -6,11 +6,11 @@ import { cn } from '@/lib/utils';
 export const metadata: Metadata = {
   title: "About Us | Garaad",
   description: "Learn about Garaad's mission to systemize STEM education for the Somali generation through radical truth and merit-based learning.",
-  alternates: { canonical: "https://garaad.so/about" },
+  alternates: { canonical: "https://garaad.org/about" },
   openGraph: {
     type: "website",
     locale: "so_SO",
-    url: "https://garaad.so/about",
+    url: "https://garaad.org/about",
     siteName: "Garaad STEM",
     title: "About Garaad | STEM Education for the Somali Generation",
     description: "Garaad's mission: systemize STEM education through radical truth and merit-based learning.",

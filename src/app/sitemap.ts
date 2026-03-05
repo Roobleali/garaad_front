@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { API_BASE_URL } from "@/lib/constants";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://garaad.so";
+  const baseUrl = "https://garaad.org";
   const currentDate = new Date();
 
   // 1. Static Routes that actually exist in src/app

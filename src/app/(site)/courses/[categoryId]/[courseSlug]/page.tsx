@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             images: course.thumbnail ? [course.thumbnail] : [],
         },
         alternates: {
-            canonical: `https://garaad.so/courses/${categoryId}/${courseSlug}`,
+            canonical: `https://garaad.org/courses/${categoryId}/${courseSlug}`,
         }
     };
 }
@@ -70,7 +70,7 @@ export default async function Page({ params }: Props) {
         "provider": {
             "@type": "Organization",
             "name": "Garaad",
-            "sameAs": "https://garaad.so"
+            "sameAs": "https://garaad.org"
         },
         "courseCode": course.slug,
         "educationalLevel": course.level,
