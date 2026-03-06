@@ -35,12 +35,13 @@ export function HeroSection() {
   const isLoggedIn = !!user;
   const [featuredCourse, setFeaturedCourse] = useState<HeroCourse | null>(null);
 
-  const { data: stats } = useSWR<LandingStats>(
+  const { data: stats, error: statsError } = useSWR<LandingStats>(
     `${API_BASE_URL}/api/public/landing-stats/`,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60 * 1000 }
   );
   const studentCount = stats?.students_count ?? 0;
+  const showStats = !statsError && stats != null && typeof studentCount === "number" && studentCount > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -121,7 +122,7 @@ export function HeroSection() {
                 View courses →
               </Link>
             </div>
-            {studentCount > 0 && (
+            {showStats && (
               <p className="mt-6 text-sm text-white/40">
                 <span className="font-semibold tabular-nums text-white/70">{studentCount}+</span> learners started
               </p>
