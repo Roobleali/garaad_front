@@ -1,4 +1,7 @@
+"use client";
+
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function CookieConsent() {
@@ -11,9 +14,9 @@ export function CookieConsent() {
       <div className="container mx-auto flex items-center justify-between gap-4">
         <p className="text-sm text-gray-600">
           Waxaan isticmaalnaa cookies si aan u hagaajino waayo aragnimadaada Garaad{" "}
-          <a href="#" className="text-blue-600 hover:underline">
+          <Link href="/privacy" className="text-blue-600 hover:underline">
             Wax badan ka baro siyaasadda cookies-ka iyo dejinta
-          </a>
+          </Link>
           .
         </p>
 

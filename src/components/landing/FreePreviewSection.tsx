@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen, Lock, ChevronRight, GraduationCap, PlayCircle, Award } from "lucide-react";
 import { API_BASE_URL } from "@/lib/constants";
@@ -28,7 +28,6 @@ function CoursePreviewCard({
     course: Course;
     categoryId: number | string;
 }) {
-    const router = useRouter();
     const [hovered, setHovered] = useState(false);
 
     const isValidUrl = (url: string) => {
@@ -46,11 +45,11 @@ function CoursePreviewCard({
             : "/images/placeholder-course.svg";
 
     return (
-        <div
-            className="relative group rounded-3xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer hover:-translate-y-1"
+        <Link
+            href="/welcome"
+            className="relative group rounded-3xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer hover:-translate-y-1 block"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onClick={() => router.push("/welcome")}
         >
             {/* Thumbnail */}
             <div className="relative w-full h-44 bg-muted flex items-center justify-center overflow-hidden">
@@ -97,13 +96,13 @@ function CoursePreviewCard({
                     <p className="text-white font-bold text-sm leading-snug max-w-[160px]">
                         Ku biir si aad ugu bilaawdo koorsadan
                     </p>
-                    <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-black px-5 py-2.5 rounded-full transition-all duration-200 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105">
+                    <span className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-black px-5 py-2.5 rounded-full transition-all duration-200 shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-105">
                         Bilow Hadda
                         <ChevronRight className="w-4 h-4" />
-                    </button>
+                    </span>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }
 
@@ -120,7 +119,6 @@ function CardSkeleton() {
 }
 
 export function FreePreviewSection() {
-    const router = useRouter();
     const [courses, setCourses] = useState<(Course & { categoryId: number | string })[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -203,14 +201,14 @@ export function FreePreviewSection() {
                 {/* Footer link */}
                 <Reveal>
                     <div className="mt-12 text-center">
-                        <button
-                            onClick={() => router.push("/welcome")}
+                        <Link
+                            href="/welcome"
                             className="inline-flex items-center gap-2 text-primary font-bold text-base hover:gap-3 transition-all duration-200 group"
                         >
                             <GraduationCap className="w-5 h-5" />
                             <span>Dhammaan Koorsooyinka</span>
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        </Link>
                         <p className="mt-2 text-sm text-muted-foreground">
                             {courses.length}+ koorsood oo diyaar ah • Baro Af-Soomaali
                         </p>

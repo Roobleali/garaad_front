@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
+import { motion, useInView, animate } from "framer-motion";
+
+const COURSE_NAMES = ["React Bilow", "Next.js + API Routes", "AI with Python", "Django REST API"] as const;
 
 const FLOAT_ICONS = [
   { icon: "</> ", top: "12%", left: "72%", size: 32, delay: 0, opacity: 0.08 },
@@ -26,13 +29,27 @@ const LESSON_ITEMS = [
   { label: "AI Integration", done: false },
 ] as const;
 
+const IS_LIVE = true; // Currently live session (hardcoded for now)
+
 export function HeroSection() {
-  const router = useRouter();
   const { user } = useAuthStore();
   const isLoggedIn = !!user;
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
+  const [studentCount, setStudentCount] = useState(480);
   const heroRef = useRef<HTMLElement>(null);
+  const countRef = useRef<HTMLSpanElement>(null);
+  const isCountInView = useInView(countRef, { once: true, amount: 0.3 });
+
+  useEffect(() => {
+    if (!isCountInView) return;
+    const controls = animate(480, 500, {
+      duration: 2,
+      ease: "easeOut",
+      onUpdate: (v) => setStudentCount(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [isCountInView]);
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -194,6 +211,16 @@ export function HeroSection() {
           opacity: 0.025;
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
+        .hero-ticker-track {
+          display: flex;
+          gap: 3rem;
+          animation: hero-ticker 25s linear infinite;
+          white-space: nowrap;
+        }
+        @keyframes hero-ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
       `}</style>
 
       <div className="hero-noise-overlay" aria-hidden />
@@ -309,151 +336,179 @@ export function HeroSection() {
             </div>
 
             <div className="hero-animate-cta flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="hero-cta-primary"
-                onClick={() => router.push(isLoggedIn ? "/courses" : "/welcome")}
+              <Link
+                href={isLoggedIn ? "/courses" : "/welcome"}
+                className="hero-cta-primary inline-flex items-center justify-center no-underline"
               >
                 <span className="flex items-center gap-2.5">
                   <span>▶</span>
                   {isLoggedIn ? "Sii wad Barashada" : "Ku Soo Biir Maanta"}
                 </span>
-              </button>
-              <button
-                type="button"
-                className="hero-cta-secondary"
-                onClick={() => router.push("/courses")}
+              </Link>
+              <Link
+                href="/courses"
+                className="hero-cta-secondary inline-flex items-center justify-center no-underline"
               >
                 Arag Koorsooyin →
-              </button>
+              </Link>
             </div>
 
-            <div className="hero-animate-stats mt-8 flex items-center gap-5">
-              <div className="flex items-center">
-                {["var(--primary)", "#a78bfa", "#fff", "#f59e0b"].map((c, i) => (
-                  <div
-                    key={i}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#050508] text-[10px] font-bold text-[#050508]"
-                    style={{
-                      background: c,
-                      marginLeft: i > 0 ? -8 : 0,
-                    }}
-                  >
-                    {["A", "B", "M", "F"][i]}
-                  </div>
-                ))}
+            {/* Trust: animated student count + testimonial */}
+            <div className="hero-animate-stats mt-8 space-y-4">
+              <div ref={countRef} className="flex items-center gap-5">
+                <div className="flex items-center">
+                  {["var(--primary)", "#a78bfa", "#fff", "#f59e0b"].map((c, i) => (
+                    <div
+                      key={i}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#050508] text-[10px] font-bold text-[#050508]"
+                      style={{
+                        background: c,
+                        marginLeft: i > 0 ? -8 : 0,
+                      }}
+                    >
+                      {["A", "B", "M", "F"][i]}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-[13px] text-white/40">
+                  <span className="font-semibold tabular-nums text-white/80">{studentCount}+</span> arday ayaa bilaabay
+                </span>
+                <div className="h-4 w-px bg-white/10" />
+                <div className="flex gap-0.5 text-primary">
+                  {"★★★★★".split("").map((s, i) => (
+                    <span key={i} className="text-xs">{s}</span>
+                  ))}
+                </div>
               </div>
-              <span className="text-[13px] text-white/40">
-                <span className="font-semibold text-white/80">500+</span> arday ayaa bilaabay
-              </span>
-              <div className="h-4 w-px bg-white/10" />
-              <div className="flex gap-0.5 text-[var(--primary)]">
-                {"★★★★★".split("").map((s, i) => (
-                  <span key={i} className="text-xs">{s}</span>
-                ))}
-              </div>
+              <blockquote className="border-l-2 border-primary/40 pl-4 text-[13px] italic text-white/50">
+                &ldquo;Garaad ayaa i caawisay inaan shaqo helo 3 bilood kadib.&rdquo;
+                <footer className="mt-1.5 not-italic text-white/70 font-medium">— Axmed C., Mogadishu</footer>
+              </blockquote>
             </div>
           </div>
 
-          {/* Right — Visual panel */}
+          {/* Right — Visual panel (course preview card) */}
           <div className="relative" style={floatStyle(0.15)}>
-            <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-7">
-              <div className="hero-corner-bracket hero-corner-tl" aria-hidden />
-              <div className="hero-corner-bracket hero-corner-tr" aria-hidden />
-              <div className="hero-corner-bracket hero-corner-bl" aria-hidden />
-              <div className="hero-corner-bracket hero-corner-br" aria-hidden />
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03] shadow-xl shadow-black/20 backdrop-blur-sm">
+              {/* Window header — garaad.org / React Bilow + Currently Live */}
+              <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.02] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    {["#ff5f57", "#febc2e", "#28c840"].map((c, i) => (
+                      <div key={i} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
+                    ))}
+                  </div>
+                  <div
+                    className="ml-2 flex items-center gap-1.5 rounded-md border border-white/10 bg-black/30 px-3 py-1.5 font-mono text-[11px] tracking-wide text-white/70"
+                    style={{ borderLeftColor: "var(--primary)" }}
+                  >
+                    <span className="text-white/40">garaad.org</span>
+                    <span className="text-white/30">/</span>
+                    <span className="font-medium text-primary">React Bilow</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {IS_LIVE && (
+                    <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      </span>
+                      Currently Live
+                    </span>
+                  )}
+                </div>
+              </div>
 
-              <div className="mb-5 flex items-center justify-between">
-                <div className="flex gap-1.5">
-                  {["#ff5f57", "#febc2e", "#28c840"].map((c, i) => (
-                    <div key={i} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
+              <div className="p-4 sm:p-5">
+                {/* Code block — Koorsada React Lesson 4 */}
+                <div className="mb-5 overflow-hidden rounded-xl border border-white/[0.06] bg-black/60 shadow-inner">
+                  <div className="border-b border-white/[0.06] bg-white/[0.02] px-3 py-2 font-mono text-[10px] text-white/35">
+                    // Koorsada React — Lesson 4
+                  </div>
+                  <pre className="p-4 font-mono text-[12px] leading-[1.85] sm:text-[13px]" aria-label="React code snippet">
+                    <code className="block text-white/90">
+                      <span className="text-[var(--primary)]">const</span>
+                      <span className="text-white/80"> App </span>
+                      <span className="text-white/50">=</span>
+                      <span className="text-white/50"> () </span>
+                      <span className="text-[var(--primary)]">{"=>"}</span>
+                      <span className="text-white/50"> {"{"}</span>
+                      {"\n"}
+                      <span className="text-white/60">  </span>
+                      <span className="text-emerald-400">return</span>
+                      <span className="text-white/60"> </span>
+                      <span className="text-white/50">{"<"}</span>
+                      <span className="text-amber-400">div</span>
+                      <span className="text-white/50">{">"}</span>
+                      <span className="text-white/70">Adduunka React</span>
+                      <span className="text-white/50">{"</"}</span>
+                      <span className="text-amber-400">div</span>
+                      <span className="text-white/50">{">"}</span>
+                      {"\n"}
+                      <span className="text-white/50">{"}"}</span>
+                    </code>
+                  </pre>
+                </div>
+
+                {/* Progress — Horumarka Koorso 68% */}
+                <div className="mb-5">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium text-white/50">Horumarka Koorso</span>
+                    <span className="font-mono text-xs font-bold tabular-nums text-[var(--primary)]">68%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: "68%",
+                        background: "linear-gradient(90deg, var(--primary), #10b981)",
+                        boxShadow: "0 0 14px color-mix(in srgb, var(--primary) 40%, transparent)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Lesson list — checkmarks + HADDA */}
+                <div className="flex flex-col gap-1.5">
+                  {LESSON_ITEMS.map((lesson, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors"
+                      style={{
+                        background: lesson.active ? "color-mix(in srgb, var(--primary) 8%, transparent)" : "transparent",
+                        border: lesson.active ? "1px solid color-mix(in srgb, var(--primary) 20%, transparent)" : "1px solid transparent",
+                      }}
+                    >
+                      <div
+                        className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                        style={{
+                          background: lesson.done ? "var(--primary)" : lesson.active ? "color-mix(in srgb, var(--primary) 25%, transparent)" : "rgba(255,255,255,0.06)",
+                          border: lesson.done ? "none" : "1px solid " + (lesson.active ? "color-mix(in srgb, var(--primary) 50%, transparent)" : "rgba(255,255,255,0.12)"),
+                          color: lesson.done ? "var(--primary-foreground)" : "transparent",
+                        }}
+                      >
+                        {lesson.done ? "✓" : ""}
+                      </div>
+                      <span
+                        className="flex-1 text-[13px] font-medium"
+                        style={{
+                          color: lesson.active ? "rgba(255,255,255,0.95)" : lesson.done ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.35)",
+                        }}
+                      >
+                        {lesson.label}
+                      </span>
+                      {lesson.active && (
+                        <span
+                          className="rounded-full px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider"
+                          style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 30%, transparent)" }}
+                        >
+                          HADDA
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
-                <div className="font-mono text-[10px] tracking-[0.1em] text-white/30">
-                  garaad.org / course-01
-                </div>
-              </div>
-
-              <div className="mb-4 overflow-hidden rounded-lg border border-white/[0.08] bg-black/50 p-4 font-mono text-[11.5px] leading-[1.8]">
-                <div className="mb-2 font-mono text-[10px] tracking-wider text-white/25">
-                  // Koorsada React — Lesson 4
-                </div>
-                <div>
-                  <span className="text-[var(--primary)]">const</span>
-                  <span className="text-white/70"> App </span>
-                  <span className="text-white/40">=</span>
-                  <span className="text-[var(--primary)]"> () </span>
-                  <span className="text-white/40">{"=>"}</span>
-                  <span className="text-white/40"> {"{"}</span>
-                </div>
-                <div className="pl-4">
-                  <span className="text-emerald-500">return</span>
-                  <span className="text-white/60"> {"<"}</span>
-                  <span className="text-amber-500">div</span>
-                  <span className="text-white/60">{">"}</span>
-                  <span className="text-white/50">Adduunka React</span>
-                  <span className="text-white/60">{"</"}</span>
-                  <span className="text-amber-500">div</span>
-                  <span className="text-white/60">{">"}</span>
-                </div>
-                <div className="text-white/40">{"}"}</div>
-              </div>
-
-              <div className="mb-4">
-                <div className="mb-2 flex justify-between">
-                  <span className="font-sans text-[11px] text-white/40">Horumarka Koorso</span>
-                  <span className="font-mono text-[11px] font-bold text-[var(--primary)]">68%</span>
-                </div>
-                <div className="h-1 overflow-hidden rounded bg-white/[0.06]">
-                  <div
-                    className="h-full rounded shadow-[0_0_12px_var(--primary)]"
-                    style={{
-                      width: "68%",
-                      background: `linear-gradient(90deg, var(--primary), #10b981)`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {LESSON_ITEMS.map((lesson, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2"
-                    style={{
-                      background: lesson.active ? "color-mix(in srgb, var(--primary) 6%, transparent)" : "transparent",
-                      border: lesson.active ? "1px solid color-mix(in srgb, var(--primary) 15%, transparent)" : "1px solid transparent",
-                    }}
-                  >
-                    <div
-                      className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full text-[8px]"
-                      style={{
-                        background: lesson.done ? "var(--primary)" : lesson.active ? "color-mix(in srgb, var(--primary) 20%, transparent)" : "rgba(255,255,255,0.06)",
-                        border: lesson.done ? "none" : lesson.active ? "1px solid color-mix(in srgb, var(--primary) 40%, transparent)" : "1px solid rgba(255,255,255,0.1)",
-                        color: lesson.done ? "var(--primary-foreground)" : "transparent",
-                      }}
-                    >
-                      {lesson.done ? "✓" : ""}
-                    </div>
-                    <span
-                      className="font-sans text-xs"
-                      style={{
-                        color: lesson.active ? "rgba(255,255,255,0.9)" : lesson.done ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.3)",
-                        fontWeight: lesson.active ? 600 : 400,
-                      }}
-                    >
-                      {lesson.label}
-                    </span>
-                    {lesson.active && (
-                      <div
-                        className="ml-auto rounded-full px-2 py-0.5 font-mono text-[9px]"
-                        style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 10%, transparent)" }}
-                      >
-                        HADDA
-                      </div>
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
 
@@ -493,6 +548,22 @@ export function HeroSection() {
           </span>
         </div>
       </section>
+
+      {/* Course names ticker */}
+      <div className="border-t border-b border-white/10 bg-white/[0.02] py-3 overflow-hidden">
+        <div className="hero-ticker-track w-max">
+          {[...Array(2)].map((_, outer) =>
+            COURSE_NAMES.map((name, i) => (
+              <span
+                key={`${outer}-${i}`}
+                className={`shrink-0 font-mono text-xs font-semibold uppercase tracking-wider ${i === 0 ? "text-primary" : "text-white/30"}`}
+              >
+                {name} <span className="text-white/20">·</span>
+              </span>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

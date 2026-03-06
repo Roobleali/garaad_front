@@ -1,9 +1,12 @@
+'use client';
+
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { BookOpen, Trophy, Settings, LogOut } from 'lucide-react';
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
 
     return (
         <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200">
@@ -40,12 +43,11 @@ export function Sidebar() {
                     className="flex items-center w-full px-6 py-3 text-gray-600 hover:bg-gray-50"
                     onClick={() => {
                         if (typeof window !== "undefined") {
-                            // Clear session markers
                             document.cookie = "accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                             document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                             document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                             localStorage.clear();
-                            window.location.href = "/";
+                            router.push("/");
                         }
                     }}
                 >

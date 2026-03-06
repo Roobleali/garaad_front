@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy, Share2, Gift, Check, Send, GraduationCap, Banknote, TrendingUp as TrendingUpIcon } from 'lucide-react';
@@ -14,6 +15,7 @@ interface ReferralModalProps {
 }
 
 export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
+    const router = useRouter();
     const { toast } = useToast();
     const [referralData, setReferralData] = useState<ReferralLink | null>(null);
     const [loading, setLoading] = useState(false);
@@ -161,7 +163,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                                     variant="link"
                                     onClick={() => {
                                         onClose();
-                                        window.location.href = '/referrals';
+                                        router.push('/referrals');
                                     }}
                                     className="text-primary font-black text-[10px] h-auto p-0 flex items-center gap-1.5 hover:no-underline opacity-80 hover:opacity-100"
                                 >

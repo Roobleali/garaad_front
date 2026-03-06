@@ -7,20 +7,11 @@ import { Reveal } from "@/components/landing/Reveal";
 import Image from "next/image";
 import { Users, MessageSquare, Flame, Trophy, ArrowRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function CommunityPreview() {
-    const router = useRouter();
     const { isAuthenticated } = useAuthStore();
-
-    const handleJoin = () => {
-        if (isAuthenticated) {
-            router.push("/community");
-        } else {
-            router.push("/welcome");
-        }
-    };
+    const joinHref = isAuthenticated ? "/community" : "/welcome";
 
     const features = [
         {
@@ -125,13 +116,13 @@ export default function CommunityPreview() {
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <button
-                                        onClick={handleJoin}
+                                    <Link
+                                        href={joinHref}
                                         className="w-full sm:w-auto px-10 py-5 bg-white text-primary font-black rounded-2xl hover:scale-105 transition-all flex items-center justify-center gap-2 group"
                                     >
                                         KU SOO BIIR
                                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                    </button>
+                                    </Link>
                                     <Link
                                         href="/challenge"
                                         className="w-full sm:w-auto px-10 py-5 bg-primary-foreground/10 text-white font-black rounded-2xl hover:bg-primary-foreground/20 transition-all border border-white/20"

@@ -22,8 +22,7 @@ export const ProfileDropdown: React.FC = () => {
   const handleLogout = () => {
     logout();
     setOpen(false);
-    // Use window.location.href for a clean redirect and state reset
-    window.location.href = "/";
+    router.push("/");
   };
 
   const handleLinkClick = () => {

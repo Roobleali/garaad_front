@@ -1,22 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Users, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 export function CommunityCTASection() {
-    const router = useRouter();
     const { user } = useAuthStore();
     const isAuthenticated = !!user;
 
-    const handleJoin = () => {
-        if (isAuthenticated) {
-            router.push("/community");
-        } else {
-            router.push("/welcome");
-        }
-    };
+    const joinHref = isAuthenticated ? "/community" : "/welcome";
 
     return (
         <section className="relative py-14 md:py-20 bg-gradient-to-br from-primary/5 via-blue-500/5 to-purple-500/5 dark:from-primary/10 dark:via-blue-500/10 dark:to-purple-500/10 overflow-hidden">
@@ -71,14 +64,14 @@ export function CommunityCTASection() {
                             Ku biir boqolaal arday iyo aqoonyahano oo wadaaga aqoon iyo taageero — wada dhis mustaqbalka tech-ka Soomaaliya.
                         </p>
 
-                        <button
-                            onClick={handleJoin}
+                        <Link
+                            href={joinHref}
                             className="group inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all"
                         >
                             <Users className="w-5 h-5" />
                             <span>Ku Biir Bulshada</span>
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -1,21 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Rocket } from "lucide-react";
 
 export function ClosingCTA() {
-    const router = useRouter();
     const { user } = useAuthStore();
     const isAuthenticated = !!user;
 
-    const handleCTA = () => {
-        if (isAuthenticated) {
-            router.push("/courses");
-        } else {
-            router.push("/welcome");
-        }
-    };
+    const ctaHref = isAuthenticated ? "/courses" : "/welcome";
 
     return (
         <section className="relative py-20 md:py-32 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black overflow-hidden">
@@ -49,12 +42,12 @@ export function ClosingCTA() {
                 </p>
 
                 {/* CTA Button */}
-                <button
-                    onClick={handleCTA}
-                    className="group relative px-10 py-5 bg-primary hover:bg-primary/90 text-white text-xl font-black rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/50"
+                <Link
+                    href={ctaHref}
+                    className="group relative inline-block px-10 py-5 bg-primary hover:bg-primary/90 text-white text-xl font-black rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/50"
                 >
                     <span>{isAuthenticated ? "BILOW HADDA" : "KU SOO BIIR"}</span>
-                </button>
+                </Link>
             </div>
         </section>
     );
