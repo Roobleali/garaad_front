@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowRight, BookOpen, Lock, Sparkles, ChevronRight, GraduationCap, PlayCircle, Award } from "lucide-react";
+import { ArrowRight, BookOpen, Lock, ChevronRight, GraduationCap, PlayCircle, Award } from "lucide-react";
 import { API_BASE_URL } from "@/lib/constants";
 import { Reveal } from "./Reveal";
 
@@ -67,11 +67,6 @@ function CoursePreviewCard({
                     }}
                 />
 
-                {/* "Free" badge */}
-                <span className="absolute top-3 left-3 flex items-center gap-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
-                    <Sparkles className="w-3 h-3" />
-                    Bilaash
-                </span>
             </div>
 
             {/* Title */}
@@ -177,7 +172,7 @@ export function FreePreviewSection() {
                             Dhadhan <span className="text-primary">Koorsooyinka</span>
                         </h2>
                         <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-base">
-                            Baro si habboon — ka bilow halka aad joogto. Darajo bilaash ah.
+                            Baro si habboon — ka bilow halka aad joogto.
                         </p>
                         <div className="mt-4 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
                             <span className="inline-flex items-center gap-1.5">

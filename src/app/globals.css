@@ -377,6 +377,73 @@
   animation: float 6s ease-in-out infinite;
 }
 
+@keyframes float-alt {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-22px) rotate(-2deg); }
+}
+
+.animate-float-alt {
+  animation: float-alt 5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
+@keyframes shimmer-text {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer-text {
+  background-size: 200% auto;
+  animation: shimmer-text 4s linear infinite;
+}
+
+@keyframes hero-slide-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-animate-badge { animation: hero-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.hero-animate-headline { animation: hero-slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+.hero-animate-desc { animation: hero-slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+.hero-animate-pills { animation: hero-slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+.hero-animate-cta { animation: hero-slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+.hero-animate-stats { animation: hero-slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+
+@keyframes scan-line {
+  0% { top: 0%; }
+  100% { top: 100%; }
+}
+
+.animate-scan {
+  animation: scan-line 8s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  animation: ticker-scroll 20s linear infinite;
+}
+
+.shimmer-hero-text {
+  background: linear-gradient(90deg, var(--primary) 0%, rgba(255,255,255,0.9) 30%, var(--primary) 60%, var(--primary) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-text 4s linear infinite;
+}
+
 .perspective-1000 {
   perspective: 1000px;
 }
