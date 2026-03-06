@@ -30,10 +30,12 @@ interface HeroCourse {
   is_published: boolean;
 }
 
+type HeroCourseWithCategory = HeroCourse & { categoryId: number };
+
 export function HeroSection() {
   const { user } = useAuthStore();
   const isLoggedIn = !!user;
-  const [featuredCourse, setFeaturedCourse] = useState<HeroCourse | null>(null);
+  const [courses, setCourses] = useState<HeroCourseWithCategory[]>([]);
 
   const { data: stats, error: statsError } = useSWR<LandingStats>(
     `${API_BASE_URL}/api/public/landing-stats/`,
@@ -47,17 +49,20 @@ export function HeroSection() {
     let cancelled = false;
     fetch(`${API_BASE_URL}/api/lms/categories/`)
       .then((r) => r.json())
-      .then((data: { results?: { courses?: HeroCourse[] }[] } | HeroCourse[]) => {
+      .then((data: { results?: { id: number; courses?: HeroCourse[] }[] } | { id: number; courses?: HeroCourse[] }[]) => {
         if (cancelled) return;
         const categories = Array.isArray(data) ? data : data?.results ?? [];
-        const first = (categories as { courses?: HeroCourse[] }[]).flatMap((c) =>
-          (c.courses || []).filter((c) => c.is_published)
-        )[0];
-        if (first) setFeaturedCourse(first);
+        const list = (categories as { id: number; courses?: HeroCourse[] }[]).flatMap((cat) =>
+          (cat.courses || []).filter((c) => c.is_published).map((c) => ({ ...c, categoryId: cat.id }))
+        );
+        setCourses(list);
       })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
+
+  const aiCourse = courses.find((c) => /ai|artificial|smart|machine/i.test(c.title));
+  const otherCourses = courses.filter((c) => c.id !== aiCourse?.id);
 
   return (
     <div className="min-h-screen bg-[#050508] dark:bg-[#050508]">
@@ -129,47 +134,79 @@ export function HeroSection() {
             )}
           </div>
 
-          {/* Right — One card (all breakpoints) */}
-          <div className="hero-animate-cta relative">
-            {featuredCourse ? (
-              <Link
-                href="/welcome"
-                className="block rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-primary/20 hover:bg-white/[0.08]"
-              >
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  Featured course
-                </div>
-                <h3 className="font-display text-xl font-semibold text-white">
-                  {featuredCourse.title}
-                </h3>
-                <p className="mt-2 text-sm text-white/50">
-                  Start learning today — at your own pace.
+          {/* Right — Koorsooyin card, courses list, AI course section */}
+          <div className="hero-animate-cta relative space-y-5">
+            {/* Koorsooyin — Full-Stack & AI in Somali */}
+            <Link
+              href="/courses"
+              className="block rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-primary/20 hover:bg-white/8"
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
+                <BookOpen className="h-3.5 w-3.5" />
+                Koorsooyin
+              </div>
+              <h3 className="font-display text-xl font-semibold text-white">
+                Full-Stack & AI in Somali
+              </h3>
+              <p className="mt-2 text-sm text-white/50">
+                Step-by-step. Build a portfolio. Get job-ready.
+              </p>
+              <span className="mt-4 inline-block text-sm font-semibold text-primary">
+                Start now →
+              </span>
+            </Link>
+
+            {/* Courses from API */}
+            {otherCourses.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-white/50">
+                  Koorsooyin diyaar ah
                 </p>
-                <span className="mt-4 inline-block text-sm font-semibold text-primary">
-                  Start now →
-                </span>
-              </Link>
-            ) : (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  Koorsooyin
-                </div>
-                <h3 className="font-display text-xl font-semibold text-white">
-                  Full-Stack & AI in Somali
-                </h3>
-                <p className="mt-2 text-sm text-white/50">
-                  Step-by-step. Build a portfolio. Get job-ready.
-                </p>
-                <Link
-                  href="/welcome"
-                  className="mt-4 inline-block text-sm font-semibold text-primary hover:underline"
-                >
-                  Start now →
-                </Link>
+                <ul className="space-y-2">
+                  {otherCourses.slice(0, 4).map((course) => (
+                    <li key={course.id}>
+                      <Link
+                        href={`/courses/${course.categoryId}/${course.slug}`}
+                        className="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 px-3 py-2.5 text-sm text-white/90 transition hover:border-primary/20 hover:bg-white/10"
+                      >
+                        <span className="line-clamp-1 font-medium">{course.title}</span>
+                        <span className="shrink-0 text-primary">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                {otherCourses.length > 4 && (
+                  <Link
+                    href="/courses"
+                    className="mt-3 block text-center text-xs font-medium text-primary hover:underline"
+                  >
+                    Dhammaan koorsooyinka ({otherCourses.length}+)
+                  </Link>
+                )}
               </div>
             )}
+
+            {/* AI course section */}
+            <Link
+              href={aiCourse ? `/courses/${aiCourse.categoryId}/${aiCourse.slug}` : "/courses"}
+              className="block rounded-2xl border border-primary/20 bg-primary/10 p-6 transition hover:border-primary/30 hover:bg-primary/15"
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/20 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
+                <Brain className="h-3.5 w-3.5" />
+                Koorsada AI
+              </div>
+              <h3 className="font-display text-xl font-semibold text-white">
+                {aiCourse ? aiCourse.title : "Baro AI — Af-Soomaali"}
+              </h3>
+              <p className="mt-2 text-sm text-white/60">
+                {aiCourse
+                  ? "Ku baro AI si habboon — bilaaw maanta."
+                  : "Ku baro AI, machine learning iyo automation — tallaabo tallaabo."}
+              </p>
+              <span className="mt-4 inline-block text-sm font-semibold text-primary">
+                Bilaaw koorsada AI →
+              </span>
+            </Link>
           </div>
         </div>
       </section>
