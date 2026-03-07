@@ -87,6 +87,8 @@ export async function POST(request: NextRequest) {
     const requestBody = await request.json();
     const {
       plan,
+      priceId: bodyPriceId,
+      mode: bodyMode,
       successUrl,
       cancelUrl,
       countryCode,
@@ -97,15 +99,9 @@ export async function POST(request: NextRequest) {
       providedEmail,
       plan,
       countryCode,
+      priceId: bodyPriceId,
+      mode: bodyMode,
     });
-
-    // Validate plan
-    if (!plan || !STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS]) {
-      return NextResponse.json(
-        { error: "Invalid plan specified" },
-        { status: 400 }
-      );
-    }
 
     // Get user information from JWT token and request body
     const { userEmail, userId } = getUserInfo(request, requestBody);
@@ -148,74 +144,73 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the correct price ID based on location
-    const priceType = countryCode === "SO" ? "SOMALIA" : "INTERNATIONAL";
-    const priceId =
-      STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS][priceType];
+    let lineItems: { price: string; quantity: number }[] | { price_data: { currency: string; product_data: { name: string; description: string }; unit_amount: number; recurring: { interval: "month" | "year" } }; quantity: number }[];
+    let sessionMode: "subscription" | "payment";
 
-    console.log(`💰 Price configuration:`, {
-      plan,
-      countryCode,
-      priceType,
-      priceId,
-      envVars: {
-        SOMALIA: process.env.STRIPE_MONTHLY_PRICE_ID_SOMALIA,
-        INTERNATIONAL: process.env.STRIPE_MONTHLY_PRICE_ID_INTERNATIONAL,
-      },
-    });
-
-    // Prepare line items - use price ID if available, otherwise use price_data as fallback
-    let lineItems;
-
-    if (priceId && priceId.startsWith("price_")) {
-      // Use price ID if available and valid
-      lineItems = [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ];
-      console.log(
-        `✅ Using valid Price ID: ${priceId} for plan: ${plan}, type: ${priceType}`
-      );
+    // Path 1: Direct priceId + mode (multi-plan subscribe page)
+    if (
+      bodyPriceId &&
+      typeof bodyPriceId === "string" &&
+      bodyPriceId.startsWith("price_") &&
+      bodyMode &&
+      (bodyMode === "subscription" || bodyMode === "payment")
+    ) {
+      lineItems = [{ price: bodyPriceId, quantity: 1 }];
+      sessionMode = bodyMode;
+      console.log(`✅ Using direct Price ID: ${bodyPriceId}, mode: ${sessionMode}`);
     } else {
-      // Use price_data as fallback
-      const fallbackPrice =
-        FALLBACK_PRICES[plan as keyof typeof FALLBACK_PRICES][priceType];
-      lineItems = [
-        {
-          price_data: {
-            currency: fallbackPrice.currency,
-            product_data: {
-              name: "Garaad Explorer",
-              description: "All gamified courses, community, and launchpad (view only). Billed monthly.",
+      // Path 2: Legacy plan + countryCode
+      if (!plan || !STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS]) {
+        return NextResponse.json(
+          { error: "Invalid plan specified" },
+          { status: 400 }
+        );
+      }
+      const priceType = countryCode === "SO" ? "SOMALIA" : "INTERNATIONAL";
+      const priceId =
+        STRIPE_PRICE_IDS[plan as keyof typeof STRIPE_PRICE_IDS][priceType];
+
+      console.log(`💰 Price configuration:`, {
+        plan,
+        countryCode,
+        priceType,
+        priceId,
+      });
+
+      if (priceId && priceId.startsWith("price_")) {
+        lineItems = [{ price: priceId, quantity: 1 }];
+        sessionMode = "subscription";
+        console.log(`✅ Using valid Price ID: ${priceId} for plan: ${plan}`);
+      } else {
+        const fallbackPrice =
+          FALLBACK_PRICES[plan as keyof typeof FALLBACK_PRICES][priceType];
+        lineItems = [
+          {
+            price_data: {
+              currency: fallbackPrice.currency,
+              product_data: {
+                name: "Garaad Explorer",
+                description: "All gamified courses, community, and launchpad (view only). Billed monthly.",
+              },
+              unit_amount: fallbackPrice.unit_amount,
+              recurring: {
+                interval:
+                  plan === "monthly" ? ("month" as const) : ("year" as const),
+              },
             },
-            unit_amount: fallbackPrice.unit_amount,
-            recurring: {
-              interval:
-                plan === "monthly" ? ("month" as const) : ("year" as const),
-            },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ];
-      console.log(
-        `⚠️  Using fallback price_data for plan: ${plan}, type: ${priceType}`
-      );
-      console.log(
-        `   Price: ${fallbackPrice.unit_amount} ${fallbackPrice.currency}`
-      );
-      console.log(
-        `   Reason: ${!priceId ? "No Price ID found" : "Invalid Price ID format"
-        }`
-      );
+        ];
+        sessionMode = "subscription";
+        console.log(`⚠️ Using fallback price_data for plan: ${plan}, type: ${priceType}`);
+      }
     }
 
     // Create Stripe checkout session
     const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
-      mode: "subscription",
+      mode: sessionMode,
       success_url:
         successUrl ||
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -223,9 +218,9 @@ export async function POST(request: NextRequest) {
         cancelUrl ||
         `${process.env.NEXT_PUBLIC_BASE_URL}/subscribe?canceled=true`,
       metadata: {
-        plan,
+        plan: plan ?? (bodyPriceId ? "direct" : ""),
         userId: userId || "unknown",
-        countryCode,
+        countryCode: countryCode ?? "",
         userEmail: finalEmail,
       },
       allow_promotion_codes: true,

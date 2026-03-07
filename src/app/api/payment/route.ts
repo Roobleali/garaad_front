@@ -7,8 +7,14 @@ interface WaafiPayError extends Error {
 
 interface PaymentRequest {
   accountNo?: string;
-  description: string;
+  description?: string;
   subscriptionType?: string;
+  /** Plan name for Waafi HPP redirect (subscribe page). */
+  plan?: string;
+  /** Amount as string e.g. "$29" or "€149" for Waafi HPP. */
+  amount?: string;
+  /** "subscription" | "payment" for Waafi HPP. */
+  billing?: string;
   cardInfo?: {
     cardNumber: string;
     cardHolderName: string;
@@ -18,12 +24,61 @@ interface PaymentRequest {
   };
 }
 
+function parseAmountFromString(amountStr: string): number {
+  const cleaned = amountStr.replace(/[^\d.]/g, "");
+  const num = parseFloat(cleaned);
+  return Number.isFinite(num) ? num : 0;
+}
+
 export async function POST(request: Request) {
   try {
     const body: PaymentRequest = await request.json();
-    const { accountNo, description, cardInfo, subscriptionType = "monthly" } = body;
+    const { accountNo, description, cardInfo, subscriptionType = "monthly", plan, amount: amountStr, billing } = body;
 
-    // Validate required fields
+    // Waafi HPP redirect: plan + amount (no accountNo/cardInfo) — subscribe page multi-plan flow
+    if (!accountNo && !cardInfo && plan && amountStr) {
+      const amountNum = parseAmountFromString(amountStr);
+      if (amountNum <= 0) {
+        return NextResponse.json(
+          { error: "Invalid amount", success: false },
+          { status: 400 }
+        );
+      }
+      const referenceId = `INV-${Date.now()}-${plan.replace(/\s/g, "")}`;
+      const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.garaad.org"}/api/payment/success`;
+      const failureUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.garaad.org"}/api/payment/failure`;
+      try {
+        const hpp = await waafipayService.hppPurchase({
+          amount: amountNum,
+          description: `Garaad ${plan}`,
+          invoiceId: referenceId,
+          referenceId,
+          currency: "USD",
+          successUrl,
+          failureUrl,
+        });
+        return NextResponse.json({
+          success: true,
+          message: "Redirect to hosted payment page",
+          hppUrl: hpp.hppUrl,
+          directPaymentLink: hpp.directPaymentLink,
+        });
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        if (errorMessage.includes("not authorized")) {
+          return NextResponse.json(
+            { success: false, message: "Card payments are not currently available.", error: "HPP_NOT_AUTHORIZED" },
+            { status: 403 }
+          );
+        }
+        return NextResponse.json(
+          { success: false, message: errorMessage || "Failed to get HPP URL" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate required fields for legacy flows
     if (!description) {
       return NextResponse.json(
         { error: "Missing required fields: description" },

@@ -26,6 +26,68 @@ export class StripeService {
     return this.stripe;
   }
 
+  /** Create checkout with explicit Stripe price ID and mode (subscription or one-time payment). */
+  async createCheckoutSessionWithPrice(priceId: string, mode: "subscription" | "payment") {
+    try {
+      const authService = AuthService.getInstance();
+      const token = authService.getToken();
+      let currentUser = authService.getCurrentUser();
+
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
+      if (!currentUser?.email && typeof authService.fetchAndUpdateUserData === "function") {
+        const refreshed = await authService.fetchAndUpdateUserData(token);
+        currentUser = refreshed ?? currentUser;
+      }
+
+      const userEmail = currentUser?.email;
+      const userId = currentUser?.id;
+
+      if (!userEmail) {
+        throw new Error("User email is required for checkout. Please ensure you are logged in with a verified account.");
+      }
+
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          priceId,
+          mode,
+          email: userEmail,
+          userId,
+          successUrl: `${window.location.origin}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/subscribe?canceled=true`,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create checkout session");
+      }
+
+      const { sessionId } = await response.json();
+      const stripe = await this.getStripeInstance();
+
+      if (!stripe) {
+        throw new Error("Stripe failed to load");
+      }
+
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      throw error;
+    }
+  }
+
   async createCheckoutSession(plan: "monthly", countryCode: string) {
     try {
       const authService = AuthService.getInstance();

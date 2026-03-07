@@ -10,7 +10,7 @@ const WhatsAppFloat = dynamic(() => import("@/components/landing/WhatsAppFloat")
 
 export const metadata: Metadata = {
     title: "Challenge — 4–6 Toddobaad oo Mentorship",
-    description: "Qorshaha Challenge: €149 hal bixi (4x sannadkii). 4–6 toddobaad oo mentorship, mentor access, launchpad (gudbi startup). Ma ku jiraan koorsooyinka haddii aadan isticmaalin Explorer.",
+    description: "Qorshaha Challenge: €149 hal bixi (4x sannadkii). 4–6 toddobaad oo mentorship, mentor access, launchpad (gudbi startup). wey ku jiraan koorsooyinka",
     keywords: [
         "Tartanka dhisidda software-ka",
         "Barashada IT-ga casriga ah",

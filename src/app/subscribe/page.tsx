@@ -3,26 +3,39 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Phone, CreditCard } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import AuthService from "@/services/auth";
 import StripeService from "@/services/stripe";
-import LocationService, { type LocationData } from "@/services/location";
 import Logo from "@/components/ui/Logo";
-import OrderService from "@/services/orders";
-import { useWaafiPayConfig } from "@/config/waafipay";
-import { PRICING, EXPLORER_PRICE_NUMERIC } from "@/config/pricing";
 
-const PAYMENT_METHODS = [
-    { key: "waafipay", label: "WaafiPay", icon: <Phone className="w-5 h-5" /> },
-    { key: "stripe", label: "Kaarka", icon: <CreditCard className="w-5 h-5" /> },
+type PaymentProvider = "stripe" | "waafi";
+
+const plans = [
+  {
+    name: "Explorer",
+    stripe: { priceId: "price_1T8OAPKgtZOZZO8birrQijvZ", amount: "€29", billing: "subscription" as const },
+    waafi: { amount: "$29", billing: "subscription" as const },
+  },
+  {
+    name: "Challenge",
+    stripe: { priceId: "price_1T8OASKgtZOZZO8bsw58rbVt", amount: "€149", billing: "payment" as const },
+    waafi: { amount: "$149", billing: "payment" as const },
+  },
+  {
+    name: "Bundle (One-time)",
+    stripe: { priceId: "price_1T8OAWKgtZOZZO8bOwSKjaFm", amount: "€149", billing: "payment" as const },
+    waafi: { amount: "$149", billing: "payment" as const },
+  },
+  {
+    name: "Bundle (Monthly)",
+    stripe: { priceId: "price_1T8OAcKgtZOZZO8bO574FFud", amount: "€29", billing: "subscription" as const },
+    waafi: { amount: "$29", billing: "subscription" as const },
+  },
 ];
-
-// Explorer tier: €29/month (single price for all regions)
-const EXPLORER_PRICE_STR = String(EXPLORER_PRICE_NUMERIC);
+// NOTE: Replace Waafi amounts with real values before shipping
 
 const ERROR_TRANSLATIONS: Record<string, string> = {
     "Payment Failed (Receiver is Locked)": "Bixinta waa guuldareysatay (Qofka qaataha waa la xidhay)",
@@ -43,23 +56,10 @@ function translateError(error: string) {
 
 export default function SubscribePage() {
     const router = useRouter();
-    const { user: currentUser, setUser } = useAuthStore();
-    const { getWalletTypes } = useWaafiPayConfig();
-    const WALLET_TYPES = getWalletTypes();
-    const [loading, setLoading] = useState(false);
+    useAuthStore();
+    const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>("stripe");
     const [error, setError] = useState<string | null>(null);
-    const [paymentMethod, setPaymentMethod] = useState("waafipay");
-    const [locationData, setLocationData] = useState<LocationData | null>(null);
-    const [locationLoading, setLocationLoading] = useState(true);
-    const [currentPrice, setCurrentPrice] = useState(EXPLORER_PRICE_STR);
-    const [formData, setFormData] = useState({
-        accountNo: "",
-        amount: EXPLORER_PRICE_STR,
-        description: `Garaad Explorer — ${PRICING.EXPLORER.priceDisplay}/bil`
-    });
-    const [walletType, setWalletType] = useState<string>(WALLET_TYPES[0]?.key || "MWALLET_EVC");
-
-
+    const [loadingPlanName, setLoadingPlanName] = useState<string | null>(null);
 
     // Check if user is already premium and redirect
     useEffect(() => {
@@ -68,47 +68,6 @@ export default function SubscribePage() {
             router.push("/courses");
         }
     }, [router]);
-
-    // Detect user location and set price and recommended payment method
-    useEffect(() => {
-        const detectLocation = async () => {
-            try {
-                const locationService = LocationService.getInstance();
-                const location = await locationService.getUserLocation();
-
-                if (location) {
-                    setLocationData(location);
-                    const recommendedMethod = locationService.getRecommendedPaymentMethod(location.countryCode);
-                    setPaymentMethod(recommendedMethod);
-
-                    // Explorer: same price all regions
-                    setCurrentPrice(EXPLORER_PRICE_STR);
-                    setFormData(prev => ({
-                        ...prev,
-                        amount: EXPLORER_PRICE_STR
-                    }));
-                }
-            } catch (error) {
-                console.error('Error detecting location:', error);
-                setCurrentPrice(EXPLORER_PRICE_STR);
-            } finally {
-                setLocationLoading(false);
-            }
-        };
-
-        detectLocation();
-    }, []);
-
-    // Explorer — primary subscription
-    const PLAN_OPTIONS = [
-        {
-            key: "explorer",
-            label: PRICING.EXPLORER.name,
-            price: currentPrice,
-            note: `${PRICING.EXPLORER.priceDisplay} / Bil`,
-            description: PRICING.EXPLORER.description,
-        },
-    ];
 
     // If user is premium, don't render the subscription form
     if (AuthService.getInstance().isPremium()) {
@@ -119,394 +78,159 @@ export default function SubscribePage() {
         );
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    const handleStripeCheckout = async (plan: (typeof plans)[number]) => {
         setError(null);
-
+        setLoadingPlanName(plan.name);
         try {
-            const orderService = OrderService.getInstance();
-
-            if (paymentMethod === "stripe") {
-                // First create order for Stripe payment
-                const orderRequest = {
-                    subscription_type: "monthly" as const,
-                    payment_method: "stripe" as const,
-                    currency: "USD" as const,
-                };
-
-                const orderResponse = await orderService.createSubscriptionOrder(orderRequest);
-
-                if (!orderResponse.success) {
-                    throw new Error(orderResponse.message || "Failed to create order");
-                }
-
-                // Handle Stripe payment with order reference
-                const stripeService = StripeService.getInstance();
-                const countryCode = locationData?.countryCode || 'INTERNATIONAL';
-                await stripeService.createCheckoutSession('monthly', countryCode);
-            } else if (paymentMethod === "waafipay") {
-                // First create order for WaafiPay payment
-                const orderRequest = {
-                    subscription_type: "monthly" as const,
-                    payment_method: "waafi" as const,
-                    currency: locationData?.countryCode === 'SO' ? "USD" as const : "USD" as const,
-                };
-
-                const orderResponse = await orderService.createSubscriptionOrder(orderRequest);
-
-                if (!orderResponse.success) {
-                    throw new Error(orderResponse.message || "Ku guuldaraystay in la sameeyo dalashada");
-                }
-
-                const order = orderResponse.data;
-
-                // Handle WaafiPay payment with order reference
-                const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
-                const defaultPrefix = selectedWallet?.prefixes[0] || "+252";
-                const prefixNumbers = defaultPrefix.replace(/[^\d]/g, '');
-                const fullPhoneNumber = prefixNumbers + (formData.accountNo || "");
-
-                const paymentData = {
-                    description: order.description,
-                    accountNo: fullPhoneNumber,
-                    walletType: walletType,
-                    // Add order reference for tracking
-                    referenceId: order.order_number,
-                    invoiceId: `INV-${order.id}`,
-                    subscriptionType: "monthly",
-                };
-
-                // Process the payment
-                const paymentResponse = await fetch("/api/payment", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(paymentData),
-                });
-
-                const paymentResult = await paymentResponse.json();
-
-                if (!paymentResponse.ok) {
-                    throw new Error(paymentResult.message || "Bixinta waa guuldareysatay");
-                }
-
-                if (paymentResult.success) {
-                    // Check if this is an HPP redirect response
-                    if (paymentResult.hppUrl) {
-                        // Redirect to WaafiPay hosted payment page
-                        window.location.href = paymentResult.hppUrl;
-                        return;
-                    }
-
-                    // If payment is successful, update the user's premium status
-                    const successResponse = await fetch("/api/payment/success", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            transactionId: paymentResult.data.params.transactionId,
-                            referenceId: paymentResult.data.params.referenceId,
-                            state: paymentResult.data.params.state,
-                            orderId: order.id,
-                        }),
-                    });
-
-                    const successData = await successResponse.json();
-
-                    if (!successResponse.ok) {
-                        throw new Error(successData.message || "Failed to update premium status");
-                    }
-
-                    if (successData.success) {
-                        // Update Redux user state with the new premium status
-                        if (currentUser) {
-                            setUser(successData.data.user);
-                        }
-                        router.push("/courses?order=" + order.id);
-                    } else {
-                        setError(translateError(successData.message || "Ku guuldaraystay in la cusboonaysiiyo xaaladda premium"));
-                    }
-                } else {
-                    // Handle specific error types
-                    if (paymentResult.error === "HPP_NOT_AUTHORIZED") {
-                        setError("Kaarka bixinta ma suurtagelin karto hadda. Fadlan isticmaal WaafiPay mobile wallet.");
-                    } else {
-                        setError(translateError(paymentResult.message || "Bixinta waa guuldareysatay"));
-                    }
-                }
-            }
+            const stripeService = StripeService.getInstance();
+            await stripeService.createCheckoutSessionWithPrice(
+                plan.stripe.priceId,
+                plan.stripe.billing === "subscription" ? "subscription" : "payment"
+            );
         } catch (err) {
             setError(translateError(err instanceof Error ? err.message : String(err)));
         } finally {
-            setLoading(false);
+            setLoadingPlanName(null);
         }
     };
 
-    // Handle wallet type change and auto-prefix
-    const handleWalletTypeChange = (newWalletType: string) => {
-        setWalletType(newWalletType);
-        // Reset account number when changing wallet type
-        setFormData(prev => ({
-            ...prev,
-            accountNo: ""
-        }));
-    };
+    const handleWaafiCheckout = async (plan: (typeof plans)[number]) => {
+        setError(null);
+        setLoadingPlanName(plan.name);
+        try {
+            const res = await fetch("/api/payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    plan: plan.name,
+                    amount: plan.waafi.amount,
+                    billing: plan.waafi.billing,
+                }),
+            });
+            const data = await res.json();
 
-    // Handle account number input with proper prefix handling
-    const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value;
-
-        const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
-        if (!selectedWallet) return;
-
-        const defaultPrefix = selectedWallet.prefixes[0]; // e.g., "+25261"
-        const prefixNumbers = defaultPrefix.replace(/[^\d]/g, ''); // e.g., "25261"
-
-        // If the input is empty or just contains the prefix, clear the stored value
-        if (!value || value === defaultPrefix) {
-            setFormData(prev => ({
-                ...prev,
-                accountNo: ""
-            }));
-            return;
+            if (!res.ok) {
+                throw new Error(data.message || "Bixinta waa guuldareysatay");
+            }
+            if (data.hppUrl) {
+                window.location.href = data.hppUrl;
+                return;
+            }
+            setError(data.message || "No redirect URL received");
+        } catch (err) {
+            setError(translateError(err instanceof Error ? err.message : String(err)));
+        } finally {
+            setLoadingPlanName(null);
         }
-
-        // If value starts with the full prefix (+25261), extract only the additional numbers
-        if (value.startsWith(defaultPrefix)) {
-            const additionalNumbers = value.slice(defaultPrefix.length).replace(/[^\d]/g, '');
-            // Store only the additional numbers (the part after prefix)
-            // Limit to 7 additional digits
-            setFormData(prev => ({
-                ...prev,
-                accountNo: additionalNumbers.slice(0, 7)
-            }));
-            return;
-        }
-
-        // If somehow the prefix was removed, try to extract meaningful digits
-        const allDigits = value.replace(/[^\d]/g, '');
-        if (allDigits.startsWith(prefixNumbers)) {
-            // Extract additional numbers after the prefix
-            const additionalNumbers = allDigits.slice(prefixNumbers.length);
-            setFormData(prev => ({
-                ...prev,
-                accountNo: additionalNumbers.slice(0, 7)
-            }));
-        } else {
-            // Store the digits as additional numbers (assume user is typing without prefix)
-            setFormData(prev => ({
-                ...prev,
-                accountNo: allDigits.slice(0, 7)
-            }));
-        }
-    };
-
-    const getLocationAlert = () => {
-        // Location is used silently for payment method routing — not shown to users
-        return null;
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-8 px-2">
-            <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-16 xl:gap-24">
-                {/* Left: Payment Form */}
-                <div className="flex-1 min-w-0">
-                    <Card className="p-0 overflow-hidden shadow-2xl border border-gray-100 bg-white rounded-3xl">
-                        <div className="p-8 md:p-14">
-                            <div className="flex flex-col items-center mb-8">
-                                <Logo
-                                    width={180}
-                                    height={54}
-                                    className="h-12 w-auto sm:h-14 md:h-16 max-w-[140px] sm:max-w-[160px] md:max-w-[180px] mb-4 drop-shadow-md rounded-xl"
-                                    priority={true}
-                                    loading="eager"
-                                    sizes="(max-width: 640px) 120px, (max-width: 768px) 140px, 180px"
-                                />
-                                <h1 className="text-4xl font-extrabold text-purple-700 mb-2 text-center">Explorer</h1>
-                                <p className="text-gray-500 text-lg text-center">{PRICING.EXPLORER.description}</p>
-                            </div>
-
-                            {/* Location Alert */}
-                            {getLocationAlert()}
-
-                            <form onSubmit={handleSubmit} className="space-y-10">
-                                {/* Billed To */}
-                                <div>
-                                    <h2 className="text-sm font-semibold text-gray-700 mb-2">Lagu xisaabi doono</h2>
-                                    <Input
-                                        placeholder="Magaca buuxa"
-                                        className="w-full h-12 text-base bg-white disabled:opacity-100 disabled:text-gray-900"
-                                        value={currentUser?.first_name || currentUser?.last_name ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : (currentUser?.name || currentUser?.username || "")}
-                                        disabled
-                                    />
-                                </div>
-                                {/* Payment Details */}
-                                <div>
-                                    <h2 className="text-sm font-semibold text-gray-700 mb-2">Faahfaahinta Bixinta</h2>
-                                    <div className="flex gap-3 flex-wrap mb-4">
-                                        {PAYMENT_METHODS.map((method) => {
-                                            const locationService = LocationService.getInstance();
-                                            const isRecommended = locationData &&
-                                                locationService.getRecommendedPaymentMethod(locationData.countryCode) === method.key;
-
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    key={method.key}
-                                                    className={`flex-1 min-w-[110px] flex flex-col items-center justify-center border rounded-xl p-4 transition-all text-base font-medium shadow-sm relative ${paymentMethod === method.key
-                                                        ? "border-purple-500 bg-purple-50"
-                                                        : "border-gray-200 bg-white"
-                                                        }`}
-                                                    onClick={() => setPaymentMethod(method.key)}
-                                                    disabled={method.key === "bank" || method.key === "points"}
-                                                >
-                                                    {isRecommended && (
-                                                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                                            Lagu taliyay
-                                                        </div>
-                                                    )}
-                                                    {method.icon}
-                                                    <span className="text-xs mt-1 font-semibold">{method.label}</span>
-                                                    {(method.key === "bank" || method.key === "points") && (
-                                                        <span className="text-[10px] text-gray-400">Dhowaan</span>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* WaafiPay Form */}
-                                    {paymentMethod === "waafipay" && (
-                                        <div className="space-y-4">
-                                            <div className="flex gap-2 mb-2 flex-wrap">
-                                                {WALLET_TYPES.map((w) => (
-                                                    <Button
-                                                        key={w.key}
-                                                        type="button"
-                                                        variant={walletType === w.key ? "default" : "outline"}
-                                                        size="sm"
-                                                        onClick={() => handleWalletTypeChange(w.key)}
-                                                        disabled={loading}
-                                                    >
-                                                        {w.label}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="block text-sm font-medium">
-                                                    Lambarka Mobileka
-                                                </label>
-                                                <div className="relative">
-                                                    <Input
-                                                        type="tel"
-                                                        value={(() => {
-                                                            const selectedWallet = WALLET_TYPES.find(w => w.key === walletType);
-                                                            const defaultPrefix = selectedWallet?.prefixes[0] || "+252";
-
-                                                            // Always show prefix + additional numbers
-                                                            // formData.accountNo now only contains the additional numbers
-                                                            return defaultPrefix + (formData.accountNo || "");
-                                                        })()}
-                                                        onChange={handleAccountNumberChange}
-                                                        placeholder={WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
-                                                        className="w-full"
-                                                    />
-                                                </div>
-                                                <p className="text-xs text-gray-500">
-                                                    Tusaale: {WALLET_TYPES.find(w => w.key === walletType)?.placeholder}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Stripe Card Payment Form */}
-                                    {paymentMethod === "stripe" && (
-                                        <div className="space-y-4">
-                                            <Alert className="bg-blue-50 border-blue-200 text-blue-800">
-                                                <AlertDescription>
-                                                    Waxaad isticmaali doontaa Stripe si aad u bixiso kaarka. Waxay ka dhigaysaa mid ammaan ah oo la hubo.
-                                                </AlertDescription>
-                                            </Alert>
-                                            <div className="p-4 bg-gray-50 rounded-lg">
-                                                <p className="text-sm text-gray-600">
-                                                    Marka aad riixdo &ldquo;Isdiiwaangeli&rdquo;, waxaad u dhici doontaa bogga Stripe si aad u geliso faahfaahinta kaarkaaga.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {/* Error */}
-                                {error && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                )}
-                                {/* Action Buttons */}
-                                <div className="flex gap-4 mt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="flex-1 h-12 bg-gray-50 hover:bg-gray-100 rounded-lg"
-                                        onClick={() => router.back()}
-                                    >
-                                        Ka noqo
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        className="flex-1 h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-md"
-                                        disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Waa la dirayaa...
-                                            </>
-                                        ) : (
-                                            "Isdiiwaangeli"
-                                        )}
-                                    </Button>
-                                </div>
-                            </form>
-                        </div>
-                    </Card>
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
+            <div className="w-full max-w-4xl">
+                <div className="flex flex-col items-center mb-8">
+                    <Logo
+                        width={180}
+                        height={54}
+                        className="h-12 w-auto sm:h-14 max-w-[180px] mb-4 drop-shadow-md rounded-xl"
+                        priority={true}
+                        loading="eager"
+                        sizes="(max-width: 640px) 120px, 180px"
+                    />
+                    <h1 className="text-3xl font-extrabold text-purple-700 mb-2 text-center">Subscribe</h1>
+                    <p className="text-gray-500 text-center">Choose your payment method and plan.</p>
                 </div>
-                {/* Right: Plan Summary */}
-                <div className="w-full md:w-[380px] flex-shrink-0">
-                    <Card className="p-0 overflow-hidden bg-white/90 shadow-lg border border-gray-100 rounded-2xl">
-                        <div className="p-8 md:p-10">
-                            <h2 className="text-lg font-semibold text-gray-700 mb-4">Qorshaha Bilowga ah</h2>
-                            <div className="flex flex-col gap-4 mb-8">
-                                {PLAN_OPTIONS.map((option) => (
-                                    <div
-                                        key={option.key}
-                                        className="flex flex-col w-full border rounded-xl p-4 mb-2 transition-all text-base font-medium shadow-sm border-purple-500 bg-purple-50"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-semibold">{option.label}</span>
-                                            <span className="text-sm text-gray-500">{option.note}</span>
-                                        </div>
-                                        {option.description && (
-                                            <p className="text-xs text-gray-500 mt-2">{option.description}</p>
-                                        )}
+
+                {/* Pill-style payment method toggle */}
+                <div className="flex justify-center mb-8">
+                    <div className="inline-flex p-1 rounded-full bg-gray-200 border border-gray-200" role="tablist">
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={selectedProvider === "stripe"}
+                            className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${selectedProvider === "stripe"
+                                ? "bg-lime-400 text-gray-900 shadow-sm"
+                                : "text-gray-600 hover:text-gray-900"
+                                }`}
+                            onClick={() => setSelectedProvider("stripe")}
+                        >
+                            🌍 International (Stripe)
+                        </button>
+                        <button
+                            type="button"
+                            role="tab"
+                            aria-selected={selectedProvider === "waafi"}
+                            className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${selectedProvider === "waafi"
+                                ? "bg-lime-400 text-gray-900 shadow-sm"
+                                : "text-gray-600 hover:text-gray-900"
+                                }`}
+                            onClick={() => setSelectedProvider("waafi")}
+                        >
+                            🇸🇴 Somali (Waafi)
+                        </button>
+                    </div>
+                </div>
+
+                {error && (
+                    <Alert variant="destructive" className="mb-6">
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Pricing cards — update instantly by selectedProvider */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {plans.map((plan) => {
+                        const isStripe = selectedProvider === "stripe";
+                        const amount = isStripe ? plan.stripe.amount : plan.waafi.amount;
+                        const billing = isStripe ? plan.stripe.billing : plan.waafi.billing;
+                        const billingLabel = billing === "subscription" ? "/ month" : "one-time";
+                        const isLoading = loadingPlanName === plan.name;
+
+                        return (
+                            <Card
+                                key={plan.name}
+                                className="p-6 border border-gray-200 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div className="flex flex-col h-full">
+                                    <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
+                                    <div className="mt-2 flex items-baseline gap-1">
+                                        <span className="text-2xl font-bold text-purple-700">{amount}</span>
+                                        <span className="text-sm text-gray-500">{billingLabel}</span>
                                     </div>
-                                ))}
-                            </div>
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium">Wadarta</span>
-                                <span className="font-bold text-2xl text-purple-700">{PRICING.EXPLORER.priceDisplay} / Bil</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="#a78bfa" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
-                                <span>Hubi in dhammaan macaamilada si ammaan ah loo ilaaliyo.</span>
-                            </div>
-                            <div className="mt-8 text-xs text-gray-400">
-                                Marka aad bixiso macluumaadkaaga, waxaad ogolaatay in mustaqbalka lagaa jari karo si waafaqsan shuruudaha adeegga.
-                            </div>
-                        </div>
-                    </Card>
+                                    <div className="mt-4 flex-1">
+                                        <Button
+                                            className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                                            disabled={!!loadingPlanName}
+                                            onClick={() =>
+                                                isStripe ? handleStripeCheckout(plan) : handleWaafiCheckout(plan)
+                                            }
+                                        >
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Loading...
+                                                </>
+                                            ) : isStripe ? (
+                                                "Checkout with Stripe"
+                                            ) : (
+                                                "Pay with Waafi"
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        );
+                    })}
+                </div>
+
+                <div className="flex justify-center">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-lg"
+                        onClick={() => router.back()}
+                    >
+                        Ka noqo
+                    </Button>
                 </div>
             </div>
         </div>
