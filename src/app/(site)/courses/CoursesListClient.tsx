@@ -30,18 +30,28 @@ const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => (
 );
 
 const CourseImage = ({ src, alt, priority = false }: { src?: string; alt: string; priority?: boolean }) => {
-    const imageSrc = getAbsoluteImageUrl(src, defaultCourseImage);
+    const resolvedSrc = getAbsoluteImageUrl(src, defaultCourseImage);
+    const [displaySrc, setDisplaySrc] = useState(optimizeCloudinaryUrl(resolvedSrc));
+
+    useEffect(() => {
+        setDisplaySrc(optimizeCloudinaryUrl(resolvedSrc));
+    }, [resolvedSrc]);
+
+    const handleError = () => {
+        setDisplaySrc(defaultCourseImage);
+    };
 
     return (
         <div className="relative w-full h-40 bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
             <Image
-                src={optimizeCloudinaryUrl(imageSrc)}
+                src={displaySrc}
                 alt={alt}
                 fill
                 priority={priority}
                 className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 unoptimized={true}
+                onError={handleError}
             />
         </div>
     );
