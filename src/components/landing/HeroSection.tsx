@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Code2, Layers, Brain, Database, Server, BookOpen } from "lucide-react";
 import { API_BASE_URL } from "@/lib/constants";
+import { PRICING } from "@/config/pricing";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -115,22 +116,22 @@ export function HeroSection() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/subscribe"
+                href={isLoggedIn ? "/courses" : "/subscribe"}
                 className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground no-underline transition hover:opacity-90"
               >
-                Get Explorer — €29/mo
+                {isLoggedIn ? "Koorsooyinka" : `Bilow — ${PRICING.EXPLORER.priceDisplay}/bil`}
               </Link>
               <Link
-                href={isLoggedIn ? "/courses" : "/welcome"}
+                href="/challenge"
                 className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 no-underline transition hover:bg-white/10"
               >
-                {isLoggedIn ? "Continue learning" : "Start free"}
+                Challenge — {PRICING.CHALLENGE.priceDisplay}
               </Link>
               <Link
                 href="/courses"
                 className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 no-underline transition hover:bg-white/10"
               >
-                View courses →
+                Arag Koorsooyinka →
               </Link>
             </div>
             {showStats && (
