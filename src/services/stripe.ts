@@ -30,28 +30,30 @@ export class StripeService {
     try {
       const authService = AuthService.getInstance();
       const token = authService.getToken();
-      const currentUser = authService.getCurrentUser();
+      let currentUser = authService.getCurrentUser();
 
       if (!token) {
         throw new Error("User not authenticated");
       }
 
-      // Get user email from AuthService
+      // Ensure we have email (e.g. after refresh, cookie may lack it until we fetch)
+      if (!currentUser?.email && typeof authService.fetchAndUpdateUserData === "function") {
+        const refreshed = await authService.fetchAndUpdateUserData(token);
+        currentUser = refreshed ?? currentUser;
+      }
+
       const userEmail = currentUser?.email;
       const userId = currentUser?.id;
 
-      console.log("📧 StripeService - User info:", {
-        userEmail,
-        userId,
-        hasToken: !!token,
-        hasUser: !!currentUser,
-      });
+      if (!userEmail) {
+        throw new Error("User email is required for checkout. Please ensure you are logged in with a verified account.");
+      }
 
       const requestBody = {
         plan,
         countryCode,
-        email: userEmail, // Pass user email explicitly
-        userId: userId, // Pass user ID explicitly
+        email: userEmail,
+        userId: userId,
         successUrl: `${window.location.origin}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/subscribe?canceled=true`,
       };

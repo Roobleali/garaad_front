@@ -8,13 +8,17 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Resolve image URL for course/API media. Relative paths (e.g. /media/courses/...)
- * are turned into absolute URLs on the API so they load when the app is on www.garaad.org.
+ * are turned into absolute URLs using the API base so they load on the frontend.
+ * Local paths (/images/...) and full URLs are returned as-is.
  */
 export function getAbsoluteImageUrl(url: string | null | undefined, defaultImage: string): string {
-  if (!url) return defaultImage;
-  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/images/")) return url;
-  const path = url.startsWith("/") ? url : `/${url}`;
-  return `${API_BASE_URL}${path}`;
+  const u = typeof url === "string" ? url.trim() : "";
+  if (!u) return defaultImage;
+  if (u.startsWith("http://") || u.startsWith("https://")) return u;
+  if (u.startsWith("/images/")) return u;
+  const path = u.startsWith("/") ? u : `/${u}`;
+  const base = API_BASE_URL.replace(/\/$/, "");
+  return `${base}${path}`;
 }
 
 /**

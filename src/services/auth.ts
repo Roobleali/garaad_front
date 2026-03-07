@@ -210,14 +210,14 @@ export class AuthService {
   public setCurrentUser(user: User): void {
     this.user = user;
     if (typeof window !== "undefined") {
-      // Only store minimal info in the cookie to avoid size issues
+      // Store minimal info including email (required for checkout and display)
       const minimalUser = {
         id: user.id,
         username: user.username,
+        email: user.email,
         is_premium: user.is_premium,
         is_superuser: user.is_superuser
       };
-      console.log("Setting minimal user cookie:", minimalUser);
       this.setCookie("user", JSON.stringify(minimalUser));
     }
   }

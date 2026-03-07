@@ -26,8 +26,8 @@ function getUserInfo(
   if (requestBody?.email && typeof requestBody.email === "string") {
     userEmail = requestBody.email;
   }
-  if (requestBody?.userId && typeof requestBody.userId === "string") {
-    userId = requestBody.userId;
+  if (requestBody?.userId != null) {
+    userId = typeof requestBody.userId === "string" ? requestBody.userId : String(requestBody.userId);
   }
 
   // Strategy 2: Extract from JWT token

@@ -4,6 +4,8 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.ctfassets.net" },
       { protocol: "https", hostname: "api.garaad.org" },
+      { protocol: "https", hostname: "www.garaad.org" },
+      { protocol: "https", hostname: "garaad.org" },
       { protocol: "https", hostname: "ds055uzetaobb.cloudfront.net" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "img.youtube.com" },

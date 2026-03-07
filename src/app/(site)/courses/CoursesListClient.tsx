@@ -15,46 +15,61 @@ import { cn, getAbsoluteImageUrl } from "@/lib/utils";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 
 const defaultCategoryImage = "/images/placeholder-category.svg";
-const defaultCourseImage = "/images/placeholder-course.svg";
+const defaultCourseImage = "/images/placeholder-category.svg";
 
-const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => (
-    <div className="relative w-20 h-20">
-        <Image
-            src={optimizeCloudinaryUrl(getAbsoluteImageUrl(src, defaultCategoryImage))}
-            alt={alt}
-            fill
-            className="object-contain"
-            unoptimized={true}
-        />
+function safeImageSrc(src: string | null | undefined, fallback: string): string {
+  const resolved = getAbsoluteImageUrl(src, fallback);
+  const optimized = optimizeCloudinaryUrl(resolved);
+  return optimized || fallback;
+}
+
+const CategoryImage = ({ src, alt }: { src?: string; alt: string }) => {
+  const imageSrc = safeImageSrc(src, defaultCategoryImage);
+  return (
+    <div className="relative w-20 h-20 shrink-0">
+      <Image
+        src={imageSrc}
+        alt={alt}
+        fill
+        className="object-contain"
+        unoptimized
+        sizes="80px"
+      />
     </div>
-);
+  );
+};
 
 const CourseImage = ({ src, alt, priority = false }: { src?: string; alt: string; priority?: boolean }) => {
-    const resolvedSrc = getAbsoluteImageUrl(src, defaultCourseImage);
-    const [displaySrc, setDisplaySrc] = useState(optimizeCloudinaryUrl(resolvedSrc));
+  const imageSrc = safeImageSrc(src, defaultCourseImage);
+  const [displaySrc, setDisplaySrc] = useState(imageSrc);
+  const [errored, setErrored] = useState(false);
 
-    useEffect(() => {
-        setDisplaySrc(optimizeCloudinaryUrl(resolvedSrc));
-    }, [resolvedSrc]);
+  useEffect(() => {
+    setDisplaySrc(safeImageSrc(src, defaultCourseImage));
+    setErrored(false);
+  }, [src]);
 
-    const handleError = () => {
-        setDisplaySrc(defaultCourseImage);
-    };
+  const handleError = () => {
+    setDisplaySrc(defaultCourseImage);
+    setErrored(true);
+  };
 
-    return (
-        <div className="relative w-full h-40 bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-            <Image
-                src={displaySrc}
-                alt={alt}
-                fill
-                priority={priority}
-                className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                unoptimized={true}
-                onError={handleError}
-            />
-        </div>
-    );
+  const finalSrc = errored ? defaultCourseImage : displaySrc;
+
+  return (
+    <div className="relative w-full h-40 bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
+      <Image
+        src={finalSrc}
+        alt={alt}
+        fill
+        priority={priority}
+        className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+        unoptimized
+        onError={handleError}
+      />
+    </div>
+  );
 };
 
 export function CoursesListClient() {
