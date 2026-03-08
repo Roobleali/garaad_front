@@ -9,7 +9,9 @@ import { Loader2, Check } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import AuthService from "@/services/auth";
 import StripeService from "@/services/stripe";
+import Link from "next/link";
 import Logo from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { TechIcon } from "@/components/launchpad/TechIcon";
 import { API_BASE_URL } from "@/lib/constants";
 
@@ -225,30 +227,30 @@ export default function SubscribePage() {
   };
 
   return (
-    <div className="dark min-h-screen bg-[#0a0a0f] flex flex-col items-center py-10 px-4 font-dmsans text-white">
-      <div className="w-full max-w-5xl">
-        {/* Logo */}
+    <div className="dark min-h-screen bg-[#0a0a0f] flex flex-col items-center font-dmsans text-white">
+      {/* Header: logo + dark mode toggle only */}
+      <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0a0a0f]/95 backdrop-blur supports-[backdrop-filter]:bg-[#0a0a0f/80">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2 py-2" aria-label="Garaad home">
+            <Logo preferDark priority loading="eager" className="h-10 w-auto sm:h-11" sizes="(max-width: 640px) 120px, 160px" />
+          </Link>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      <div className="w-full max-w-5xl flex-1 py-10 px-4">
         <motion.div
           className="flex flex-col items-center mb-8"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Logo
-            width={180}
-            height={54}
-            className="h-12 w-auto sm:h-14 max-w-[180px] mb-6 drop-shadow-[0_0_24px_rgba(139,92,246,0.25)] rounded-xl"
-            priority
-            loading="eager"
-            sizes="(max-width: 640px) 120px, 180px"
-          />
           <h1 className="font-syne text-4xl sm:text-5xl font-bold text-white text-center mb-2">
             Choose Your Plan
           </h1>
           <p className="text-zinc-400 text-center text-base sm:text-lg max-w-xl">
             Start learning. Join the community. Launch your idea.
           </p>
-          {/* UPDATED: Live stats from Django backend */}
           {liveStats != null && liveStats.students_count > 0 && (
             <p className="mt-2 text-xs text-zinc-500">
               Join {liveStats.students_count.toLocaleString()}+ learners · {liveStats.courses_count} courses
@@ -338,6 +340,15 @@ export default function SubscribePage() {
               <p className="mt-1 text-[11px] text-zinc-500 text-left">
                 Leave empty to try card; enter phone to pay with Waafi mobile wallet.
               </p>
+              <div className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-zinc-400 text-left">
+                <p className="font-medium text-zinc-300 mb-1">Use full international number:</p>
+                <ul className="space-y-0.5">
+                  <li>· EVC Plus (Hormuud): 25261xxxxxxx</li>
+                  <li>· Zaad (Telesom): 25263xxxxxxx</li>
+                  <li>· Sahal (Golis): 25270 or 25290xxxxxxx</li>
+                </ul>
+                <p className="mt-1 text-zinc-500">Waafi works over these operators; enter the number as above.</p>
+              </div>
             </div>
           )}
         </motion.div>

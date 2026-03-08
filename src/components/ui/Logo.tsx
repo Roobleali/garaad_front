@@ -12,6 +12,8 @@ interface LogoProps {
     sizes?: string;
     width?: number;
     height?: number;
+    /** Force dark logo (logo_darkmode.png) when true; otherwise use theme (dark = dark logo, light = normal logo). */
+    preferDark?: boolean;
 }
 
 export function Logo({
@@ -20,17 +22,17 @@ export function Logo({
     loading = "lazy",
     sizes = "(max-width: 640px) 120px, (max-width: 768px) 140px, (max-width: 1024px) 160px, 200px",
     width = 200,
-    height = 60
+    height = 60,
+    preferDark = false,
 }: LogoProps) {
     const { theme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
-    // Prevent hydration mismatch
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    const isDarkMode = mounted && (resolvedTheme === "dark" || theme === "dark");
+    const isDarkMode = preferDark || (mounted && (resolvedTheme === "dark" || theme === "dark"));
     const logoSrc = isDarkMode ? "/logo_darkmode.png" : "/logo.png";
 
     return (
