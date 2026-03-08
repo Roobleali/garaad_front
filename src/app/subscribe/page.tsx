@@ -15,13 +15,18 @@ import { API_BASE_URL } from "@/lib/constants";
 
 type PaymentProvider = "stripe" | "waafi";
 
-// UPDATED: Stripe price IDs from env (fallback to existing IDs)
+// Stripe price IDs from env only — set in Vercel/.env (Dashboard → Products → copy Price ID)
+// No fallback: "No such price" means your Stripe account uses different IDs; set these vars.
 const STRIPE_PRICE_IDS = {
-  explorer: process.env.NEXT_PUBLIC_STRIPE_EXPLORER_PRICE_ID || "price_1T8OAPKgtZOZZO8birrQijvZ",
-  challenge: process.env.NEXT_PUBLIC_STRIPE_CHALLENGE_PRICE_ID || "price_1T8OASKgtZOZZO8bsw58rbVt",
-  bundleOneTime: process.env.NEXT_PUBLIC_STRIPE_BUNDLE_ONETIME_PRICE_ID || "price_1T8OAWKgtZOZZO8bOwSKjaFm",
-  bundleMonthly: process.env.NEXT_PUBLIC_STRIPE_BUNDLE_MONTHLY_PRICE_ID || "price_1T8OAcKgtZOZZO8bO574FFud",
+  explorer: process.env.NEXT_PUBLIC_STRIPE_EXPLORER_PRICE_ID ?? "",
+  challenge: process.env.NEXT_PUBLIC_STRIPE_CHALLENGE_PRICE_ID ?? "",
+  bundleOneTime: process.env.NEXT_PUBLIC_STRIPE_BUNDLE_ONETIME_PRICE_ID ?? "",
+  bundleMonthly: process.env.NEXT_PUBLIC_STRIPE_BUNDLE_MONTHLY_PRICE_ID ?? "",
 };
+
+function isValidStripePriceId(id: string | undefined): boolean {
+  return typeof id === "string" && id.startsWith("price_");
+}
 
 // UPDATED: 4 plans, Waafi in KSh per spec; NOTE: Replace Waafi amounts with real values before shipping
 const plans = [
@@ -321,6 +326,7 @@ export default function SubscribePage() {
             const billing = isStripe ? plan.stripe.billing : plan.waafi.billing;
             const billingLabel = billing === "subscription" ? "/ month" : "one-time";
             const isLoading = loadingPlanName === plan.name;
+            const stripePriceConfigured = isValidStripePriceId(plan.stripe.priceId);
 
             return (
               <motion.div
@@ -370,7 +376,7 @@ export default function SubscribePage() {
                   </ul>
                   <Button
                     className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-6 relative overflow-hidden group/btn disabled:opacity-70"
-                    disabled={!!loadingPlanName}
+                    disabled={!!loadingPlanName || (isStripe && !stripePriceConfigured)}
                     onClick={() =>
                       isStripe
                         ? handleStripeCheckout(plan)
@@ -383,6 +389,8 @@ export default function SubscribePage() {
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Loading...
                         </>
+                      ) : isStripe && !stripePriceConfigured ? (
+                        "Set price ID in env"
                       ) : isStripe ? (
                         "Pay with Stripe"
                       ) : (

@@ -307,10 +307,11 @@ class WaafiPayService {
     successUrl: string;
     failureUrl: string;
   }): Promise<{ hppUrl: string; directPaymentLink: string }> {
-    const hppKey = this.config.hppKey?.trim();
+    // HPP key: prefer WAAFI_HPP_KEY; fall back to WAAFI_API_KEY if Waafi uses one key for both
+    const hppKey = (this.config.hppKey || this.config.apiKey)?.trim();
     if (!hppKey) {
       throw new Error(
-        "Waafi HPP is not configured: WAAFI_HPP_KEY is missing or empty. Set WAAFI_HPP_KEY in your environment (e.g. Vercel Project Settings)."
+        "Waafi HPP is not configured: set WAAFI_HPP_KEY or WAAFI_API_KEY in your environment (e.g. Vercel Project Settings)."
       );
     }
     const request = {
@@ -367,11 +368,13 @@ class WaafiPayService {
 }
 
 // Create and export a singleton instance
+// Server-side env: WAAFI_MERCHANT_UID, WAAFI_API_KEY (or WAAFI_HPP_KEY for HPP), WAAFI_STORE_ID, WAAFI_API_USER_ID
+// Fallbacks: NEXT_PUBLIC_WAAFIPAY_* are available on server too if you use the same env in Vercel
 export const waafipayService = new WaafiPayService({
-  merchantUid: process.env.WAAFI_MERCHANT_UID!,
-  apiUserId: process.env.WAAFI_API_USER_ID!,
-  apiKey: process.env.WAAFI_API_KEY!,
+  merchantUid: process.env.WAAFI_MERCHANT_UID || process.env.NEXT_PUBLIC_WAAFIPAY_MERCHANT_UID || "",
+  apiUserId: process.env.WAAFI_API_USER_ID || process.env.NEXT_PUBLIC_WAAFIPAY_MERCHANT_UID || "",
+  apiKey: process.env.WAAFI_API_KEY || process.env.NEXT_PUBLIC_WAAFIPAY_API_KEY || "",
   isTestMode: process.env.WAAFI_TEST_MODE === "true",
-  storeId: process.env.WAAFI_STORE_ID!,
-  hppKey: process.env.WAAFI_HPP_KEY!,
+  storeId: process.env.WAAFI_STORE_ID || process.env.NEXT_PUBLIC_WAAFIPAY_STORE_ID || "",
+  hppKey: process.env.WAAFI_HPP_KEY || process.env.WAAFI_API_KEY || process.env.NEXT_PUBLIC_WAAFIPAY_API_KEY || "",
 });
