@@ -75,10 +75,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // --- 4. Premium Access Check ---
-  // If authenticated, check if they need premium for this specific path
-
-  // Only check premium for lessons or explicit premium roots
-  const isPremiumPath = isLessonPath || premiumRoots.some(root => pathname.startsWith(root));
+  // Lesson paths: do NOT gate by premium here. Backend (LessonViewSet.retrieve) and
+  // frontend (LessonDetailClient isLockedLesson + LessonPaywall) enforce free lesson 1 only.
+  const isPremiumPath = premiumRoots.some(root => pathname.startsWith(root));
 
   if (isPremiumPath) {
     if (!userCookie?.value) {

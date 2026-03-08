@@ -361,6 +361,18 @@ export function LessonDetailClient() {
         return problems.find(p => p.id === problemId) || problems[0];
     }, [problems, sortedBlocks, currentBlockIndex]);
 
+    // Free tier: locked if not premium and this is not the first lesson of the course (by lesson_number)
+    const isLockedLesson = useMemo(() => {
+        if (typeof window === "undefined") return false;
+        const user = AuthService.getInstance().getCurrentUser();
+        if (!user) return false;
+        if (user.is_premium) return false;
+        if (!courseLessons.length || !currentLesson?.id) return false;
+        const sorted = [...courseLessons].sort((a, b) => ((a as any).lesson_number ?? 0) - ((b as any).lesson_number ?? 0));
+        const firstId = sorted[0]?.id;
+        return firstId != null && Number(currentLesson.id) !== Number(firstId);
+    }, [courseLessons, currentLesson?.id]);
+
     // Memoized derived values
     const currentProblemBlock = useMemo(() => {
         if (!sortedBlocks) return null;

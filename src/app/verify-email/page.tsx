@@ -284,24 +284,16 @@ export default function VerifyEmailPage() {
         const updatedUserData = await authService.fetchAndUpdateUserData(data.access || data.token);
 
         if (updatedUserData) {
-          // Check if user is premium
-          if (updatedUserData.is_premium) {
-            // User is premium, redirect to courses
-            router.push("/courses");
-          } else {
-            // User is not premium, redirect to subscribe
-            router.push("/subscribe");
-          }
+          // Premium → /courses; non-premium also → /courses (free lesson 1 + community)
+          router.push("/courses");
         } else {
-          // Fallback: manually update email verification and redirect to subscribe
           authService.updateEmailVerificationStatus(true);
-          router.push("/subscribe");
+          router.push("/courses");
         }
       } catch (userError) {
         console.error("Error fetching user data:", userError);
-        // Fallback: manually update email verification and redirect to subscribe
         authService.updateEmailVerificationStatus(true);
-        router.push("/subscribe");
+        router.push("/courses");
       }
     } catch (err: unknown) {
       const errorMessage =
