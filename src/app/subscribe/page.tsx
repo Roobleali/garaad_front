@@ -28,7 +28,7 @@ function isValidStripePriceId(id: string | undefined): boolean {
   return typeof id === "string" && id.startsWith("price_");
 }
 
-// UPDATED: 4 plans, Waafi in KSh per spec; NOTE: Replace Waafi amounts with real values before shipping
+// Plans: Stripe (€), Waafi (USD — passing data must be USD)
 const plans = [
   {
     name: "Explorer",
@@ -38,7 +38,7 @@ const plans = [
       amount: "€29",
       billing: "subscription" as const,
     },
-    waafi: { amount: "50,000 KSh", billing: "subscription" as const },
+    waafi: { amount: "$29", billing: "subscription" as const },
     features: [
       "All gamified courses",
       "Community access",
@@ -53,7 +53,7 @@ const plans = [
       amount: "€149",
       billing: "payment" as const,
     },
-    waafi: { amount: "200,000 KSh", billing: "payment" as const },
+    waafi: { amount: "$149", billing: "payment" as const },
     features: [
       "4–6 week mentorship",
       "Mentor access",
@@ -68,7 +68,7 @@ const plans = [
       amount: "€149",
       billing: "payment" as const,
     },
-    waafi: { amount: "200,000 KSh", billing: "payment" as const },
+    waafi: { amount: "$149", billing: "payment" as const },
     features: [
       "Explorer + Challenge",
       "One-time payment",
@@ -82,7 +82,7 @@ const plans = [
       amount: "€29",
       billing: "subscription" as const,
     },
-    waafi: { amount: "50,000 KSh", billing: "subscription" as const },
+    waafi: { amount: "$29", billing: "subscription" as const },
     features: [
       "Explorer + Challenge",
       "Monthly subscription",
@@ -116,7 +116,8 @@ export default function SubscribePage() {
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>("stripe");
   const [error, setError] = useState<string | null>(null);
   const [loadingPlanName, setLoadingPlanName] = useState<string | null>(null);
-  // UPDATED: Live stats from Django backend (public landing-stats endpoint)
+  /** Waafi mobile wallet: phone number (e.g. 25261...). If set, we use mobile wallet instead of card HPP. */
+  const [waafiPhone, setWaafiPhone] = useState("");
   const [liveStats, setLiveStats] = useState<{ students_count: number; courses_count: number } | null>(null);
 
   // UPDATED: Optional auto-detect provider from locale / timezone
@@ -184,21 +185,35 @@ export default function SubscribePage() {
     setError(null);
     setLoadingPlanName(plan.name);
     try {
+      const body: { plan: string; amount: string; billing: string; accountNo?: string } = {
+        plan: plan.name,
+        amount: plan.waafi.amount,
+        billing: plan.waafi.billing,
+      };
+      if (waafiPhone.trim()) body.accountNo = waafiPhone.trim();
+
       const res = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: plan.name,
-          amount: plan.waafi.amount,
-          billing: plan.waafi.billing,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
+
       if (!res.ok) {
+        if (data.error === "HPP_NOT_AUTHORIZED" && data.useMobileWallet) {
+          setError(data.message || "Card not available. Enter your Waafi phone number to pay with mobile wallet.");
+          return;
+        }
         throw new Error(data.message || "Bixinta waa guuldareysatay");
       }
+
       if (data.hppUrl) {
         window.location.href = data.hppUrl;
+        return;
+      }
+      if (data.useMobileWallet && data.success) {
+        setError(null);
+        router.push("/courses?payment=initiated");
         return;
       }
       setError(data.message || "No redirect URL received");
@@ -210,7 +225,7 @@ export default function SubscribePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center py-10 px-4 font-dmsans">
+    <div className="dark min-h-screen bg-[#0a0a0f] flex flex-col items-center py-10 px-4 font-dmsans text-white">
       <div className="w-full max-w-5xl">
         {/* Logo */}
         <motion.div
@@ -307,12 +322,30 @@ export default function SubscribePage() {
               ? "Pay with card, Apple Pay or Google Pay"
               : "Ku bixi lacagta Waafi Pay — Soomaali ku habboon"}
           </p>
+          {selectedProvider === "waafi" && (
+            <div className="mt-4 w-full max-w-sm mx-auto">
+              <label htmlFor="waafi-phone" className="block text-left text-xs font-medium text-zinc-400 mb-1">
+                Lambarkaaga (Waafi) — for mobile wallet
+              </label>
+              <input
+                id="waafi-phone"
+                type="tel"
+                placeholder="e.g. 252612345678"
+                value={waafiPhone}
+                onChange={(e) => setWaafiPhone(e.target.value)}
+                className="w-full rounded-lg border border-white/20 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
+              />
+              <p className="mt-1 text-[11px] text-zinc-500 text-left">
+                Leave empty to try card; enter phone to pay with Waafi mobile wallet.
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {error && (
           <Alert
             variant="destructive"
-            className="mb-6 border-red-500/30 bg-red-500/10 text-red-200"
+            className="mb-6 border-red-500/30 bg-red-500/10 text-red-200 dark:bg-red-950/40 dark:border-red-500/30 dark:text-red-200"
           >
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -414,7 +447,7 @@ export default function SubscribePage() {
           <Button
             type="button"
             variant="outline"
-            className="rounded-lg border-white/20 text-zinc-400 hover:bg-white/5 hover:text-white"
+            className="rounded-lg border-white/20 text-zinc-400 hover:bg-white/5 hover:text-white dark:border-white/20 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white"
             onClick={() => router.back()}
           >
             Ka noqo

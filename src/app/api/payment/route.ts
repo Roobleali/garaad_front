@@ -30,14 +30,28 @@ function parseAmountFromString(amountStr: string): number {
   return Number.isFinite(num) ? num : 0;
 }
 
+/** Waafi currency is USD. Map plan name to USD amount for API (display amounts may be in KSh). */
+function getWaafiAmountUsd(plan: string, amountStr: string): number {
+  const planUpper = plan.toUpperCase();
+  if (planUpper.includes("EXPLORER") && !planUpper.includes("CHALLENGE")) return 29;
+  if (planUpper.includes("CHALLENGE") && !planUpper.includes("BUNDLE")) return 149;
+  if (planUpper.includes("BUNDLE")) {
+    if (planUpper.includes("MONTHLY")) return 29;
+    return 149;
+  }
+  const parsed = parseAmountFromString(amountStr);
+  if (parsed > 0 && parsed < 10000) return parsed;
+  return 29;
+}
+
 export async function POST(request: Request) {
   try {
     const body: PaymentRequest = await request.json();
     const { accountNo, description, cardInfo, subscriptionType = "monthly", plan, amount: amountStr, billing } = body;
 
-    // Waafi HPP redirect: plan + amount (no accountNo/cardInfo) — subscribe page multi-plan flow
-    if (!accountNo && !cardInfo && plan && amountStr) {
-      const amountNum = parseAmountFromString(amountStr);
+    // Waafi subscribe flow: plan + amount (+ optional accountNo for mobile wallet). Waafi uses USD.
+    if (!cardInfo && plan && amountStr) {
+      const amountNum = getWaafiAmountUsd(plan, amountStr);
       if (amountNum <= 0) {
         return NextResponse.json(
           { error: "Invalid amount", success: false },
@@ -45,12 +59,46 @@ export async function POST(request: Request) {
         );
       }
       const referenceId = `INV-${Date.now()}-${plan.replace(/\s/g, "")}`;
+      const description = `Garaad ${plan}`;
+
+      // Mobile wallet (phone): user entered accountNo — pay with Waafi/Zaad etc. (no card, no HPP)
+      if (accountNo && accountNo.trim()) {
+        try {
+          const response = await waafipayService.purchase({
+            accountNo: accountNo.trim(),
+            amount: amountNum,
+            description,
+            invoiceId: referenceId,
+          });
+          if (response.responseCode === "2001") {
+            return NextResponse.json({
+              success: true,
+              message: "Payment initiated. Complete the payment on your phone.",
+              transactionId: response.params?.transactionId,
+              referenceId: response.params?.referenceId,
+              useMobileWallet: true,
+            });
+          }
+          return NextResponse.json(
+            { success: false, message: response.responseMsg || "Payment failed" },
+            { status: 400 }
+          );
+        } catch (e: unknown) {
+          const errMsg = e instanceof Error ? e.message : String(e);
+          return NextResponse.json(
+            { success: false, message: errMsg || "Mobile wallet payment failed" },
+            { status: 400 }
+          );
+        }
+      }
+
+      // No phone: try HPP (card) redirect — may fail with "not authorized" if card not enabled for merchant
       const successUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.garaad.org"}/api/payment/success`;
       const failureUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://api.garaad.org"}/api/payment/failure`;
       try {
         const hpp = await waafipayService.hppPurchase({
           amount: amountNum,
-          description: `Garaad ${plan}`,
+          description,
           invoiceId: referenceId,
           referenceId,
           currency: "USD",
@@ -67,7 +115,12 @@ export async function POST(request: Request) {
         const errorMessage = e instanceof Error ? e.message : String(e);
         if (errorMessage.includes("not authorized")) {
           return NextResponse.json(
-            { success: false, message: "Card payments are not currently available.", error: "HPP_NOT_AUTHORIZED" },
+            {
+              success: false,
+              message: "Card payments are not currently available. Enter your Waafi phone number below to pay with mobile wallet instead.",
+              error: "HPP_NOT_AUTHORIZED",
+              useMobileWallet: true,
+            },
             { status: 403 }
           );
         }
