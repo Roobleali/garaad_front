@@ -13,13 +13,27 @@ import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { getAbsoluteImageUrl } from "@/lib/utils";
 
 const ModuleZigzag = dynamic(
-    () => import("@/components/learning/ui/ModuleZigzag")
+    () =>
+        import("@/components/learning/ui/ModuleZigzag").then((m) => ({
+            default: m.default,
+        })),
+    {
+        loading: () => (
+            <Skeleton className="h-64 w-full max-w-2xl mx-auto rounded-2xl" />
+        ),
+        ssr: false,
+    }
 );
 
-const CourseProgress = dynamic(() =>
-    import("@/components/learning/CourseProgress").then(
-        (mod) => mod.CourseProgress
-    )
+const CourseProgress = dynamic(
+    () =>
+        import("@/components/learning/CourseProgress").then((mod) => ({
+            default: mod.CourseProgress,
+        })),
+    {
+        loading: () => <Skeleton className="h-3 w-[90%] rounded-full" />,
+        ssr: false,
+    }
 );
 
 const defaultCourseImage = "/images/placeholder-course.svg";
