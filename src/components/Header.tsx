@@ -3,7 +3,9 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import { usePathname, useRouter } from "next/navigation";
+import { NavbarSkeleton } from "@/components/skeletons/NavbarSkeleton";
 import { FolderDot, Home, X, Users, Menu, User, LogOut, LogIn, GraduationCap, Rocket, Newspaper } from "lucide-react";
 import clsx from "clsx";
 import { useMemo, useCallback, useState, useEffect } from "react";
@@ -27,6 +29,7 @@ const AuthDialog = dynamic(
 );
 
 export function Header() {
+  const isReady = useAuthReady();
   const { user } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
@@ -34,6 +37,8 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  if (!isReady) return <NavbarSkeleton />;
 
   // Gamification data for streak display
   const { streak, isLoading: streakLoading, hasError: streakError } = useGamificationData();

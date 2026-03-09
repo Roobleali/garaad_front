@@ -3,13 +3,26 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import { PRICING } from "@/config/pricing";
 
 export function ChallengeHero() {
+    const isReady = useAuthReady();
     const { user } = useAuthStore();
     const isAuthenticated = !!user;
 
     const primaryHref = isAuthenticated ? "/courses" : "/welcome";
+
+    if (!isReady) {
+        return (
+            <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#0A0F1C]">
+                <div className="relative z-10 max-w-7xl mx-auto px-4 py-20 text-center">
+                    <div className="h-16 w-3/4 max-w-2xl mx-auto bg-white/10 animate-pulse rounded-2xl mb-6" />
+                    <div className="h-12 w-48 mx-auto bg-white/10 animate-pulse rounded-xl" />
+                </div>
+            </section>
+        );
+    }
 
     useEffect(() => {
         // Load Vimeo player script

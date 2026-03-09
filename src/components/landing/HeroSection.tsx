@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import useSWR from "swr";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthReady } from "@/hooks/useAuthReady";
+import { HeroSkeleton } from "@/components/landing/SkeletonLoader";
 import { Code2, Layers, Brain, Database, Server, BookOpen } from "lucide-react";
 import { API_BASE_URL } from "@/lib/constants";
 import { PRICING } from "@/config/pricing";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+// Prevent hero animation from re-running on second mount (React Strict Mode double-mount).
+// Module-level so it persists across remounts in the same page load; resets on full refresh.
+let heroAnimationAlreadyRun = false;
 
 const CATEGORIES_SWR_KEY = `${API_BASE_URL}/api/lms/categories/`;
 
@@ -42,8 +49,14 @@ function parseCategories(data: unknown): HeroCourseWithCategory[] {
 }
 
 export function HeroSection() {
+  const isReady = useAuthReady();
   const user = useAuthStore((s) => s.user);
   const isLoggedIn = !!user;
+
+  const skipAnimation = heroAnimationAlreadyRun;
+  useEffect(() => {
+    heroAnimationAlreadyRun = true;
+  }, []);
 
   const { data: stats, error: statsError } = useSWR<LandingStats>(
     `${API_BASE_URL}/api/public/landing-stats/`,
@@ -61,6 +74,14 @@ export function HeroSection() {
 
   const aiCourse = courses.find((c) => /ai|artificial|smart|machine/i.test(c.title));
   const otherCourses = courses.filter((c) => c.id !== aiCourse?.id);
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-[#050508] dark:bg-[#050508]">
+        <HeroSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050508] dark:bg-[#050508]">
@@ -95,7 +116,7 @@ export function HeroSection() {
 
         <div className="relative z-10 grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
           {/* Left — Copy */}
-          <div className="hero-animate-headline">
+          <div className={skipAnimation ? "hero-animate-done" : "hero-animate-headline"}>
             <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-primary/80">
               Af-Soomaali · Full-Stack & AI
             </p>
@@ -133,7 +154,7 @@ export function HeroSection() {
           </div>
 
           {/* Right — Koorsooyin card, courses list, AI course section */}
-          <div className="hero-animate-cta relative space-y-5">
+          <div className={skipAnimation ? "hero-animate-done relative space-y-5" : "hero-animate-cta relative space-y-5"}>
             {/* Koorsooyin — Full-Stack & AI in Somali */}
             <Link
               href={isLoggedIn ? "/courses" : "/welcome"}

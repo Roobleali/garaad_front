@@ -19,6 +19,10 @@ export default function ClientLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    useCommunityStore.getState().hydratePinnedFromStorage();
+  }, []);
+
+  useEffect(() => {
     const authService = AuthService.getInstance();
 
     const init = async () => {

@@ -45,7 +45,7 @@ export function LearningPaths({ categories }: LearningPathsProps) {
                   {category.courses.map((course) => (
                     <Link
                       key={course.id}
-                      href={`/courses/${course.slug}`}
+                      href={`/courses/${category.id}/${course.slug}`}
                       className="group block"
                     >
                       <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">

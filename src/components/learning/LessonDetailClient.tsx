@@ -35,6 +35,8 @@ import { API_BASE_URL } from "@/lib/constants";
 import { useGamificationData } from "@/hooks/useGamificationData";
 import RewardSequence from "@/components/RewardSequence";
 import { LessonPaywall } from "@/components/learning/LessonPaywall";
+import { LessonSkeleton } from "@/components/skeletons/LessonSkeleton";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import dynamic from "next/dynamic";
 
 const ShikiCode = dynamic(() => import("@/components/lesson/ShikiCode"), {
@@ -252,6 +254,7 @@ export function LessonDetailClient() {
 
     // Local state
     const [mounted, setMounted] = useState(false);
+    const isAuthReady = useAuthReady();
     const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isCorrect, setIsCorrect] = useState(false);
@@ -328,22 +331,17 @@ export function LessonDetailClient() {
     }, [courseIdFromSlug]);
 
 
-    // Check if lesson is in review mode
+    // Check if lesson is in review mode (localStorage only on client to avoid hydration mismatch)
     const isReviewMode = useMemo(() => {
-        // Check URL parameter first
         const reviewParam = searchParams.get('review');
         if (reviewParam === 'true') return true;
-
-        // Check if lesson is completed (fallback method)
-        if (currentLesson?.id) {
-            try {
-                const completed = JSON.parse(localStorage.getItem("completedLessons") || "[]");
-                return completed.includes(currentLesson.id);
-            } catch {
-                return false;
-            }
+        if (typeof window === "undefined" || !currentLesson?.id) return false;
+        try {
+            const completed = JSON.parse(localStorage.getItem("completedLessons") || "[]");
+            return completed.includes(currentLesson.id);
+        } catch {
+            return false;
         }
-        return false;
     }, [searchParams, currentLesson?.id]);
 
 
@@ -938,13 +936,11 @@ export function LessonDetailClient() {
         );
     }
 
-    // Show navigating state
     if (navigating) {
         return <LoadingSpinner message="ku laabanaya koordooyinka..." />;
     }
 
-    // Render the main lesson page
-    if (!mounted) return null;
+    if (!mounted || !isAuthReady) return <LessonSkeleton />;
 
     return (
         <div className="min-h-screen bg-background">

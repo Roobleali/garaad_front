@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Share2,
   Twitter,
@@ -24,12 +24,13 @@ interface SharePostProps {
 
 export function SharePost({ title, slug }: SharePostProps) {
   const [copied, setCopied] = useState(false);
+  const [shareBaseUrl, setShareBaseUrl] = useState("");
 
-  // Get the full URL for sharing
-  const getShareUrl = () => {
-    if (typeof window === "undefined") return "";
-    return `${window.location.origin}/blog/${slug}`;
-  };
+  useEffect(() => {
+    setShareBaseUrl(typeof window !== "undefined" ? `${window.location.origin}/blog/${slug}` : "");
+  }, [slug]);
+
+  const getShareUrl = () => shareBaseUrl;
 
   // Handle copy to clipboard
   const copyToClipboard = async () => {

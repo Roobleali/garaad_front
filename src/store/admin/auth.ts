@@ -15,20 +15,19 @@ interface AdminAuthState {
     token: string | null;
     refreshToken: string | null;
     user: User | null;
+    _hydrated: boolean;
     setTokens: (token: string, refreshToken: string, user: User) => void;
     clearTokens: () => void;
+    hydrateFromStorage: () => void;
     isAuthenticated: () => boolean;
     isSuperuser: () => boolean;
 }
 
 export const useAdminAuthStore = create<AdminAuthState>((set, get) => ({
-    token: typeof window !== "undefined" ? localStorage.getItem("admin_token") : null,
-    refreshToken:
-        typeof window !== "undefined" ? localStorage.getItem("admin_refreshToken") : null,
-    user:
-        typeof window !== "undefined"
-            ? JSON.parse(localStorage.getItem("admin_user") || "null")
-            : null,
+    token: null,
+    refreshToken: null,
+    user: null,
+    _hydrated: false,
 
     setTokens: (token: string, refreshToken: string, user: User) => {
         if (typeof window !== "undefined") {
@@ -46,6 +45,15 @@ export const useAdminAuthStore = create<AdminAuthState>((set, get) => ({
             localStorage.removeItem("admin_user");
         }
         set({ token: null, refreshToken: null, user: null });
+    },
+
+    hydrateFromStorage: () => {
+        if (typeof window === "undefined") return;
+        const token = localStorage.getItem("admin_token");
+        const refreshToken = localStorage.getItem("admin_refreshToken");
+        const userRaw = localStorage.getItem("admin_user");
+        const user = userRaw ? JSON.parse(userRaw) : null;
+        set({ token, refreshToken, user: user as User | null, _hydrated: true });
     },
 
     isAuthenticated: () => {

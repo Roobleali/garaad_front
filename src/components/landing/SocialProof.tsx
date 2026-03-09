@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { X, GraduationCap, Rocket, Star, Users, BookOpen } from "lucide-react";
 import { baseURL } from "@/config";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthReady } from "@/hooks/useAuthReady";
 import { usePathname } from "next/navigation";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -88,10 +89,9 @@ export function SocialProof() {
     const backendNamesRef = useRef<string[]>([]);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Only show on landing + welcome pages, and only to guests
     const normalizedPath = pathname?.replace(/\/$/, "") || "/";
     const isAllowedPage = normalizedPath === "" || normalizedPath === "/" || normalizedPath === "/welcome";
-    const shouldShow = !user && isAllowedPage;
+    const shouldShow = isReady && !user && isAllowedPage;
 
     // Fetch real names once from backend (best-effort)
     useEffect(() => {
