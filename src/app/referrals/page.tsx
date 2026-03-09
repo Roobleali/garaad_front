@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useAuthReady } from '@/hooks/useAuthReady';
 import { getReferralDashboard, type ReferralDashboard } from '@/services/referral';
 import { Copy, Users, DollarSign, TrendingUp, GraduationCap, Share2, ArrowRight, Banknote, Star, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -15,13 +14,22 @@ import clsx from 'clsx';
 export default function ReferralsPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const isAuthReady = useAuthReady();
     const { isAuthenticated } = useAuthStore();
     const [dashboard, setDashboard] = useState<ReferralDashboard | null>(null);
     const [loading, setLoading] = useState(true);
     const [copying, setCopying] = useState(false);
 
-    const loadDashboard = useCallback(async () => {
+    useEffect(() => {
+        // Referrals require auth; redirect to login so returning users don't get onboarding.
+        if (!isAuthenticated) {
+            router.push('/login');
+            return;
+        }
+
+        loadDashboard();
+    }, [isAuthenticated]);
+
+    const loadDashboard = async () => {
         try {
             setLoading(true);
             const data = await getReferralDashboard();
@@ -36,16 +44,7 @@ export default function ReferralsPage() {
         } finally {
             setLoading(false);
         }
-    }, [toast]);
-
-    useEffect(() => {
-        if (!isAuthReady) return;
-        if (!isAuthenticated) {
-            router.push('/login');
-            return;
-        }
-        loadDashboard();
-    }, [isAuthReady, isAuthenticated, router, loadDashboard]);
+    };
 
     const copyReferralLink = async () => {
         if (!dashboard) return;
@@ -75,10 +74,10 @@ export default function ReferralsPage() {
         window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     };
 
-    if (!isAuthReady || loading) {
+    if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black">
-                <div className="animate-pulse rounded-2xl h-32 w-64 bg-muted" />
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
         );
     }

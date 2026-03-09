@@ -8,7 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAuthReady } from "@/hooks/useAuthReady";
 import { useCourse, useEnrollments, useUserProgress } from "@/hooks/useApi";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { getAbsoluteImageUrl } from "@/lib/utils";
@@ -49,7 +48,6 @@ export function CourseDetailClient() {
         error: courseError,
     } = useCourse(String(categoryId), String(courseSlug));
 
-    const isAuthReady = useAuthReady();
     const { isAuthenticated } = useAuthStore();
 
     const {
@@ -118,10 +116,11 @@ export function CourseDetailClient() {
         router.push(`/courses/${categoryId}/${courseSlug}/lessons/${firstLessonId}${reviewParam}`);
     };
 
+    // Prevent hydration mismatch
     const [hasMounted, setHasMounted] = useState(false);
     useEffect(() => { setHasMounted(true); }, []);
 
-    if (!hasMounted || !isAuthReady) {
+    if (!hasMounted) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-black">
                 <div className="max-w-7xl mx-auto p-8">

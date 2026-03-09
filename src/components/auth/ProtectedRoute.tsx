@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAuthReady } from "@/hooks/useAuthReady";
 import AuthService from "@/services/auth";
 import { Loader } from "lucide-react";
 
@@ -26,7 +25,6 @@ export function ProtectedRoute({
     const { user, isAuthenticated } = useAuthStore();
 
     useEffect(() => {
-        if (!isReady) return;
         const checkAuth = () => {
             const authService = AuthService.getInstance();
 
@@ -62,20 +60,13 @@ export function ProtectedRoute({
             setIsLoading(false);
         };
 
-        checkAuth();
-    }, [isReady, isAuthenticated, user, requirePremium, requireEmailVerification, router]);
+        // Small delay to allow Redux to hydrate
+        const timer = setTimeout(checkAuth, 100);
 
-    if (!isReady) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="flex flex-col items-center space-y-4">
-                    <Loader className="h-12 w-12 text-primary animate-spin" />
-                    <p className="text-gray-600 dark:text-gray-400 text-lg">Xaqiijinaya...</p>
-                </div>
-            </div>
-        );
-    }
+        return () => clearTimeout(timer);
+    }, [isAuthenticated, user, requirePremium, requireEmailVerification, router]);
 
+    // Show loading while checking authentication
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">

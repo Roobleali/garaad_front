@@ -16,15 +16,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
-    const { token, clearTokens, hydrateFromStorage } = useAdminAuthStore();
+    const { token, clearTokens } = useAdminAuthStore();
     const router = useRouter();
     const pathname = usePathname();
     const [isChecking, setIsChecking] = useState(true);
 
-    useEffect(() => {
-        hydrateFromStorage();
-    }, [hydrateFromStorage]);
-
+    // Auth check
     useEffect(() => {
         if (!token && pathname !== "/admin/login") {
             router.replace("/admin/login");

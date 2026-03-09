@@ -1,16 +1,14 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { User, AuthState } from '@/types/auth';
 import AuthService, { SignUpData, SignUpResponse } from '@/services/auth';
 
 interface AuthStore extends AuthState {
     _hasHydrated: boolean;
-    hydrated: boolean;
     setUser: (user: User) => void;
     setLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
     setHasHydrated: (value: boolean) => void;
-    setHydrated: (value: boolean) => void;
     login: (credentials: { email: string; password: string }) => Promise<void>;
     signUp: (data: SignUpData) => Promise<SignUpResponse | void>;
     logout: () => void;
@@ -27,10 +25,8 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
             _hasHydrated: false,
-            hydrated: false,
 
-            setHasHydrated: (value) => set({ _hasHydrated: value, hydrated: value }),
-            setHydrated: (value) => set({ hydrated: value, _hasHydrated: value }),
+            setHasHydrated: (value) => set({ _hasHydrated: value }),
 
             setUser: (user) => set({
                 user,
@@ -104,18 +100,12 @@ export const useAuthStore = create<AuthStore>()(
         }),
         {
             name: 'auth-storage',
-            storage: createJSONStorage<Partial<AuthStore>>(() => {
-                if (typeof window === 'undefined') {
-                    return { getItem: () => null, setItem: () => {}, removeItem: () => {} } as Storage;
-                }
-                return localStorage;
-            }),
             partialize: (state) => ({
                 user: state.user,
                 isAuthenticated: state.isAuthenticated
             }),
-            onRehydrateStorage: () => () => {
-                useAuthStore.getState().setHydrated(true);
+            onRehydrateStorage: () => (state, err) => {
+                useAuthStore.getState().setHasHydrated(true);
             },
         }
     )

@@ -34,7 +34,6 @@ interface CommunityStore {
     setUserProfile: (profile: UserProfile | null) => void;
     setNotifications: (notifications: Notification[]) => void;
     setPinnedCategoryIds: (ids: string[]) => void;
-    hydratePinnedFromStorage: () => void;
     setLoading: (key: keyof CommunityStore['loading'], value: boolean) => void;
     setError: (key: keyof CommunityStore['errors'], value: string | null) => void;
 
@@ -73,7 +72,9 @@ export const useCommunityStore = create<CommunityStore>((set) => ({
     posts: [],
     userProfile: null,
     notifications: [],
-    pinnedCategoryIds: [],
+    pinnedCategoryIds: typeof window !== 'undefined'
+        ? JSON.parse(localStorage.getItem('pinnedCategoryIds') || '[]')
+        : [],
     loading: {
         categories: false,
         posts: false,
@@ -94,19 +95,7 @@ export const useCommunityStore = create<CommunityStore>((set) => ({
     setNotifications: (notifications) => set({ notifications }),
     setPinnedCategoryIds: (pinnedCategoryIds) => {
         set({ pinnedCategoryIds });
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('pinnedCategoryIds', JSON.stringify(pinnedCategoryIds));
-        }
-    },
-    hydratePinnedFromStorage: () => {
-        if (typeof window === 'undefined') return;
-        try {
-            const raw = localStorage.getItem('pinnedCategoryIds');
-            const ids = raw ? JSON.parse(raw) : [];
-            set({ pinnedCategoryIds: Array.isArray(ids) ? ids : [] });
-        } catch {
-            set({ pinnedCategoryIds: [] });
-        }
+        localStorage.setItem('pinnedCategoryIds', JSON.stringify(pinnedCategoryIds));
     },
     setLoading: (key, value) => set((state) => ({
         loading: { ...state.loading, [key]: value }

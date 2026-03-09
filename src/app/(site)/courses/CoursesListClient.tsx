@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAuthReady } from "@/hooks/useAuthReady";
 import { cn, getAbsoluteImageUrl } from "@/lib/utils";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 
@@ -77,7 +76,6 @@ export function CoursesListClient() {
     const { categories, isLoading: isSWRLoading, isError } = useCategories();
     const searchParams = useSearchParams();
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-    const isAuthReady = useAuthReady();
     const { isAuthenticated } = useAuthStore();
     const [hasMounted, setHasMounted] = useState(false);
 
@@ -85,7 +83,7 @@ export function CoursesListClient() {
         setHasMounted(true);
     }, []);
 
-    const isLoading = !hasMounted || !isAuthReady || isSWRLoading;
+    const isLoading = !hasMounted || isSWRLoading;
 
     useEffect(() => {
         const success = searchParams.get("success");

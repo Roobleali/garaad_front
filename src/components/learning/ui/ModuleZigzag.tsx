@@ -6,7 +6,6 @@ import type { Module } from "@/types/learning";
 import { UserProgress } from "@/services/progress";
 import { PlayCircle, ReplyIcon, CheckCircle, UserPlus } from "lucide-react";
 import AuthService from "@/services/auth";
-import { useAuthReady } from "@/hooks/useAuthReady";
 
 interface ModuleZigzagProps {
     modules: Module[];
@@ -28,7 +27,6 @@ export default function ModuleZigzag({
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     const authService = AuthService.getInstance();
-    const isAuthReady = useAuthReady();
 
     const uniqueModules = useMemo(() => {
         const seenIds = new Set<number>();
@@ -131,7 +129,7 @@ export default function ModuleZigzag({
     const user = authService.getCurrentUser();
     const isAuthenticated = !!user;
     const isPremium = authService.isPremium();
-    const canStartLesson = isAuthReady && isAuthenticated && (isPremium || isFirstLessonOfCourse);
+    const canStartLesson = isAuthenticated && (isPremium || isFirstLessonOfCourse);
 
     return (
         <div className="max-w-md mx-auto p-4 pb-32">
@@ -251,9 +249,7 @@ export default function ModuleZigzag({
                         {selectedModule?.title || uniqueModules[0]?.title || 'Select a module'}
                     </h2>
 
-                    {!isAuthReady ? (
-                        <div className="w-full h-14 rounded-2xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
-                    ) : isLoading ? (
+                    {isLoading ? (
                         <div className={`w-full rounded-2xl p-4 shadow-lg ${!canStartLesson
                             ? 'bg-gradient-to-r from-blue-500 to-blue-600'
                             : selectedModuleCompleted

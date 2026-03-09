@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useEffect } from "react";
 import useSWR from "swr";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useAuthReady } from "@/hooks/useAuthReady";
-import { HeroSkeleton } from "@/components/landing/SkeletonLoader";
 import { Code2, Layers, Brain, Database, Server, BookOpen } from "lucide-react";
 import { API_BASE_URL } from "@/lib/constants";
 import { PRICING } from "@/config/pricing";
@@ -49,7 +47,6 @@ function parseCategories(data: unknown): HeroCourseWithCategory[] {
 }
 
 export function HeroSection() {
-  const isReady = useAuthReady();
   const user = useAuthStore((s) => s.user);
   const isLoggedIn = !!user;
 
@@ -74,14 +71,6 @@ export function HeroSection() {
 
   const aiCourse = courses.find((c) => /ai|artificial|smart|machine/i.test(c.title));
   const otherCourses = courses.filter((c) => c.id !== aiCourse?.id);
-
-  if (!isReady) {
-    return (
-      <div className="min-h-screen bg-[#050508] dark:bg-[#050508]">
-        <HeroSkeleton />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#050508] dark:bg-[#050508]">

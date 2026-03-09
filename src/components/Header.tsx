@@ -29,7 +29,6 @@ const AuthDialog = dynamic(
 );
 
 export function Header() {
-  const isReady = useAuthReady();
   const { user } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
@@ -37,8 +36,6 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-
-  if (!isReady) return <NavbarSkeleton />;
 
   // Gamification data for streak display
   const { streak, isLoading: streakLoading, hasError: streakError } = useGamificationData();
