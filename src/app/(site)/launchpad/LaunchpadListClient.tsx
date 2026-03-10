@@ -1,26 +1,48 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { StartupCard } from "@/components/launchpad/StartupCard";
 import { StartupCardSkeleton } from "@/components/launchpad/StartupCardSkeleton";
+import { ProjectCard } from "@/components/launchpad/ProjectCard";
+import { XPToast } from "@/components/launchpad/XPToast";
 import { launchpadService } from "@/services/launchpad";
-import type { StartupListItem, StartupCategory, StartupFilter } from "@/types/launchpad";
-import { ChevronDown, Rocket, TrendingUp, Clock, Award, Briefcase, Plus, Terminal, Code2, Database, Cpu } from "lucide-react";
+import type {
+    StartupListItem,
+    StartupCategory,
+    StartupFilter,
+    Project,
+} from "@/types/launchpad";
+import { LAUNCHPAD_UI_TEXT } from "@/types/launchpad";
+import { ChevronDown, Rocket, TrendingUp, Clock, Award, Briefcase, Plus, Terminal, Code2, Database, Cpu, FolderKanban, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { TechIcon } from "@/components/launchpad/TechIcon";
-
+import { useAuthReady } from "@/hooks/useAuthReady";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const FILTER_OPTIONS: { value: StartupFilter; label: string; icon: React.ReactNode }[] = [
     { value: "trending", label: "Trending", icon: <TrendingUp className="w-4 h-4" /> },
-    { value: "new", label: "Cusub", icon: <Clock className="w-4 h-4" /> },
-    { value: "top", label: "Ugu Sarreeya", icon: <Award className="w-4 h-4" /> },
+    { value: "new", label: LAUNCHPAD_UI_TEXT.new, icon: <Clock className="w-4 h-4" /> },
+    { value: "top", label: LAUNCHPAD_UI_TEXT.top, icon: <Award className="w-4 h-4" /> },
+    { value: "this_week", label: LAUNCHPAD_UI_TEXT.thisWeek, icon: <CalendarDays className="w-4 h-4" /> },
 ];
 
+type TabType = "startups" | "projects";
+
 export function LaunchpadListClient() {
+    const searchParams = useSearchParams();
+    const authReady = useAuthReady();
+    const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+    const [tab, setTab] = useState<TabType>(() =>
+        searchParams.get("tab") === "projects" ? "projects" : "startups"
+    );
     const [startups, setStartups] = useState<StartupListItem[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [categories, setCategories] = useState<StartupCategory[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [currentFilter, setCurrentFilter] = useState<StartupFilter>("trending");
+    const [xpToast, setXPToast] = useState<number | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -34,7 +56,6 @@ export function LaunchpadListClient() {
                 category: selectedCategory || undefined,
                 page_size: 100,
             });
-
             setStartups(response.results || []);
         } catch (err) {
             setError("Wax qalad ah ayaa dhacay");
@@ -43,6 +64,22 @@ export function LaunchpadListClient() {
             setIsLoading(false);
         }
     }, [currentFilter, selectedCategory]);
+
+    const fetchProjects = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const list = await launchpadService.getProjects({
+                sort: currentFilter === "featured" ? "trending" : currentFilter,
+            });
+            setProjects(Array.isArray(list) ? list : []);
+        } catch (err) {
+            setError("Wax qalad ah ayaa dhacay");
+            console.error("Failed to fetch projects:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentFilter]);
 
 
     const fetchCategories = async () => {
@@ -59,8 +96,13 @@ export function LaunchpadListClient() {
     }, []);
 
     useEffect(() => {
-        fetchStartups();
-    }, [fetchStartups]);
+        if (searchParams.get("tab") === "projects") setTab("projects");
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (tab === "startups") fetchStartups();
+        else fetchProjects();
+    }, [tab, fetchStartups, fetchProjects]);
 
     const handleVote = async (startupId: string) => {
         try {
@@ -75,6 +117,15 @@ export function LaunchpadListClient() {
         } catch (err) {
             console.error("Vote failed:", err);
         }
+    };
+
+    const handleProjectVote = async (slug: string) => {
+        return launchpadService.voteProject(slug);
+    };
+
+    const handleProjectVoteSuccess = (xp: number) => {
+        setXPToast(xp);
+        setTimeout(() => setXPToast(null), 2500);
     };
 
     return (
@@ -137,66 +188,120 @@ export function LaunchpadListClient() {
                             <Plus className="w-6 h-6 stroke-[3px]" />
                             Soo Dir Startup
                         </Link>
-
+                        {authReady && isAuthenticated && (
+                            <Link
+                                href="/launchpad/submit-project"
+                                className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border-2 border-primary/50 bg-primary/10 text-primary font-bold hover:bg-primary/20 transition-all"
+                            >
+                                <FolderKanban className="w-5 h-5" />
+                                {LAUNCHPAD_UI_TEXT.submitProject}
+                            </Link>
+                        )}
                         <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
                             <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]" /> Live mashaariic</span>
                             <span className="opacity-20">|</span>
                             <span>🚀 New daily</span>
                         </div>
                     </div>
+
+                    {/* Tab switcher: Startups | Projects */}
+                    <div className="mt-8 flex justify-center">
+                        <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1">
+                            <button
+                                type="button"
+                                onClick={() => setTab("startups")}
+                                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all ${tab === "startups"
+                                    ? "bg-primary text-white shadow-lg"
+                                    : "text-slate-400 hover:text-white"}`}
+                            >
+                                <Rocket className="w-4 h-4" />
+                                {LAUNCHPAD_UI_TEXT.startups}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTab("projects")}
+                                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition-all ${tab === "projects"
+                                    ? "bg-primary text-white shadow-lg"
+                                    : "text-slate-400 hover:text-white"}`}
+                            >
+                                <FolderKanban className="w-4 h-4" />
+                                {LAUNCHPAD_UI_TEXT.projects}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+            {xpToast != null && (
+                <XPToast xp={xpToast} onDismiss={() => setXPToast(null)} />
+            )}
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {/* Main Content Layout */}
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Sidebar - Categories */}
+                    {/* Sidebar - Categories (startups) / Info (projects) */}
                     <aside className="w-full lg:w-64 flex-shrink-0 animate-in fade-in slide-in-from-left-4 duration-500">
                         <div className="sticky top-24 space-y-6">
-                            <div>
-                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 px-2">Khadka (Industries)</h3>
-                                <nav className="flex flex-col space-y-1">
-                                    <button
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${!selectedCategory
-                                            ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                            : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                                            }`}
-                                    >
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${!selectedCategory ? 'bg-white/20' : 'bg-white/5'}`}>
-                                            🏠
-                                        </div>
-                                        <span>Dhammaan</span>
-                                    </button>
-
-                                    {categories
-                                        .filter(cat => startups.some(s => s.category?.id === cat.id))
-                                        .map((cat) => (
+                            {tab === "startups" ? (
+                                <>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 px-2">Khadka (Industries)</h3>
+                                        <nav className="flex flex-col space-y-1">
                                             <button
-                                                key={cat.id}
-                                                onClick={() => setSelectedCategory(cat.id)}
-                                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.id
+                                                onClick={() => setSelectedCategory(null)}
+                                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${!selectedCategory
                                                     ? "bg-primary text-white shadow-lg shadow-primary/20"
                                                     : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                                                     }`}
                                             >
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-white/5'}`}>
-                                                    {cat.icon}
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${!selectedCategory ? 'bg-white/20' : 'bg-white/5'}`}>
+                                                    🏠
                                                 </div>
-                                                <span>{cat.name_somali || cat.name}</span>
+                                                <span>Dhammaan</span>
                                             </button>
-                                        ))}
-
-                                </nav>
-                            </div>
-
-                            {/* Stats or extra info could go here */}
-                            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hidden lg:block">
-                                <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Bulshada</h4>
-                                <p className="text-xs text-muted-foreground leading-relaxed">
-                                    Ku dhufo "Codee" si aad u taageerto startup-yada aad jeceshahay.
-                                </p>
-                            </div>
+                                            {categories
+                                                .filter(cat => startups.some(s => s.category?.id === cat.id))
+                                                .map((cat) => (
+                                                    <button
+                                                        key={cat.id}
+                                                        onClick={() => setSelectedCategory(cat.id)}
+                                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.id
+                                                            ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                            : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                                                            }`}
+                                                    >
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-white/5'}`}>
+                                                            {cat.icon}
+                                                        </div>
+                                                        <span>{cat.name_somali || cat.name}</span>
+                                                    </button>
+                                                ))}
+                                        </nav>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hidden lg:block">
+                                        <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">Bulshada</h4>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">
+                                            Ku dhufo "Codee" si aad u taageerto startup-yada aad jeceshahay.
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                                    <h4 className="text-xs font-bold text-muted-foreground uppercase mb-2">{LAUNCHPAD_UI_TEXT.projects}</h4>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                        Mashruucyada koorsaska laga dhisay. Codee kuwa aad jeceshahay — waxaad heleysaa XP.
+                                    </p>
+                                    {authReady && isAuthenticated && (
+                                        <Link
+                                            href="/launchpad/submit-project"
+                                            className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            {LAUNCHPAD_UI_TEXT.submitProject}
+                                        </Link>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </aside>
 
@@ -204,27 +309,30 @@ export function LaunchpadListClient() {
                     <div className="flex-1 min-w-0">
                         {/* Filters Bar */}
                         <div className="flex flex-wrap items-center justify-between gap-4 mb-8 p-2 rounded-2xl bg-white/5 border border-white/10 lg:bg-transparent lg:border-none lg:p-0">
-                            {/* Mobile Category Select - only visible on mobile if sidebar is too long or hidden */}
-                            <div className="lg:hidden w-full mb-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block px-2">Nooca</label>
-                                <select
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary"
-                                    value={selectedCategory || ""}
-                                    onChange={(e) => setSelectedCategory(e.target.value || null)}
-                                >
-                                    <option value="">Dhammaan</option>
-                                    {categories
-                                        .filter(cat => startups.some(s => s.category?.id === cat.id))
-                                        .map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name_somali || cat.name}</option>
-                                        ))}
-
-                                </select>
-                            </div>
+                            {/* Mobile Category Select - only for startups tab */}
+                            {tab === "startups" && (
+                                <div className="lg:hidden w-full mb-2">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block px-2">Nooca</label>
+                                    <select
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary"
+                                        value={selectedCategory || ""}
+                                        onChange={(e) => setSelectedCategory(e.target.value || null)}
+                                    >
+                                        <option value="">Dhammaan</option>
+                                        {categories
+                                            .filter(cat => startups.some(s => s.category?.id === cat.id))
+                                            .map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name_somali || cat.name}</option>
+                                            ))}
+                                    </select>
+                                </div>
+                            )}
 
                             {/* Result Count / Status */}
                             <div className="text-sm text-muted-foreground px-2">
-                                <span className="font-bold text-foreground">{startups.length}</span> mashruuc ayaa la helay
+                                <span className="font-bold text-foreground">
+                                    {tab === "startups" ? startups.length : projects.length}
+                                </span> mashruuc ayaa la helay
                             </div>
 
                             <div className="flex items-center gap-3 ml-auto">
@@ -248,7 +356,7 @@ export function LaunchpadListClient() {
                             </div>
                         </div>
 
-                        {/* Startups Grid */}
+                        {/* Startups or Projects Grid */}
                         {isLoading ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {[...Array(6)].map((_, i) => (
@@ -259,12 +367,42 @@ export function LaunchpadListClient() {
                             <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
                                 <p className="text-red-400 mb-4">{error}</p>
                                 <button
-                                    onClick={fetchStartups}
+                                    onClick={() => (tab === "startups" ? fetchStartups() : fetchProjects())}
                                     className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
                                 >
                                     Isku day markale
                                 </button>
                             </div>
+                        ) : tab === "projects" ? (
+                            projects.length === 0 ? (
+                                <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
+                                    <FolderKanban className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                                    <h3 className="text-xl font-bold mb-2">Ma jiraan mashruuc weli</h3>
+                                    <p className="text-muted-foreground mb-6">
+                                        Koorsaska bilaab oo mashruuc soo gudbi.
+                                    </p>
+                                    {authReady && isAuthenticated && (
+                                        <Link
+                                            href="/launchpad/submit-project"
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                            {LAUNCHPAD_UI_TEXT.submitProject}
+                                        </Link>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    {projects.map((project) => (
+                                        <ProjectCard
+                                            key={project.slug}
+                                            project={project}
+                                            onVote={() => handleProjectVote(project.slug)}
+                                            onVoteSuccess={handleProjectVoteSuccess}
+                                        />
+                                    ))}
+                                </div>
+                            )
                         ) : startups.length === 0 ? (
                             <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
                                 <Rocket className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

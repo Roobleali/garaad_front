@@ -109,8 +109,52 @@ export interface VoteResponse {
     vote_count: number;
 }
 
-// Filter types for startup listing
-export type StartupFilter = 'trending' | 'new' | 'top' | 'featured';
+// Filter types for startup listing (and project listing)
+export type StartupFilter = 'trending' | 'new' | 'top' | 'featured' | 'this_week';
+
+// —— Project (lightweight submission) ——
+export interface ProjectComment {
+    id: number;
+    author_username: string;
+    content: string;
+    created_at: string;
+    is_edited: boolean;
+}
+
+export interface Project {
+    id: number;
+    slug: string;
+    title: string;
+    tagline: string;
+    description: string;
+    logo_url: string;
+    website_url: string;
+    repo_url: string;
+    tech_stack: string[];
+    course: number | null;
+    course_title: string | null;
+    maker_username: string;
+    vote_count: number;
+    has_voted: boolean;
+    status: 'draft' | 'published';
+    comments: ProjectComment[];
+    comments_count: number;
+    created_at: string;
+}
+
+export interface ProjectFormData {
+    title: string;
+    tagline: string;
+    description: string;
+    logo_url: string;
+    website_url: string;
+    repo_url: string;
+    tech_stack: string[];
+    course: number | null;
+}
+
+// Filter types for project listing
+export type ProjectSort = 'trending' | 'new' | 'top' | 'this_week';
 
 // UI State for launchpad
 export interface LaunchpadState {
@@ -148,16 +192,19 @@ export const TECH_STACK_OPTIONS = [
     'Docker',
 ] as const;
 
-// Somali UI text for launchpad
+    // Somali UI text for launchpad
 export const LAUNCHPAD_UI_TEXT = {
     // Navigation
     launchpad: "Launchpad",
     startups: "Startups",
+    projects: "Projects",
     submit: "Soo Dir",
     trending: "Trending",
     new: "Cusub",
     top: "Ugu Sarreeya",
     featured: "La Xusay",
+    thisWeek: "Todobaadkan",
+    submitProject: "Mashruuc Cusub Soo Gudbi",
 
     // Actions
     upvote: "Codee",
@@ -184,6 +231,10 @@ export const LAUNCHPAD_UI_TEXT = {
     // Empty states
     noStartups: "Ma jiraan Startups weli",
     beFirst: "Noqo qofka ugu horreeya ee soo dirta Startup!",
+    noProjects: "Wali mashruuc ma soo gudbinin.",
+    startCourseBuild: "Bilow koorsadaada, mashruucaaga dhis!",
+    myProjects: "Mashruucyadayda",
+    viewAll: "Dhammaan arag",
 
     // Success/Error
     submitSuccess: "Startup-kaaga waa la diray!",

@@ -7,6 +7,9 @@ import type {
     VoteResponse,
     StartupComment,
     StartupFilter,
+    Project,
+    ProjectComment,
+    ProjectFormData,
 } from "@/types/launchpad";
 
 // API response types
@@ -216,6 +219,45 @@ export const launchpadService = {
         return api.patch<StartupComment>(`${BASE_URL}/comments/${commentId}/`, {
             content,
         });
+    },
+
+    // —— Projects (lightweight submissions) ——
+    async getProjects(params?: { sort?: string; course?: number }): Promise<Project[]> {
+        const p: Record<string, string> = {};
+        if (params?.sort) p.sort = params.sort;
+        if (params?.course != null) p.course = String(params.course);
+        return api.get<Project[]>(`${BASE_URL}/projects/`, p);
+    },
+
+    async getProject(slug: string): Promise<Project> {
+        return api.get<Project>(`${BASE_URL}/projects/${encodeURIComponent(slug)}/`);
+    },
+
+    async createProject(data: ProjectFormData): Promise<Project> {
+        return api.post<Project>(`${BASE_URL}/projects/`, data);
+    },
+
+    async updateProject(slug: string, data: Partial<ProjectFormData>): Promise<Project> {
+        return api.patch<Project>(`${BASE_URL}/projects/${encodeURIComponent(slug)}/`, data);
+    },
+
+    async deleteProject(slug: string): Promise<void> {
+        return api.delete(`${BASE_URL}/projects/${encodeURIComponent(slug)}/`);
+    },
+
+    async voteProject(slug: string): Promise<VoteResponse> {
+        return api.post<VoteResponse>(`${BASE_URL}/projects/${encodeURIComponent(slug)}/vote/`);
+    },
+
+    async addProjectComment(slug: string, content: string): Promise<ProjectComment> {
+        return api.post<ProjectComment>(
+            `${BASE_URL}/projects/${encodeURIComponent(slug)}/add_comment/`,
+            { content }
+        );
+    },
+
+    async getMyProjects(): Promise<Project[]> {
+        return api.get<Project[]>(`${BASE_URL}/projects/my_projects/`);
     },
 };
 

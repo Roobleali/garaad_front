@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import Link from "next/link";
 import { useGamificationData } from "@/hooks/useGamificationData";
 import { useAuthReady } from "@/hooks/useAuthReady";
+import { launchpadService } from "@/services/launchpad";
+import { LAUNCHPAD_UI_TEXT } from "@/types/launchpad";
+import type { Project } from "@/types/launchpad";
 import { cn } from "@/lib/utils";
+import { FolderKanban, Plus } from "lucide-react";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const LEAGUE_EMOJI: Record<string, string> = {
@@ -28,6 +33,8 @@ function SkeletonCard({ className }: { className?: string }) {
 
 export function GamificationPanel() {
   const isReady = useAuthReady();
+  const [myProjects, setMyProjects] = useState<Project[] | null>(null);
+  const [projectsLoading, setProjectsLoading] = useState(false);
   const {
     progress: gamificationStatus,
     streak,
@@ -35,6 +42,16 @@ export function GamificationPanel() {
     leaderboard,
     isLoading,
   } = useGamificationData();
+
+  useEffect(() => {
+    if (!isReady) return;
+    setProjectsLoading(true);
+    launchpadService
+      .getMyProjects()
+      .then((list) => setMyProjects(Array.isArray(list) ? list : []))
+      .catch(() => setMyProjects([]))
+      .finally(() => setProjectsLoading(false));
+  }, [isReady]);
 
   const xp = (gamificationStatus ?? streak) as { xp?: number; next_level_xp?: number } | undefined;
   const currentXp = xp?.xp ?? 0;
@@ -232,6 +249,57 @@ export function GamificationPanel() {
               Adigu noqo kii ugu horeeya!
             </p>
           </div>
+        )}
+      </div>
+
+      {/* 6. MY PROJECTS */}
+      <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+        <p className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+          <FolderKanban className="w-4 h-4" />
+          {LAUNCHPAD_UI_TEXT.myProjects}
+        </p>
+        {projectsLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 animate-pulse">
+                <div className="h-4 flex-1 max-w-[140px] bg-white/10 rounded" />
+                <div className="h-4 w-8 bg-white/10 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : !myProjects || myProjects.length === 0 ? (
+          <p className="text-sm text-gray-400 mb-3">
+            {LAUNCHPAD_UI_TEXT.noProjects} {LAUNCHPAD_UI_TEXT.startCourseBuild}
+          </p>
+          <Link
+            href="/launchpad/submit-project"
+            className="inline-flex items-center gap-2 text-sm font-medium text-purple-400 hover:text-purple-300"
+          >
+            <Plus className="w-4 h-4" />
+            {LAUNCHPAD_UI_TEXT.submitProject}
+          </Link>
+        ) : (
+          <>
+            <ul className="space-y-2">
+              {myProjects.slice(0, 3).map((p) => (
+                <li key={p.slug} className="flex items-center justify-between text-sm">
+                  <Link
+                    href={`/launchpad/project/${p.slug}`}
+                    className="text-white hover:text-purple-400 truncate max-w-[180px]"
+                  >
+                    {p.title}
+                  </Link>
+                  <span className="text-gray-500 text-xs">{p.vote_count} code</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/launchpad?tab=projects"
+              className="mt-3 inline-block text-sm font-medium text-purple-400 hover:text-purple-300"
+            >
+              {LAUNCHPAD_UI_TEXT.viewAll}
+            </Link>
+          </>
         )}
       </div>
     </div>

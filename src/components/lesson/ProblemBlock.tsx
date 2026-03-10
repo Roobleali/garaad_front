@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 
 import CalculatorProblemBlock from "./CalculatorProblemBlock";
 import MatchingBlock from "./MatchingBlock";
+import { CodeChallengeBlock } from "./CodeChallengeBlock";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -92,12 +93,18 @@ const ProblemBlock: React.FC<{
         options: Array.isArray(actualData.options)
           ? actualData.options.map((opt: any) => typeof opt === 'string' ? opt : (opt.text || opt.content || ""))
           : [],
-        correct_answer: Array.isArray(actualData.correct_answer)
-          ? actualData.correct_answer.map((ans: any, index: number) => ({
-            id: `answer-${ans.id || index}`,
-            text: ans.text || (typeof ans === 'string' ? ans : ""),
-          }))
-          : [],
+        correct_answer: (() => {
+          const ca = actualData.correct_answer;
+          if (actualData.question_type === "code" && ca === "passed") {
+            return [{ id: "answer-0", text: "passed" }];
+          }
+          return Array.isArray(ca)
+            ? ca.map((ans: any, index: number) => ({
+                id: `answer-${ans.id || index}`,
+                text: ans.text || (typeof ans === "string" ? ans : ""),
+              }))
+            : [];
+        })(),
         img: actualData.img,
         alt: actualData.alt,
         explanation: actualData.explanation || "No explanation available",
@@ -340,6 +347,43 @@ const ProblemBlock: React.FC<{
             )}
           </div>
         </div>
+      );
+    }
+
+    if (content.question_type === "code") {
+      const problemContent = (content.content || {}) as Record<string, unknown>;
+      const starterCode =
+        (problemContent.starter_code as string) ||
+        "function solution() {\n  // Halkan code-kaaga ku qor\n  \n}";
+      const functionName = (problemContent.function_name as string) || "solution";
+      const language = (problemContent.language as string) || "javascript";
+      const rawTestCases = Array.isArray(problemContent.test_cases) ? problemContent.test_cases : [];
+      const testCases = rawTestCases.map((tc: unknown) => {
+        const t = tc as Record<string, unknown>;
+        return {
+          args: Array.isArray(t.args) ? t.args : [],
+          expected: t.expected,
+          label: t.label as string | undefined,
+          hint: t.hint as string | undefined,
+        };
+      });
+      return (
+        <CodeChallengeBlock
+          questionText={content.question ?? ""}
+          explanation={content.explanation ?? ""}
+          starterCode={starterCode}
+          functionName={functionName}
+          language={language}
+          testCases={testCases}
+          onCorrect={() => {
+            onOptionSelect("passed");
+            onCheckAnswer();
+          }}
+          onIncorrect={() => {
+            onOptionSelect("__incorrect__");
+            onCheckAnswer();
+          }}
+        />
       );
     }
 
