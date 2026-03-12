@@ -196,36 +196,48 @@ const ProblemBlock: React.FC<{
       }
     };
 
+    // For multiple_choice: which options are correct (by text match)
+    const correctAnswerTexts = useMemo(() => {
+      if (!content?.correct_answer || !Array.isArray(content.correct_answer)) return new Set<string>();
+      return new Set(
+        content.correct_answer.map((a: { text?: string }) => (a?.text ?? "").trim())
+      );
+    }, [content?.correct_answer]);
+
     const renderOption = (option: string, idx: number) => {
       const letters = ["A", "B", "C", "D", "E", "F"];
       const isSelected = isMultipleChoice ? selectedOptions.includes(option) : selectedOption === option;
       const isOptionCorrect = hasAnswered && isSelected && isCorrect;
       const isOptionIncorrect = hasAnswered && isSelected && !isCorrect;
+      const isCorrectUnselected = hasAnswered && (content?.question_type === "multiple_choice" || content?.question_type === "mcq") && correctAnswerTexts.has((option || "").trim()) && !isSelected;
       const isDisabled = disabledOptions.includes(option) || (hasAnswered && isCorrect);
 
       const buttonClass = cn(
-        "group w-full min-h-[44px] p-4 py-3 text-sm sm:text-base rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-3 sm:gap-4",
+        "group w-full min-h-[44px] py-3 px-3 sm:px-4 text-sm sm:text-base rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-3 sm:gap-4",
         // Default state
-        !isSelected && !hasAnswered && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5",
+        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5",
         // Selected state (not answered yet) - Premium Lavender/Purple
         isSelected && !hasAnswered && "border-primary/60 bg-primary/5 dark:bg-primary/10 shadow-[0_8px_20px_-10px_rgba(168,85,247,0.3)] ring-1 ring-primary/20 text-primary font-bold scale-[1.01] hover:-translate-y-0.5",
-        // Correct state - Vibrant Emerald
-        isOptionCorrect && "border-emerald-500/60 bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
-        // Incorrect state - Vibrant Rose (Enhanced Visibility)
-        isOptionIncorrect && "border-rose-500 bg-rose-100/90 dark:bg-rose-500/20 text-rose-950 dark:text-rose-100 font-bold shadow-[0_4px_12px_rgba(244,63,94,0.4)]",
-        // Disabled/Not selected state
-        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none"
+        // Correct selected: green bg, green border, checkmark
+        isOptionCorrect && "border-emerald-500 bg-emerald-500/20 dark:bg-emerald-500/25 text-emerald-800 dark:text-emerald-200 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
+        // Wrong selected: red bg, red border, X
+        isOptionIncorrect && "border-red-500 bg-red-500/20 dark:bg-red-500/25 text-red-800 dark:text-red-200 font-bold shadow-[0_4px_12px_rgba(239,68,68,0.4)]",
+        // Correct unselected (answer user missed): green border/outline only, no fill
+        isCorrectUnselected && "border-emerald-500 bg-transparent dark:bg-transparent text-emerald-700 dark:text-emerald-400 font-bold ring-2 ring-emerald-500/50 ring-inset",
+        // Disabled/Not selected wrong
+        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none"
       );
 
       const indicatorClass = cn(
         isMultipleChoice
           ? "w-6 h-6 rounded-md flex items-center justify-center border-2 transition-all duration-300 shrink-0"
           : "w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black border-2 transition-all duration-300 shrink-0",
-        !isSelected && !hasAnswered && "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 text-slate-400 group-hover:bg-primary/10 group-hover:border-primary/40 group-hover:text-primary",
+        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 text-slate-400 group-hover:bg-primary/10 group-hover:border-primary/40 group-hover:text-primary",
         isSelected && !hasAnswered && "bg-primary border-primary text-white shadow-lg shadow-primary/20",
         isOptionCorrect && "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20",
-        isOptionIncorrect && "bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/20",
-        isDisabled && !isSelected && "border-slate-100 dark:border-white/5 bg-transparent text-slate-300 dark:text-white/10"
+        isOptionIncorrect && "bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20",
+        isCorrectUnselected && "border-emerald-500 bg-transparent text-emerald-600 dark:text-emerald-400",
+        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-100 dark:border-white/5 bg-transparent text-slate-300 dark:text-white/10"
       );
 
       return (
@@ -238,6 +250,7 @@ const ProblemBlock: React.FC<{
           <div className={indicatorClass}>
             {isOptionCorrect ? <Check className="h-6 w-6 stroke-[3]" /> :
               isOptionIncorrect ? <X className="h-6 w-6 stroke-[3]" /> :
+                isCorrectUnselected ? <Check className="h-5 w-5 stroke-[3] text-emerald-600 dark:text-emerald-400" /> :
                 isMultipleChoice ? (
                   // Checkbox for multiple choice
                   isSelected ? <Check className="h-4 w-4 stroke-[3]" /> : null
@@ -431,8 +444,11 @@ const ProblemBlock: React.FC<{
               </div>
 
               {content.img && (
-                <div className="flex justify-center group px-4">
-                  <div className="relative w-full max-w-[550px] aspect-[16/10] rounded-2xl overflow-hidden border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-black/20">
+                <div className="flex justify-center group px-4 min-[0px]:px-4">
+                  <div className={cn(
+                    "relative w-full max-w-[550px] aspect-[16/10] rounded-2xl overflow-hidden border border-black/[0.06] dark:border-white/[0.06] bg-black/[0.01] dark:bg-black/20",
+                    isVideoFile(content.img) && "mx-4 sm:mx-0"
+                  )}>
                     {imgLoading && (
                       <div className="absolute inset-0 w-full h-full bg-muted animate-pulse z-10" />
                     )}
@@ -563,7 +579,7 @@ const ProblemBlock: React.FC<{
               ) : (
                 <div
                   className={cn(
-                    "grid gap-2 sm:gap-3 w-full",
+                    "grid gap-2 sm:gap-3 w-full min-[0px]:gap-2",
                     content.question_type === "diagram" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
                   )}
                 >

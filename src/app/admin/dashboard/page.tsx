@@ -1,11 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { analyticsService, UserAnalytics, RevenueAnalytics, CourseAnalytics, RecentActivity } from "@/lib/admin/analytics";
+import type { UserListItem } from "@/lib/admin/analytics";
 import KPICard from "@/components/admin/dashboard/KPICard";
 import TrendChart from "@/components/admin/dashboard/TrendChart";
 import Link from "next/link";
-import { Users, DollarSign, TrendingUp, ShoppingCart, Award, AlertCircle, Loader2, ArrowRight, CheckCircle } from "lucide-react";
+import { Users, DollarSign, TrendingUp, ShoppingCart, Award, AlertCircle, Loader2, ArrowRight, CheckCircle, Target, RotateCcw } from "lucide-react";
+import type { OnboardingStats } from "@/lib/admin/analytics";
+
+// Display labels for filters (must match backend admin_dashboard GOAL_LABELS / TRACK_LABELS / LEVEL_LABELS)
+const GOAL_LABELS = [
+    "Hel Shaqo Tech ah",
+    "Dhis ganacsi",
+    "Bilaaw Freelancing",
+    "Kor u Qaad Xirfadahaaga",
+    "Faham Tech",
+    "Horumarinta xirfadaha",
+];
+const TRACK_LABELS = [
+    "Full-Stack MERN",
+    "Next.js & Frontend",
+    "AI & Python",
+    "SaaS Business",
+    "Backend Engineering",
+    "Xisaab",
+];
+const LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced", "Bilowga"];
+const ALL = "All";
 
 export default function DashboardPage() {
     const [userStats, setUserStats] = useState<UserAnalytics | null>(null);
@@ -14,6 +36,26 @@ export default function DashboardPage() {
     const [activityStats, setActivityStats] = useState<RecentActivity | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [filterGoal, setFilterGoal] = useState<string>(ALL);
+    const [filterTrack, setFilterTrack] = useState<string>(ALL);
+    const [filterLevel, setFilterLevel] = useState<string>(ALL);
+
+    const filteredUserList = useMemo((): UserListItem[] => {
+        const list = userStats?.userList ?? [];
+        return list.filter((row) => {
+            if (filterGoal !== ALL && (row.goal || "—") !== filterGoal) return false;
+            if (filterTrack !== ALL && (row.track || "—") !== filterTrack) return false;
+            if (filterLevel !== ALL && (row.level || "—") !== filterLevel) return false;
+            return true;
+        });
+    }, [userStats?.userList, filterGoal, filterTrack, filterLevel]);
+
+    const resetFilters = () => {
+        setFilterGoal(ALL);
+        setFilterTrack(ALL);
+        setFilterLevel(ALL);
+    };
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -329,6 +371,152 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Onboarding Insights */}
+            {userStats.onboardingStats && (
+                <OnboardingSection stats={userStats.onboardingStats} />
+            )}
+
+            {/* User list with onboarding columns */}
+            {userStats.userList && userStats.userList.length > 0 && (
+                <div className="bg-white rounded-3xl p-8 border border-gray-50 shadow-sm overflow-hidden">
+                    <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight flex items-center gap-3">
+                        <Users className="w-5 h-5 text-blue-600" />
+                        User list — Goal, Track, Level, Time/day
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                        <select
+                            value={filterGoal}
+                            onChange={(e) => setFilterGoal(e.target.value)}
+                            className="text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none min-w-0 max-w-[180px]"
+                        >
+                            <option value={ALL}>{ALL}</option>
+                            {GOAL_LABELS.map((label) => (
+                                <option key={label} value={label}>{label}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={filterTrack}
+                            onChange={(e) => setFilterTrack(e.target.value)}
+                            className="text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none min-w-0 max-w-[180px]"
+                        >
+                            <option value={ALL}>{ALL}</option>
+                            {TRACK_LABELS.map((label) => (
+                                <option key={label} value={label}>{label}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={filterLevel}
+                            onChange={(e) => setFilterLevel(e.target.value)}
+                            className="text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none min-w-0 max-w-[140px]"
+                        >
+                            <option value={ALL}>{ALL}</option>
+                            {LEVEL_OPTIONS.map((label) => (
+                                <option key={label} value={label}>{label}</option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={resetFilters}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-bold text-violet-600 hover:text-violet-700 px-2.5 py-1.5 rounded-lg hover:bg-violet-50 border border-violet-200/60 transition-colors"
+                        >
+                            <RotateCcw className="w-3 h-3" />
+                            Reset
+                        </button>
+                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest ml-auto">
+                            Showing {filteredUserList.length} of {userStats.userList.length} users
+                        </span>
+                    </div>
+                    <div className="overflow-x-auto -mx-2">
+                        <table className="w-full text-left border-collapse min-w-[640px]">
+                            <thead>
+                                <tr className="border-b border-gray-100">
+                                    <th className="pb-3 pr-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Email / Username</th>
+                                    <th className="pb-3 pr-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Goal</th>
+                                    <th className="pb-3 pr-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Track</th>
+                                    <th className="pb-3 pr-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Level</th>
+                                    <th className="pb-3 pr-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Time/day</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredUserList.slice(0, 50).map((row) => (
+                                    <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                                        <td className="py-3 pr-4">
+                                            <div className="text-xs font-bold text-gray-900 truncate max-w-[200px]" title={row.email}>{row.email}</div>
+                                            {row.username && row.username !== "—" && (
+                                                <div className="text-[9px] text-gray-400 truncate max-w-[200px]">{row.username}</div>
+                                            )}
+                                        </td>
+                                        <td className="py-3 pr-4 text-xs text-gray-700">{row.goal ?? "—"}</td>
+                                        <td className="py-3 pr-4 text-xs text-gray-700">{row.track ?? "—"}</td>
+                                        <td className="py-3 pr-4 text-xs text-gray-700">{row.level ?? "—"}</td>
+                                        <td className="py-3 pr-4 text-xs text-gray-700">{row.time_per_day ?? "—"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {filteredUserList.length > 50 && (
+                        <p className="text-[9px] text-gray-400 mt-3 font-bold uppercase tracking-widest">Showing first 50 of {filteredUserList.length} filtered users</p>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function OnboardingSection({ stats }: { stats: OnboardingStats }) {
+    const total = stats.total_with_onboarding ?? (Object.values(stats.goals).reduce((a, b) => a + b, 0) || 1);
+    const completionRate = stats.completion_rate ?? 0;
+
+    const barEntries = (data: Record<string, number>, title: string) => {
+        const entries = Object.entries(data).filter(([, v]) => v > 0);
+        const maxCount = Math.max(...entries.map(([, v]) => v), 1);
+        const topCount = entries.length ? Math.max(...entries.map(([, v]) => v)) : 0;
+        return (
+            <div className="space-y-3">
+                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{title}</h3>
+                <div className="space-y-2">
+                    {entries.map(([label, count]) => {
+                        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                        const widthPct = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                        const isTop = count === topCount && count > 0;
+                        return (
+                            <div key={label} className="flex items-center gap-3">
+                                <div className="w-32 flex-shrink-0 text-xs font-medium text-gray-700 truncate" title={label}>{label}</div>
+                                <div className="flex-1 min-w-0 h-6 bg-gray-100 rounded-lg overflow-hidden flex items-center">
+                                    <div
+                                        className={`h-full rounded-lg transition-all ${isTop ? "bg-violet-600 ring-2 ring-violet-400" : "bg-violet-500/80"}`}
+                                        style={{ width: `${widthPct}%`, minWidth: count > 0 ? "4px" : "0" }}
+                                    />
+                                </div>
+                                <div className="flex-shrink-0 flex items-center gap-1.5 w-20 justify-end">
+                                    <span className="text-xs font-black text-gray-900">{count}</span>
+                                    <span className="text-[9px] text-gray-400">({pct}%)</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="bg-white rounded-3xl p-8 border border-gray-50 shadow-sm">
+            <h2 className="text-lg font-black text-gray-900 mb-2 tracking-tight flex items-center gap-3">
+                <Target className="w-5 h-5 text-violet-600" />
+                Onboarding Insights — {total} users
+            </h2>
+            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-6">
+                Completion rate: {completionRate}%
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {barEntries(stats.goals, "Goals")}
+                {barEntries(stats.tracks, "Tracks")}
+                {barEntries(stats.levels, "Levels")}
+                {barEntries(stats.time_per_day, "Time per day")}
             </div>
         </div>
     );

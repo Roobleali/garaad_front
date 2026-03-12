@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ConciergeBell, Zap } from "lucide-react";
-import AuthService from "@/services/auth";
+import { Zap } from "lucide-react";
 
 interface DailyActivity {
   date: string;
@@ -49,12 +47,6 @@ export default function StreakDisplay({
   error,
 }: StreakDisplayProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    const authService = AuthService.getInstance();
-    if (!authService.isAuthenticated()) router.push("/");
-  }, [router]);
 
   const handleOpenChange = (newOpen: boolean) => setOpen(newOpen);
 

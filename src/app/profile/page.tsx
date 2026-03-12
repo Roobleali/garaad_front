@@ -21,10 +21,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
+  Loader2 as Loader2Icon,
   UserIcon,
   Settings,
   Trophy,
   BookOpen,
+  Pencil,
   Mail,
   CheckCircle2,
   Users,
@@ -45,6 +47,16 @@ import { API_BASE_URL } from "@/lib/constants";
 import { getReferralDashboard, type ReferralDashboard } from "@/services/referral";
 
 import { DashboardProfile } from "@/services/auth";
+import type { OnboardingData } from "@/services/auth";
+import {
+  goals,
+  topics,
+  topicsByGoal,
+  topicLevelsByTopic,
+  learningGoals,
+  stepTitles,
+} from "@/config/onboarding-data";
+import { cn } from "@/lib/utils";
 
 interface ExtendedUser extends User {
   first_name: string;
@@ -66,6 +78,14 @@ export default function ProfilePage() {
   const { setUser } = useAuthStore();
   const [dashboardProfile, setDashboardProfile] = useState<DashboardProfile | null>(null);
   const [referralData, setReferralData] = useState<ReferralDashboard | null>(null);
+  const [onboarding, setOnboarding] = useState<(OnboardingData & { has_completed_onboarding?: boolean }) | null>(null);
+  const [showLearningPathModal, setShowLearningPathModal] = useState(false);
+  const [learningPathStep, setLearningPathStep] = useState(0);
+  const [learningPathSelections, setLearningPathSelections] = useState<Record<number, number | string>>({});
+  const [learningPathTopic, setLearningPathTopic] = useState<string>("");
+  const [learningPathTopicLevels, setLearningPathTopicLevels] = useState<Record<string, string>>({});
+  const [isSavingLearningPath, setIsSavingLearningPath] = useState(false);
+  const [learningPathError, setLearningPathError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -88,21 +108,23 @@ export default function ProfilePage() {
     }
   };
 
-  // Load user data
+  // Load user data and onboarding
   useEffect(() => {
     const fetchProfileData = async () => {
       setIsLoading(true);
       const authService = AuthService.getInstance();
       try {
-        const [basic, dashboard, referral] = await Promise.all([
+        const [basic, dashboard, referral, onboardingRes] = await Promise.all([
           authService.getBasicProfile(),
           authService.getDashboardProfile(),
-          getReferralDashboard()
+          getReferralDashboard(),
+          authService.getOnboarding().catch(() => null),
         ]);
 
         setUserState(basic as ExtendedUser);
         setDashboardProfile(dashboard);
         setReferralData(referral);
+        setOnboarding(onboardingRes ?? null);
 
         setEditForm({
           first_name: basic.first_name,
@@ -196,6 +218,78 @@ export default function ProfilePage() {
   };
 
   const [isCopied, setIsCopied] = useState(false);
+
+  const steps = [goals, topics, null, learningGoals];
+  const learningPathOptions = (() => {
+    if (learningPathStep === 0) return goals;
+    if (learningPathStep === 1) {
+      const goalId = learningPathSelections[0] as string | undefined;
+      const allowed = goalId ? (topicsByGoal[goalId] || []) : [];
+      return topics.filter((t) => allowed.includes(t.id));
+    }
+    if (learningPathStep === 2 && learningPathTopic) {
+      const arr = (topicLevelsByTopic as Record<string, Array<{ level: string }>>)[learningPathTopic];
+      return arr ?? [];
+    }
+    if (learningPathStep === 3) return learningGoals;
+    return [];
+  })();
+
+  const openLearningPathEdit = () => {
+    const o = onboarding;
+    const goalId = (o?.goal && goals.some((g) => g.id === o.goal)) ? o.goal : goals[0]?.id ?? "";
+    const topicId = (o?.topic && topics.some((t) => t.id === o.topic)) ? o.topic : (topicsByGoal[goalId]?.[0] ?? "");
+    const level = o?.math_level ?? "beginner";
+    const minMap: Record<number, string> = { 15: "15_min", 30: "30_min", 60: "60_min", 90: "90_min" };
+    const timeId = o?.minutes_per_day != null ? (minMap[o.minutes_per_day] ?? "30_min") : "30_min";
+    setLearningPathSelections({ 0: goalId, 1: topicId, 2: level, 3: timeId });
+    setLearningPathTopic(topicId);
+    setLearningPathTopicLevels((prev) => ({ ...prev, [topicId]: level }));
+    setLearningPathStep(0);
+    setLearningPathError(null);
+    setShowLearningPathModal(true);
+  };
+
+  const handleLearningPathSelect = (value: number | string) => {
+    if (learningPathStep === 1) {
+      setLearningPathTopic(value as string);
+      setLearningPathSelections((prev) => ({ ...prev, [learningPathStep]: value }));
+    } else if (learningPathStep === 2) {
+      setLearningPathTopicLevels((prev) => ({ ...prev, [learningPathTopic]: value as string }));
+      setLearningPathSelections((prev) => ({ ...prev, [learningPathStep]: value }));
+    } else {
+      setLearningPathSelections((prev) => ({ ...prev, [learningPathStep]: value }));
+    }
+  };
+
+  const canContinueLearningPath = () => {
+    if (learningPathStep === 2) return !!learningPathTopicLevels[learningPathTopic];
+    return learningPathSelections[learningPathStep] != null;
+  };
+
+  const saveLearningPath = async () => {
+    const goal = String(learningPathSelections[0] ?? "").trim();
+    const topic = String(learningPathSelections[1] ?? "").trim();
+    const math_level = String(learningPathSelections[2] ?? "beginner").trim();
+    const timeId = String(learningPathSelections[3] ?? "30_min");
+    const minutes_per_day = parseInt(timeId.replace(/_min$/, ""), 10) || 30;
+    setIsSavingLearningPath(true);
+    setLearningPathError(null);
+    try {
+      const updated = await AuthService.getInstance().updateOnboarding({
+        goal,
+        topic,
+        math_level,
+        minutes_per_day,
+      });
+      setOnboarding(updated);
+      setShowLearningPathModal(false);
+    } catch (err: unknown) {
+      setLearningPathError(err instanceof Error ? err.message : "Ku guuldaraystay in la cusboonaysiiyo");
+    } finally {
+      setIsSavingLearningPath(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -301,6 +395,36 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 )}
+
+                {/* Update your learning path */}
+                <div className="mx-6 mb-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">Waxbarashadaaga</span>
+                  </div>
+                  {onboarding?.goal || onboarding?.topic ? (
+                    <>
+                      <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 mb-3">
+                        <li><span className="font-medium text-gray-700 dark:text-gray-200">Hadaf:</span> {goals.find((g) => g.id === onboarding?.goal)?.text ?? onboarding?.goal ?? "—"}</li>
+                        <li><span className="font-medium text-gray-700 dark:text-gray-200">Track:</span> {topics.find((t) => t.id === onboarding?.topic)?.text ?? onboarding?.topic ?? "—"}</li>
+                        <li><span className="font-medium text-gray-700 dark:text-gray-200">Heer:</span> {onboarding?.math_level ?? "—"}</li>
+                        <li><span className="font-medium text-gray-700 dark:text-gray-200">Waqti maalin:</span> {onboarding?.minutes_per_day != null ? `${onboarding.minutes_per_day} daqiiqo` : "—"}</li>
+                      </ul>
+                      <Button variant="outline" size="sm" className="w-full rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20" onClick={openLearningPathEdit}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Beddel
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Ma aadan buuxin waxbarashada. Ku beddel hadaf, track iyo waqtiga.</p>
+                      <Button variant="outline" size="sm" className="w-full rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20" onClick={openLearningPathEdit}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Bilow waxbarashada
+                      </Button>
+                    </>
+                  )}
+                </div>
 
                 {/* Actions */}
                 <div className="p-6 border-t border-gray-100 dark:border-gray-700 space-y-3">
@@ -485,6 +609,121 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Learning path edit modal (welcome flow steps 0–3) */}
+        <Dialog open={showLearningPathModal} onOpenChange={setShowLearningPathModal}>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 shadow-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-900 dark:text-white">
+                {learningPathStep <= 3 ? stepTitles[learningPathStep] : "Waxbarashadaaga"}
+              </DialogTitle>
+            </DialogHeader>
+            {learningPathError && (
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">{learningPathError}</p>
+            )}
+            <div className="py-4">
+              {learningPathStep === 0 && (
+                <div className="grid gap-3">
+                  {(learningPathOptions as typeof goals).map((option: { id: string; text: string; icon?: React.ReactNode }) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleLearningPathSelect(option.id)}
+                      className={cn(
+                        "flex items-center p-4 rounded-xl border-2 text-left transition-all w-full",
+                        learningPathSelections[0] === option.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center shrink-0">{option.icon}</div>
+                      <span className="ml-4 font-medium text-foreground">{option.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {learningPathStep === 1 && (
+                <div className="grid gap-3">
+                  {(learningPathOptions as typeof topics).map((option: { id: string; text: string; icon?: React.ReactNode }) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleLearningPathSelect(option.id)}
+                      className={cn(
+                        "flex items-center p-4 rounded-xl border-2 text-left transition-all w-full",
+                        learningPathSelections[1] === option.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center shrink-0">{option.icon}</div>
+                      <span className="ml-4 font-medium text-foreground">{option.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {learningPathStep === 2 && learningPathTopic && (
+                <div className="grid gap-3">
+                  {((topicLevelsByTopic as Record<string, Array<{ level: string; title: string; description: string; icon?: React.ReactNode }>>)[learningPathTopic] ?? []).map((level) => (
+                    <button
+                      key={level.level}
+                      type="button"
+                      onClick={() => handleLearningPathSelect(level.level)}
+                      className={cn(
+                        "p-4 rounded-xl border-2 text-left transition-all w-full",
+                        learningPathTopicLevels[learningPathTopic] === level.level ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <div className="font-bold text-foreground">{level.title}</div>
+                      <div className="text-sm text-muted-foreground mt-1">{level.description}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {learningPathStep === 3 && (
+                <div className="grid gap-3">
+                  {(learningPathOptions as typeof learningGoals).map((option: { id: string; text: string; icon?: React.ReactNode }) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleLearningPathSelect(option.id)}
+                      className={cn(
+                        "flex items-center p-4 rounded-xl border-2 text-left transition-all w-full",
+                        learningPathSelections[3] === option.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-background shadow-sm flex items-center justify-center shrink-0">{option.icon}</div>
+                      <span className="ml-4 font-medium text-foreground">{option.text}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <DialogFooter className="gap-2">
+              {learningPathStep > 0 ? (
+                <Button type="button" variant="outline" onClick={() => setLearningPathStep((s) => s - 1)} className="rounded-full">
+                  Dib u noqo
+                </Button>
+              ) : null}
+              {learningPathStep < 3 ? (
+                <Button
+                  type="button"
+                  onClick={() => canContinueLearningPath() && setLearningPathStep((s) => s + 1)}
+                  disabled={!canContinueLearningPath()}
+                  className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Sii wad
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={saveLearningPath}
+                  disabled={isSavingLearningPath || !canContinueLearningPath()}
+                  className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  {isSavingLearningPath ? <Loader2Icon className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Kaydi
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Modal */}
         {showEditModal && (

@@ -1,20 +1,63 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { ProgressCard } from "@/components/progress/ProgressCard";
 import { PracticeSet } from "@/components/practice/PracticeSet";
 import { GamificationPanel } from "@/components/gamification/GamificationPanel";
+import { RecommendedCoursesSection } from "@/components/courses/RecommendedCoursesSection";
 import { progressService } from "@/services/progress";
 import { practiceService } from "@/services/practice";
-import type {
-  UserProgress,
-} from "@/services/progress";
+import { useCategories, useOnboarding, useEnrollments } from "@/hooks/useApi";
+import { useAuthStore } from "@/store/useAuthStore";
+import type { UserProgress } from "@/services/progress";
 import type { PracticeSet as PracticeSetType } from "@/services/practice";
+import type { Course } from "@/types/lms";
 
 export default function DashboardPage() {
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [practiceSets, setPracticeSets] = useState<PracticeSetType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { categories, isLoading: categoriesLoading } = useCategories();
+  const { goal_label, hasOnboardingData } = useOnboarding();
+  const { enrollments } = useEnrollments();
+  const { isAuthenticated } = useAuthStore();
+
+  const getCourseProgress = (courseId: number) => {
+    if (!enrollments || !Array.isArray(enrollments)) return undefined;
+    const e = enrollments.find((x: { course: number }) => x.course === courseId);
+    return (e as { progress_percent?: number } | undefined)?.progress_percent;
+  };
+
+  const safeCategories = useMemo(() => Array.isArray(categories) ? categories : [], [categories]);
+
+  const { spotlightCourses, spotlightTitle } = useMemo(() => {
+    const recommended: { course: Course; categoryId: string }[] = [];
+    for (const cat of safeCategories) {
+      if (!cat?.courses?.length) continue;
+      for (const c of cat.courses) {
+        if (c?.is_published && c.recommended) recommended.push({ course: c, categoryId: String(cat.id) });
+      }
+    }
+    if (recommended.length > 0) {
+      return {
+        spotlightCourses: recommended,
+        spotlightTitle: hasOnboardingData && goal_label ? `Based on your goal: ${goal_label}` : "Recommended for you",
+      };
+    }
+    const popular: { course: Course; categoryId: string }[] = [];
+    for (const cat of safeCategories) {
+      if (!cat?.courses?.length) continue;
+      for (const c of cat.courses) {
+        if (c?.is_published) popular.push({ course: c, categoryId: String(cat.id) });
+      }
+    }
+    return {
+      spotlightCourses: popular.slice(0, 6),
+      spotlightTitle: "Popular courses",
+    };
+  }, [safeCategories, hasOnboardingData, goal_label]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +116,12 @@ export default function DashboardPage() {
         <aside className="lg:sticky lg:top-24 h-fit">
           <GamificationPanel />
         </aside>
+      </div>
+
+      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+        <Link href="/courses" className="text-primary font-bold hover:underline inline-flex items-center gap-2">
+          View full course list →
+        </Link>
       </div>
     </div>
   );

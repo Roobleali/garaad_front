@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,20 @@ import AuthService from "@/services/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2 } from "lucide-react";
 
+// Allowed redirect targets (same-origin paths only; no open redirect)
+function isAllowedRedirect(redirect: string | null): boolean {
+    if (!redirect || typeof redirect !== "string") return false;
+    const path = redirect.startsWith("/") ? redirect : `/${redirect}`;
+    return path.startsWith("/") && !path.startsWith("//") && !path.includes("\\");
+}
+
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectTo = useMemo(() => {
+        const r = searchParams.get("redirect");
+        return isAllowedRedirect(r) ? r : null;
+    }, [searchParams]);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -35,7 +47,10 @@ export default function LoginPage() {
                 });
             }
 
-            if (result?.user?.is_premium) {
+            // Prefer redirect param (e.g. lesson URL) over default destinations
+            if (redirectTo) {
+                router.push(redirectTo);
+            } else if (result?.user?.is_premium) {
                 router.push("/courses");
             } else {
                 router.push("/subscribe");

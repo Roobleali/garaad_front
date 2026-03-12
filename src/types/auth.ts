@@ -39,6 +39,8 @@ export interface User {
   referral_count?: number;
   referred_by?: string | null;
   referred_by_username?: string | null;
+  /** When false, user must complete /welcome before accessing /dashboard */
+  has_completed_onboarding?: boolean;
 }
 
 export interface Profile {

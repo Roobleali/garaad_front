@@ -232,7 +232,50 @@ export default function Page() {
     setAuthStoreError(null);
 
     try {
-      // Validate all data
+      const authService = AuthService.getInstance();
+      const currentUser = authService.getCurrentUser();
+      const isCompletingOnboarding =
+        authService.isAuthenticated() && currentUser && currentUser.has_completed_onboarding === false;
+
+      // Check if all onboarding selections are made (goal, track, level, time)
+      if (Object.keys(selections).length < 4) {
+        setActualError("Fadlan buuxi dhammaan su'aalaha");
+        return;
+      }
+
+      // Already logged in but onboarding incomplete → call complete_onboarding then go to dashboard
+      if (isCompletingOnboarding) {
+        try {
+          const mins = Number.parseInt(String(selections[3]), 10);
+          const timeVal = String(selections[3]).trim();
+          await authService.completeOnboarding({
+            goal: String(selections[0]).trim(),
+            learning_approach: "Waxbarasho shaqsiyeed",
+            topic: String(selections[1]).trim(),
+            math_level: String(selections[2]).trim(),
+            minutes_per_day: Number.isNaN(mins) ? 15 : mins,
+            preferred_study_time: timeVal || "flexible",
+          });
+          await authService.fetchAndUpdateUserData();
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("welcome_user_data");
+            localStorage.removeItem("welcome_selections");
+            localStorage.removeItem("welcome_current_step");
+            localStorage.removeItem("welcome_topic_levels");
+            localStorage.removeItem("welcome_selected_topic");
+          }
+          const updated = authService.getCurrentUser();
+          if (updated) setAuthStoreUser({ ...updated, has_completed_onboarding: true });
+          router.push("/dashboard");
+          return;
+        } catch (err) {
+          console.error("Complete onboarding failed:", err);
+          setActualError(err instanceof Error ? err.message : "Fadlan mar kale isku day.");
+          return;
+        }
+      }
+
+      // Signup flow: validate personal data
       if (
         !userData.name.trim() ||
         !userData.email.trim() ||
@@ -243,16 +286,9 @@ export default function Page() {
         return;
       }
 
-      // Enhanced email validation
       const emailValidation = validateEmail(userData.email);
       if (!emailValidation.isValid) {
         setActualError(emailValidation.error || "Fadlan geli email sax ah");
-        return;
-      }
-
-      // Check if all selections are made
-      if (Object.keys(selections).length < 4) {
-        setActualError("Fadlan buuxi dhammaan su'aalaha");
         return;
       }
 

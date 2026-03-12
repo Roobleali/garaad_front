@@ -14,17 +14,22 @@ export interface Course {
   slug: string;
   description: string;
   thumbnail: string | null;
-  level: "beginner" | "intermediate" | "advanced";
+  level?: "beginner" | "intermediate" | "advanced";
   progress?: number;
   is_new: boolean;
-  category_id: string;
+  category_id?: string;
+  category?: number | string;
   modules?: Module[];
   author_id: string;
   is_published: boolean;
-  module_count: number;
+  module_count?: number;
+  lesson_count?: number;
+  estimatedHours?: number;
   sequence?: number;
   created_at: string;
   updated_at: string;
+  /** Set by API when user has onboarding; matches topic or goal */
+  recommended?: boolean;
 }
 
 export interface Module {

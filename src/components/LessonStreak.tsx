@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo, useCallback } from "react";
 import {
   Popover,
   PopoverContent,
@@ -14,7 +13,6 @@ import {
   BatteryLow,
   LucideBattery,
 } from "lucide-react";
-import AuthService from "@/services/auth";
 
 interface DailyActivity {
   date: string;
@@ -79,12 +77,6 @@ export default function LessonStreak({
   error,
 }: StreakDisplayProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    const authService = AuthService.getInstance();
-    if (!authService.isAuthenticated()) router.push("/");
-  }, [router]);
 
   // Memoized motivational messages to prevent recreation on every render
   const motivationalMessages = useMemo(
@@ -130,8 +122,6 @@ export default function LessonStreak({
   const todayStatus = useMemo(() => {
     return streakData?.dailyActivity?.[0]?.status;
   }, [streakData?.dailyActivity]);
-
-  console.log(todayStatus);
 
   // Memoized streak display value
   const streakValue = useMemo(() => {

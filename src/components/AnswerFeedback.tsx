@@ -96,84 +96,86 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                 {!isReportingBug && (
                     <div
                         key="answer-feedback-banner"
-                        className="fixed inset-x-0 bottom-0 z-50 flex justify-center"
+                        className="fixed inset-x-0 bottom-0 z-50 flex justify-center pointer-events-none"
                         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
                     >
                         <div
                             className={cn(
-                                "w-full min-h-[80px] p-4 sm:p-6 md:p-8 rounded-t-2xl sm:rounded-t-[2rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t transition-all duration-300",
+                                "pointer-events-auto w-full max-h-[min(200px,40vh)] overflow-y-auto overflow-x-hidden min-h-0 p-4 sm:p-5 rounded-t-2xl sm:rounded-t-[2rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t animate-in slide-in-from-bottom-6 duration-300 ease-out",
                                 isCorrect
-                                    ? "bg-emerald-900/90 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-emerald-500 backdrop-blur-xl"
-                                    : "bg-red-900/90 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-red-500 sm:border-slate-200 sm:dark:border-white/10 backdrop-blur-xl"
+                                    ? "bg-emerald-900/95 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-emerald-500 backdrop-blur-xl"
+                                    : "bg-red-950/95 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-red-500 sm:border-slate-200 sm:dark:border-white/10 backdrop-blur-xl"
                             )}
                         >
-                            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 sm:gap-6">
-                                {/* Left side: Icon + Text + XP */}
-                                <div className="flex items-center gap-4 text-left flex-1">
+                            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 sm:gap-4">
+                                {/* Icon + Text + XP */}
+                                <div className="flex items-center gap-3 text-left flex-1 min-w-0">
                                     <div
                                         className={cn(
-                                            "w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl shadow-sm transition-transform duration-500",
+                                            "w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl shadow-sm",
                                             isCorrect
                                                 ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                                                : "bg-slate-500 text-white shadow-slate-500/20"
+                                                : "bg-red-500 text-white shadow-red-500/20"
                                         )}
                                     >
                                         {isCorrect ? (
-                                            <Check className="h-7 w-7 stroke-[3.5]" />
+                                            <Check className="h-5 w-5 sm:h-7 sm:w-7 stroke-[3.5]" />
                                         ) : (
-                                            <X className="h-7 w-7 stroke-[3.5]" />
+                                            <X className="h-5 w-5 sm:h-7 sm:w-7 stroke-[3.5]" />
                                         )}
                                     </div>
-                                    <div className="space-y-1 flex-1">
-                                        <div className="flex items-center flex-wrap gap-2.5">
+                                    <div className="space-y-0.5 flex-1 min-w-0">
+                                        <div className="flex items-center flex-wrap gap-2">
                                             <h3 className={cn(
-                                                "text-xl font-black tracking-tight",
-                                                isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400"
+                                                "text-base sm:text-xl font-black tracking-tight truncate",
+                                                isCorrect ? "text-emerald-100 sm:text-emerald-600 dark:sm:text-emerald-400" : "text-red-100 sm:text-slate-600 dark:sm:text-slate-400"
                                             )}>
                                                 {title}
                                             </h3>
                                             {isCorrect && (
-                                                <div className="py-1 px-3 font-black text-[10px] rounded-full bg-emerald-500/10 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 animate-bounce">
+                                                <div className="py-0.5 px-2.5 font-black text-[10px] rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-100 sm:text-emerald-600 dark:sm:text-emerald-400 flex items-center gap-1 shrink-0">
                                                     <Award size={12} />
                                                     <span className="tracking-widest uppercase">+{xp}</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <p className="text-slate-500 dark:text-slate-400 font-bold text-sm leading-tight">
+                                        <p className="text-slate-300 sm:text-slate-500 dark:sm:text-slate-400 font-bold text-xs sm:text-sm leading-tight line-clamp-2">
                                             {message}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Right side: Action Buttons — full width on mobile, h-12 min touch target */}
-                                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                                    <Button
-                                        size="lg"
-                                        onClick={buttonAction}
-                                        className={cn(
-                                            "w-full min-h-[44px] h-12 px-6 sm:flex-1 md:flex-none rounded-xl gap-2 text-white font-black text-base sm:text-lg transition-all active:scale-[0.96] shadow-xl",
-                                            isCorrect
-                                                ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30"
-                                                : "bg-slate-600 hover:bg-slate-500 shadow-slate-500/30"
-                                        )}
-                                    >
-                                        {buttonText}
-                                        <ChevronRight className="h-5 w-5 stroke-[3]" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={handleWhyClick}
-                                        className={cn(
-                                            "min-h-[44px] h-12 rounded-xl font-black px-5 text-sm transition-colors w-full sm:w-auto",
-                                            isCorrect
-                                                ? "hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-emerald-100 sm:text-inherit"
-                                                : "hover:bg-slate-500/10 hover:text-slate-600 dark:hover:text-slate-400 text-slate-100 sm:text-inherit"
-                                        )}
-                                    >
-                                        <Info className="mr-2 h-4 w-4 stroke-[2.5]" />
-                                        Sharaxaad
-                                    </Button>
+                                {/* Actions: correct = full-width CTA; wrong = Sharaxaad + pill "Isku day markale" */}
+                                <div className="flex flex-row flex-wrap items-center justify-end gap-2 sm:gap-3 w-full md:w-auto shrink-0">
+                                    {isCorrect ? (
+                                        <Button
+                                            size="lg"
+                                            onClick={buttonAction}
+                                            className="w-full min-h-[44px] h-11 px-6 rounded-xl gap-2 text-white font-black text-base sm:text-lg transition-all active:scale-[0.96] shadow-xl bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30"
+                                        >
+                                            {buttonText}
+                                            <ChevronRight className="h-5 w-5 stroke-[3]" />
+                                        </Button>
+                                    ) : (
+                                        <>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handleWhyClick}
+                                                className="min-h-[44px] h-11 rounded-xl font-black px-4 text-sm transition-colors text-red-100 sm:text-slate-600 dark:sm:text-slate-400 hover:bg-red-500/20 sm:hover:bg-slate-500/10"
+                                            >
+                                                <Info className="mr-2 h-4 w-4 stroke-[2.5]" />
+                                                Sharaxaad
+                                            </Button>
+                                            <Button
+                                                size="lg"
+                                                onClick={buttonAction}
+                                                className="min-h-[44px] h-11 rounded-full px-6 font-black text-sm sm:text-base text-white transition-all active:scale-[0.96] shadow-xl bg-red-600 hover:bg-red-500 shadow-red-500/30 w-auto"
+                                            >
+                                                {buttonText}
+                                            </Button>
+                                        </>
+                                    )}
 
                                     <Suspense fallback={null}>
                                         <div className="hidden lg:block">
@@ -183,7 +185,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                 </div>
                             </div>
                         </div>
-                    </div >
+                    </div>
                 )}
             </>
         );

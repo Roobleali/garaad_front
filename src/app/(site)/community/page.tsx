@@ -128,10 +128,10 @@ export default function CommunityPage() {
         }
     }, [posts, pendingScrollPostId]);
 
-    // Redirect to home if not authenticated
+    // If auth state says not authenticated, send to login with return URL (middleware already protects /community)
     useEffect(() => {
         if (!isAuthenticated) {
-            router.push('/');
+            router.push('/login?redirect=' + encodeURIComponent('/community'));
         }
     }, [isAuthenticated, router]);
 

@@ -4,6 +4,7 @@ import { Category, Course, Lesson } from "@/types/lms";
 import { Module } from "@/types/learning";
 import { API_BASE_URL } from "@/lib/constants";
 import AuthService from "@/services/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // Add cache configuration
 function localStorageProvider() {
@@ -72,6 +73,30 @@ export function useCategories() {
 
   return {
     categories,
+    isLoading,
+    isError: error,
+    mutate,
+  };
+}
+
+export interface OnboardingStatus {
+  has_completed_onboarding: boolean;
+  goal?: string;
+  goal_label?: string;
+}
+
+export function useOnboarding() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { data, error, isLoading, mutate } = useSWR<OnboardingStatus>(
+    isAuthenticated ? `${API_BASE_URL}/api/auth/onboarding-status/` : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  return {
+    has_completed_onboarding: data?.has_completed_onboarding ?? false,
+    goal: data?.goal ?? "",
+    goal_label: data?.goal_label ?? "",
+    hasOnboardingData: Boolean(data?.goal || data?.goal_label),
     isLoading,
     isError: error,
     mutate,

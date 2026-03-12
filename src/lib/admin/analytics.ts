@@ -1,5 +1,28 @@
 import { adminApi as api } from "@/lib/admin-api";
 
+export interface OnboardingStats {
+    goals: Record<string, number>;
+    tracks: Record<string, number>;
+    levels: Record<string, number>;
+    time_per_day: Record<string, number>;
+    completion_rate: number;
+    total_with_onboarding?: number;
+    completed_count?: number;
+    /** Users with no UserOnboarding record (signed up before onboarding existed). */
+    no_onboarding_data?: number;
+}
+
+export interface UserListItem {
+    id: number;
+    email: string;
+    username: string;
+    goal: string;
+    track: string;
+    level: string;
+    time_per_day: string;
+    date_joined: string | null;
+}
+
 export interface UserAnalytics {
     total: number;
     change: number;
@@ -27,6 +50,8 @@ export interface UserAnalytics {
         newUsers: number[];
         activeUsers: number[];
     };
+    onboardingStats?: OnboardingStats | null;
+    userList?: UserListItem[];
 }
 
 export interface RevenueAnalytics {

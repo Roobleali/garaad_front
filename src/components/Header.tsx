@@ -121,7 +121,7 @@ export function Header() {
     authService.logout();
     if (typeof window !== "undefined") {
       localStorage.clear();
-      router.push("/");
+      router.push("/courses");
     }
   };
 

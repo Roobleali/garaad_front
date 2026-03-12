@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Define paths that are strictly protected (Blacklist)
+/*
+ * Middleware rules by page/route:
+ *
+ * PUBLIC (no auth):
+ *   /, /courses, /courses/[categoryId]/[courseSlug], /blog, /blog/[slug], /blog/tag/[tag],
+ *   /challenge, /launchpad, /launchpad/[id], /launchpad/project/[slug], /about, /about/abdishakuur-ali,
+ *   /terms, /privacy, /startups, /community-preview, /communitypreview,
+ *   /login, /welcome, /admin/login, /subscribe, /verify-email, /reset-password
+ *
+ * PROTECTED (auth required; unauthenticated → /login or /admin/login with redirect param):
+ *   /admin, /admin/* (except /admin/login),
+ *   /dashboard, /profile, /settings, /orders, /orders/[id], /referrals,
+ *   /launchpad/submit, /launchpad/submit-project, /launchpad/edit, /launchpad/edit/[id],
+ *   /community, /community/* (not community-preview),
+ *   /courses/.../lessons/[lessonId]
+ *
+ * Premium gating (lesson 2+, etc.) is done in-app and by backend, not here.
+ */
+
 const protectedRoots = [
   "/admin",
   "/dashboard",
@@ -10,13 +28,10 @@ const protectedRoots = [
   "/orders",
   "/referrals",
   "/launchpad/submit",
+  "/launchpad/submit-project",
   "/launchpad/edit",
 ];
 
-// Paths that require Explorer (premium) are gated in-app:
-// - Lesson 2+ per course → paywall in LessonDetailClient
-// - /courses listing is open to authenticated users (free can access lesson 1 + community)
-// Launchpad submit stays auth-only (Challenge tier enforced by backend).
 const premiumRoots: string[] = [];
 
 export async function middleware(request: NextRequest) {
@@ -46,8 +61,12 @@ export async function middleware(request: NextRequest) {
   // Specific check for /community (excluding -preview)
   const isProtectedCommunity = pathname === "/community" || (pathname.startsWith("/community/") && !pathname.startsWith("/community-preview"));
 
-  // Paths that should ALWAYS be public (Login pages, etc.)
-  const isAuthPage = pathname === "/admin/login" || pathname === "/welcome" || pathname === "/login";
+  // Paths that should ALWAYS be public (login, welcome, verify-email — do not block with onboarding check)
+  const isAuthPage =
+    pathname === "/admin/login" ||
+    pathname === "/welcome" ||
+    pathname === "/login" ||
+    pathname === "/verify-email";
 
   if (isAuthPage) {
     return NextResponse.next();
@@ -67,11 +86,28 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!userCookie?.value || !!tokenCookie?.value || !!refreshTokenCookie?.value;
 
   if (!isAuthenticated) {
-    console.log(`[Middleware] No valid session cookies found for ${pathname}. Redirecting to auth page.`);
     const redirectUrl = pathname.startsWith("/admin") ? "/admin/login" : "/login";
     const url = new URL(redirectUrl, request.url);
     url.searchParams.set("reason", "unauthenticated");
+    // Preserve intended destination so login can send user back (e.g. lesson URL)
+    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url, 308);
+  }
+
+  // --- 3b. Onboarding gate: /dashboard requires has_completed_onboarding === true ---
+  const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  if (isDashboard && userCookie?.value) {
+      try {
+        const decoded = decodeURIComponent(userCookie.value);
+        const user = JSON.parse(decoded) as { has_completed_onboarding?: boolean };
+        if (user.has_completed_onboarding === false) {
+          const welcomeUrl = new URL("/welcome", request.url);
+          welcomeUrl.searchParams.set("redirect", pathname);
+          return NextResponse.redirect(welcomeUrl, 308);
+        }
+      } catch {
+        // Cookie parse error: allow through; dashboard or API can re-check
+      }
   }
 
   // --- 4. Premium Access Check ---

@@ -210,13 +210,15 @@ export class AuthService {
   public setCurrentUser(user: User): void {
     this.user = user;
     if (typeof window !== "undefined") {
-      // Store minimal info including email (required for checkout and display)
+      // Store minimal info for middleware (e.g. onboarding gate) and display
       const minimalUser = {
         id: user.id,
         username: user.username,
         email: user.email,
         is_premium: user.is_premium,
-        is_superuser: user.is_superuser
+        is_superuser: user.is_superuser,
+        // So middleware can redirect to /welcome when false
+        has_completed_onboarding: user.has_completed_onboarding !== false,
       };
       this.setCookie("user", JSON.stringify(minimalUser));
     }
@@ -319,12 +321,26 @@ export class AuthService {
     return response;
   }
 
-  public async getOnboardingStatus(): Promise<{ has_completed_onboarding: boolean }> {
+  public async getOnboardingStatus(): Promise<{
+    has_completed_onboarding: boolean;
+    goal?: string;
+    goal_label?: string;
+  }> {
     return api.get("/api/auth/onboarding-status/");
   }
 
-  public async completeOnboarding(data: OnboardingData): Promise<{ message: string }> {
+  /** Fetch current user's onboarding data (for settings/profile). */
+  public async getOnboarding(): Promise<OnboardingData & { has_completed_onboarding?: boolean }> {
+    return api.get("/api/auth/onboarding/");
+  }
+
+  public async completeOnboarding(data: OnboardingData): Promise<OnboardingData> {
     return api.post("/api/auth/complete-onboarding/", data);
+  }
+
+  /** Update learning path (goal, track, level, time) from settings. Uses PATCH for partial update. */
+  public async updateOnboarding(data: Partial<OnboardingData>): Promise<OnboardingData & { has_completed_onboarding?: boolean }> {
+    return api.patch("/api/auth/complete-onboarding/", data);
   }
 
   /**
