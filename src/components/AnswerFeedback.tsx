@@ -98,20 +98,20 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                         key="answer-feedback-banner"
                         className="fixed inset-x-0 bottom-0 z-50 flex justify-center pointer-events-none pb-[env(safe-area-inset-bottom)]"
                     >
-                        <div
-                            className={cn(
-                                "pointer-events-auto w-full max-h-[min(220px,45vh)] overflow-y-auto overflow-x-hidden min-h-0 rounded-t-2xl border-t shadow-[0_-4px_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom-4 duration-300 ease-out",
-                                isCorrect
-                                    ? "bg-emerald-50 dark:bg-emerald-950/95 border-emerald-200 dark:border-emerald-800"
-                                    : "bg-red-50 dark:bg-red-950/95 border-red-200 dark:border-red-800"
-                            )}
-                        >
+                            <div
+                                className={cn(
+                                    "pointer-events-auto w-full max-h-[min(220px,45vh)] overflow-y-auto overflow-x-hidden min-h-0 rounded-t-2xl border-t shadow-[0_-4px_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom-4 duration-300 ease-out",
+                                    isCorrect
+                                        ? "bg-emerald-50 dark:bg-emerald-950/95 border-emerald-200 dark:border-emerald-800"
+                                        : "bg-amber-50 dark:bg-amber-950/95 border-amber-200 dark:border-amber-800"
+                                )}
+                            >
                             <div className="p-4 sm:p-5 flex flex-col gap-4">
                                 <div className="flex items-start gap-3 min-w-0">
                                     <div
                                         className={cn(
                                             "w-11 h-11 shrink-0 flex items-center justify-center rounded-xl",
-                                            isCorrect ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+                                            isCorrect ? "bg-emerald-500 text-white" : "bg-amber-400 text-white"
                                         )}
                                     >
                                         {isCorrect ? (
@@ -124,7 +124,7 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                         <div className="flex items-center flex-wrap gap-2 gap-y-1">
                                             <h3 className={cn(
                                                 "text-base font-bold tracking-tight truncate",
-                                                isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-red-800 dark:text-red-200"
+                                                isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-amber-800 dark:text-amber-200"
                                             )}>
                                                 {title}
                                             </h3>
@@ -160,14 +160,14 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                                             <Button
                                                 variant="outline"
                                                 onClick={handleWhyClick}
-                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 touch-manipulation"
+                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/30 touch-manipulation"
                                             >
                                                 <Info className="mr-2 h-4 w-4" />
                                                 Sharaxaad
                                             </Button>
                                             <Button
                                                 onClick={buttonAction}
-                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm bg-red-600 hover:bg-red-500 text-white transition-all active:scale-[0.98] touch-manipulation"
+                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm bg-amber-500 hover:bg-amber-400 text-slate-900 transition-all active:scale-[0.98] touch-manipulation"
                                             >
                                                 {buttonText}
                                             </Button>
