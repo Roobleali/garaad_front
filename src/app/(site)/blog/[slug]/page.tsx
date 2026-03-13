@@ -97,6 +97,9 @@ export default async function BlogPostPage({ params }: PostPageProps) {
         .filter(p => p.slug !== slug)
         .slice(0, 3);
 
+    const keywordsForSeo = post.tags?.length
+        ? [...post.tags.map((t: { name: string }) => t.name), "Garaad Blog", "STEM Soomaali"]
+        : ["Garaad Blog", "STEM Soomaali"];
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -112,6 +115,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
             "logo": { "@type": "ImageObject", "url": "https://garaad.org/logo.png" },
         },
         "description": post.meta_description || post.excerpt,
+        "keywords": keywordsForSeo.join(", "),
     };
 
     return (

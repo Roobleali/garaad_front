@@ -27,22 +27,20 @@ export const blogAdminApi = {
     },
 
     createPost: async (data: any) => {
-        const res = await axios.post(`${API_URL}/blog/posts/`, data, {
-            headers: {
-                ...getAuthHeader(),
-                "Content-Type": "multipart/form-data",
-            },
-        });
+        const headers: Record<string, string> = { ...getAuthHeader() };
+        if (!(data instanceof FormData)) {
+            headers["Content-Type"] = "application/json";
+        }
+        const res = await axios.post(`${API_URL}/blog/posts/`, data, { headers });
         return res.data;
     },
 
     updatePost: async (slug: string, data: any) => {
-        const res = await axios.patch(`${API_URL}/blog/posts/${slug}/`, data, {
-            headers: {
-                ...getAuthHeader(),
-                "Content-Type": "multipart/form-data",
-            },
-        });
+        const headers: Record<string, string> = { ...getAuthHeader() };
+        if (!(data instanceof FormData)) {
+            headers["Content-Type"] = "application/json";
+        }
+        const res = await axios.patch(`${API_URL}/blog/posts/${slug}/`, data, { headers });
         return res.data;
     },
 

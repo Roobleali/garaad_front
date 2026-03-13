@@ -82,9 +82,7 @@ export default function NewBlogPostPage() {
                 formData.append("cover_image", coverImage);
             }
 
-            if (tags.trim()) {
-                formData.append("tags", tags.trim());
-            }
+            formData.append("tags", tags.trim());
 
             const response = await blogAdminApi.createPost(formData);
             await blogAdminApi.revalidate(response.slug);
@@ -204,7 +202,7 @@ export default function NewBlogPostPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="tags" className="font-medium">Tags (Ku kala saar kooma ,)</Label>
+                            <Label htmlFor="tags" className="font-medium">Tags (Ku kala saar kooma ,) — loo isticmaalo SEO</Label>
                             <Input
                                 id="tags"
                                 placeholder="coding, stem, tech..."
