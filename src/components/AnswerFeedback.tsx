@@ -96,92 +96,83 @@ export const AnswerFeedback: React.FC<AnswerFeedbackProps> = memo(
                 {!isReportingBug && (
                     <div
                         key="answer-feedback-banner"
-                        className="fixed inset-x-0 bottom-0 z-50 flex justify-center pointer-events-none"
-                        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+                        className="fixed inset-x-0 bottom-0 z-50 flex justify-center pointer-events-none pb-[env(safe-area-inset-bottom)]"
                     >
                         <div
                             className={cn(
-                                "pointer-events-auto w-full max-h-[min(200px,40vh)] overflow-y-auto overflow-x-hidden min-h-0 p-4 sm:p-5 rounded-t-2xl sm:rounded-t-[2rem] shadow-[0_-8px_30px_rgba(0,0,0,0.2)] border-t animate-in slide-in-from-bottom-6 duration-300 ease-out",
+                                "pointer-events-auto w-full max-h-[min(220px,45vh)] overflow-y-auto overflow-x-hidden min-h-0 rounded-t-2xl border-t shadow-[0_-4px_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom-4 duration-300 ease-out",
                                 isCorrect
-                                    ? "bg-emerald-900/95 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-emerald-500 backdrop-blur-xl"
-                                    : "bg-red-950/95 sm:bg-white/95 sm:dark:bg-zinc-900/95 border-red-500 sm:border-slate-200 sm:dark:border-white/10 backdrop-blur-xl"
+                                    ? "bg-emerald-50 dark:bg-emerald-950/95 border-emerald-200 dark:border-emerald-800"
+                                    : "bg-red-50 dark:bg-red-950/95 border-red-200 dark:border-red-800"
                             )}
                         >
-                            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 sm:gap-4">
-                                {/* Icon + Text + XP */}
-                                <div className="flex items-center gap-3 text-left flex-1 min-w-0">
+                            <div className="p-4 sm:p-5 flex flex-col gap-4">
+                                <div className="flex items-start gap-3 min-w-0">
                                     <div
                                         className={cn(
-                                            "w-10 h-10 sm:w-12 sm:h-12 shrink-0 flex items-center justify-center rounded-xl sm:rounded-2xl shadow-sm",
-                                            isCorrect
-                                                ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                                                : "bg-red-500 text-white shadow-red-500/20"
+                                            "w-11 h-11 shrink-0 flex items-center justify-center rounded-xl",
+                                            isCorrect ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
                                         )}
                                     >
                                         {isCorrect ? (
-                                            <Check className="h-5 w-5 sm:h-7 sm:w-7 stroke-[3.5]" />
+                                            <Check className="h-6 w-6 stroke-[2.5]" />
                                         ) : (
-                                            <X className="h-5 w-5 sm:h-7 sm:w-7 stroke-[3.5]" />
+                                            <X className="h-6 w-6 stroke-[2.5]" />
                                         )}
                                     </div>
-                                    <div className="space-y-0.5 flex-1 min-w-0">
-                                        <div className="flex items-center flex-wrap gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center flex-wrap gap-2 gap-y-1">
                                             <h3 className={cn(
-                                                "text-base sm:text-xl font-black tracking-tight truncate",
-                                                isCorrect ? "text-emerald-100 sm:text-emerald-600 dark:sm:text-emerald-400" : "text-red-100 sm:text-slate-600 dark:sm:text-slate-400"
+                                                "text-base font-bold tracking-tight truncate",
+                                                isCorrect ? "text-emerald-800 dark:text-emerald-200" : "text-red-800 dark:text-red-200"
                                             )}>
                                                 {title}
                                             </h3>
                                             {isCorrect && (
-                                                <div className="py-0.5 px-2.5 font-black text-[10px] rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-100 sm:text-emerald-600 dark:sm:text-emerald-400 flex items-center gap-1 shrink-0">
+                                                <span className="inline-flex items-center gap-1 py-0.5 px-2 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
                                                     <Award size={12} />
-                                                    <span className="tracking-widest uppercase">+{xp}</span>
-                                                </div>
+                                                    +{xp}
+                                                </span>
                                             )}
                                         </div>
-                                        <p className="text-slate-300 sm:text-slate-500 dark:sm:text-slate-400 font-bold text-xs sm:text-sm leading-tight line-clamp-2">
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5 leading-snug line-clamp-2">
                                             {message}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Actions: correct = full-width CTA; wrong = Sharaxaad + pill "Isku day markale" */}
-                                <div className="flex flex-row flex-wrap items-center justify-end gap-2 sm:gap-3 w-full md:w-auto shrink-0">
-                                    {isCorrect ? (
-                                        <Button
-                                            size="lg"
-                                            onClick={buttonAction}
-                                            className="w-full min-h-[44px] h-11 px-6 rounded-xl gap-2 text-white font-black text-base sm:text-lg transition-all active:scale-[0.96] shadow-xl bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/30"
-                                        >
-                                            {buttonText}
-                                            <ChevronRight className="h-5 w-5 stroke-[3]" />
-                                        </Button>
-                                    ) : (
-                                        <>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={handleWhyClick}
-                                                className="min-h-[44px] h-11 rounded-xl font-black px-4 text-sm transition-colors text-red-100 sm:text-slate-600 dark:sm:text-slate-400 hover:bg-red-500/20 sm:hover:bg-slate-500/10"
-                                            >
-                                                <Info className="mr-2 h-4 w-4 stroke-[2.5]" />
-                                                Sharaxaad
-                                            </Button>
-                                            <Button
-                                                size="lg"
-                                                onClick={buttonAction}
-                                                className="min-h-[44px] h-11 rounded-full px-6 font-black text-sm sm:text-base text-white transition-all active:scale-[0.96] shadow-xl bg-red-600 hover:bg-red-500 shadow-red-500/30 w-auto"
-                                            >
-                                                {buttonText}
-                                            </Button>
-                                        </>
-                                    )}
-
+                                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                                     <Suspense fallback={null}>
-                                        <div className="hidden lg:block">
+                                        <div className="hidden lg:block order-first sm:order-last sm:ml-auto">
                                             <BugReportButton setIsReportingBug={setIsReportingBug} />
                                         </div>
                                     </Suspense>
+                                    {isCorrect ? (
+                                        <Button
+                                            onClick={buttonAction}
+                                            className="w-full min-h-[48px] h-12 rounded-xl font-semibold text-base bg-emerald-600 hover:bg-emerald-500 text-white transition-all active:scale-[0.98] touch-manipulation"
+                                        >
+                                            {buttonText}
+                                            <ChevronRight className="ml-2 h-5 w-5" />
+                                        </Button>
+                                    ) : (
+                                        <div className="flex flex-row gap-2 sm:gap-3">
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleWhyClick}
+                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 touch-manipulation"
+                                            >
+                                                <Info className="mr-2 h-4 w-4" />
+                                                Sharaxaad
+                                            </Button>
+                                            <Button
+                                                onClick={buttonAction}
+                                                className="min-h-[48px] flex-1 sm:flex-initial rounded-xl font-semibold text-sm bg-red-600 hover:bg-red-500 text-white transition-all active:scale-[0.98] touch-manipulation"
+                                            >
+                                                {buttonText}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

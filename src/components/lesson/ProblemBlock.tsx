@@ -213,31 +213,31 @@ const ProblemBlock: React.FC<{
       const isDisabled = disabledOptions.includes(option) || (hasAnswered && isCorrect);
 
       const buttonClass = cn(
-        "group w-full min-h-[44px] py-3 px-3 sm:px-4 text-sm sm:text-base rounded-2xl border-2 transition-all duration-300 relative text-left outline-none flex items-center gap-3 sm:gap-4",
-        // Default state
-        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-200/60 dark:border-white/10 bg-white dark:bg-zinc-800/50 hover:border-primary/40 text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md hover:-translate-y-0.5",
-        // Selected state (not answered yet) - Premium Lavender/Purple
-        isSelected && !hasAnswered && "border-primary/60 bg-primary/5 dark:bg-primary/10 shadow-[0_8px_20px_-10px_rgba(168,85,247,0.3)] ring-1 ring-primary/20 text-primary font-bold scale-[1.01] hover:-translate-y-0.5",
-        // Correct selected: green bg, green border, checkmark
-        isOptionCorrect && "border-emerald-500 bg-emerald-500/20 dark:bg-emerald-500/25 text-emerald-800 dark:text-emerald-200 font-bold shadow-[0_8px_20px_-10px_rgba(16,185,129,0.3)]",
-        // Wrong selected: red bg, red border, X
-        isOptionIncorrect && "border-red-500 bg-red-500/20 dark:bg-red-500/25 text-red-800 dark:text-red-200 font-bold shadow-[0_4px_12px_rgba(239,68,68,0.4)]",
-        // Correct unselected (answer user missed): green border/outline only, no fill
-        isCorrectUnselected && "border-emerald-500 bg-transparent dark:bg-transparent text-emerald-700 dark:text-emerald-400 font-bold ring-2 ring-emerald-500/50 ring-inset",
-        // Disabled/Not selected wrong
-        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-transparent text-slate-400/40 cursor-not-allowed grayscale opacity-40 shadow-none"
+        "group w-full min-h-[48px] py-3.5 px-4 text-left rounded-2xl border-2 transition-all duration-200 relative outline-none flex items-center gap-3 sm:gap-4 touch-manipulation",
+        "text-sm sm:text-base leading-snug tracking-tight",
+        // Default
+        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-200 dark:border-zinc-600 bg-white dark:bg-zinc-800/80 text-slate-800 dark:text-slate-200 active:bg-slate-50 dark:active:bg-zinc-800",
+        // Selected, not yet submitted
+        isSelected && !hasAnswered && "border-primary bg-primary/10 dark:bg-primary/15 text-primary font-semibold ring-2 ring-primary/30 ring-inset",
+        // Correct (user selected this and it's right)
+        isOptionCorrect && "border-emerald-500 bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-100 font-semibold",
+        // Incorrect (user selected this and it's wrong)
+        isOptionIncorrect && "border-red-500 bg-red-500/15 dark:bg-red-500/20 text-red-800 dark:text-red-100 font-semibold",
+        // Correct answer not selected (show after wrong submit)
+        isCorrectUnselected && "border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold",
+        // Disabled (other options after correct or locked)
+        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-100 dark:border-zinc-700 bg-slate-50/80 dark:bg-zinc-800/50 text-slate-400 dark:text-zinc-500 cursor-not-allowed"
       );
 
       const indicatorClass = cn(
-        isMultipleChoice
-          ? "w-6 h-6 rounded-md flex items-center justify-center border-2 transition-all duration-300 shrink-0"
-          : "w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-xs font-black border-2 transition-all duration-300 shrink-0",
-        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5 text-slate-400 group-hover:bg-primary/10 group-hover:border-primary/40 group-hover:text-primary",
-        isSelected && !hasAnswered && "bg-primary border-primary text-white shadow-lg shadow-primary/20",
-        isOptionCorrect && "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20",
-        isOptionIncorrect && "bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20",
-        isCorrectUnselected && "border-emerald-500 bg-transparent text-emerald-600 dark:text-emerald-400",
-        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-100 dark:border-white/5 bg-transparent text-slate-300 dark:text-white/10"
+        "shrink-0 flex items-center justify-center border-2 transition-all duration-200",
+        isMultipleChoice ? "w-6 h-6 rounded-md" : "w-9 h-9 rounded-xl text-xs font-bold",
+        !isSelected && !hasAnswered && !isCorrectUnselected && "border-slate-300 dark:border-zinc-500 bg-slate-50 dark:bg-zinc-700/50 text-slate-500 dark:text-zinc-400",
+        isSelected && !hasAnswered && "border-primary bg-primary text-white",
+        isOptionCorrect && "border-emerald-500 bg-emerald-500 text-white",
+        isOptionIncorrect && "border-red-500 bg-red-500 text-white",
+        isCorrectUnselected && "border-emerald-500 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+        isDisabled && !isSelected && !isCorrectUnselected && "border-slate-200 dark:border-zinc-600 bg-slate-100 dark:bg-zinc-700/50 text-slate-400"
       );
 
       return (
@@ -246,44 +246,29 @@ const ProblemBlock: React.FC<{
           onClick={() => handleOptionSelect(option)}
           disabled={isDisabled}
           className={buttonClass}
+          type="button"
         >
           <div className={indicatorClass}>
-            {isOptionCorrect ? <Check className="h-6 w-6 stroke-[3]" /> :
-              isOptionIncorrect ? <X className="h-6 w-6 stroke-[3]" /> :
-                isCorrectUnselected ? <Check className="h-5 w-5 stroke-[3] text-emerald-600 dark:text-emerald-400" /> :
-                isMultipleChoice ? (
-                  // Checkbox for multiple choice
-                  isSelected ? <Check className="h-4 w-4 stroke-[3]" /> : null
-                ) : (
-                  // Letter for single choice
-                  letters[idx] || (idx + 1)
-                )}
+            {isOptionCorrect ? <Check className="h-5 w-5 stroke-[2.5]" /> :
+              isOptionIncorrect ? <X className="h-5 w-5 stroke-[2.5]" /> :
+                isCorrectUnselected ? <Check className="h-5 w-5 stroke-[2.5]" /> :
+                isMultipleChoice ? (isSelected ? <Check className="h-4 w-4 stroke-[2.5]" /> : null) : (letters[idx] || (idx + 1))}
           </div>
-          <div className="flex-1">
-            <span className="leading-snug text-sm md:text-base tracking-tight">
-              {content.question_type === "code" ? (
-                <div className="bg-zinc-950 rounded-xl overflow-hidden shadow-2xl transition-all">
-                  <ShikiCode code={option} language="javascript" />
-                </div>
-              ) : content?.content?.type === "latex" ? (
-                <Latex>{option}</Latex>
-              ) : (
-                <span className="prose dark:prose-invert max-w-none inline-block leading-snug text-sm md:text-base tracking-tight">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{ p: 'span' }}
-                  >
-                    {option}
-                  </ReactMarkdown>
-                </span>
-              )}
-            </span>
+          <div className="flex-1 min-w-0">
+            {content.question_type === "code" ? (
+              <div className="bg-zinc-950 rounded-xl overflow-hidden">
+                <ShikiCode code={option} language="javascript" />
+              </div>
+            ) : content?.content?.type === "latex" ? (
+              <Latex>{option}</Latex>
+            ) : (
+              <span className="prose dark:prose-invert max-w-none inline-block text-sm sm:text-base leading-snug">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ p: "span" }}>
+                  {option}
+                </ReactMarkdown>
+              </span>
+            )}
           </div>
-          {isSelected && !hasAnswered && (
-            <div className="absolute right-4 flex items-center justify-center w-5 h-5">
-              <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_10px_rgba(168,85,247,0.8)]" />
-            </div>
-          )}
         </button>
       );
     };
@@ -400,14 +385,14 @@ const ProblemBlock: React.FC<{
     }
 
     return (
-      <div className="w-full mx-3 sm:mx-4 lg:mx-0 max-w-3xl mx-auto pb-12">
-        <div className="space-y-8">
-          {/* Question Card */}
-          <div className="overflow-hidden rounded-2xl lg:rounded-3xl bg-white/[0.06] dark:bg-black/40 backdrop-blur-sm border border-white/[0.09] dark:border-white/[0.09] relative shadow-xl">
-            <div className="p-5 sm:p-6 md:p-10 space-y-8 sm:space-y-10">
-              <div className="space-y-5 sm:space-y-6 text-center max-w-2xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-0 max-w-3xl mx-auto pb-12">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Question Card — mobile-first, clean */}
+          <div className="overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/90 border border-slate-200/80 dark:border-zinc-700/80 shadow-sm sm:shadow-md">
+            <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+              <div className="space-y-4 sm:space-y-5 text-center max-w-2xl mx-auto">
                 {content.which && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                  <div className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider">
                     {content.content?.type === "latex" ? (
                       <Latex>{content.which}</Latex>
                     ) : (
@@ -418,7 +403,7 @@ const ProblemBlock: React.FC<{
                   </div>
                 )}
 
-                <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-snug tracking-tight mb-5 sm:mb-6">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground leading-snug tracking-tight">
                   {content.question_type === "code" || content.question?.includes("```") ? (
                     <ShikiCode
                       code={content.question?.replace(/```[a-z]*\n?|```/g, "") || ""}
@@ -579,7 +564,7 @@ const ProblemBlock: React.FC<{
               ) : (
                 <div
                   className={cn(
-                    "grid gap-2 sm:gap-3 w-full min-[0px]:gap-2",
+                    "grid gap-3 w-full",
                     content.question_type === "diagram" ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
                   )}
                 >
@@ -589,15 +574,16 @@ const ProblemBlock: React.FC<{
             </div>
 
             {/* Bottom Actions */}
-            <div className="px-4 sm:px-5 md:px-8 pb-8 sm:pb-12 flex flex-col items-center">
+            <div className="px-4 sm:px-6 md:px-8 pb-6 sm:pb-8 flex flex-col items-center border-t border-slate-100 dark:border-zinc-800 pt-5">
               {!hasAnswered && (
                 <Button
                   onClick={onCheckAnswer}
                   disabled={isMultipleChoice ? selectedOptions.length === 0 : !selectedOption}
-                  size="xl"
                   className={cn(
-                    "w-full min-h-[44px] h-12 sm:h-14 rounded-2xl font-bold transition-all duration-300 shadow-lg active:scale-[0.98]",
-                    (isMultipleChoice ? selectedOptions.length > 0 : selectedOption) ? "shadow-primary/20" : "shadow-none opacity-50"
+                    "w-full min-h-[48px] h-12 rounded-xl font-semibold text-base transition-all active:scale-[0.98] touch-manipulation",
+                    (isMultipleChoice ? selectedOptions.length > 0 : selectedOption)
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      : "bg-slate-200 dark:bg-zinc-700 text-slate-500 dark:text-zinc-400 cursor-not-allowed"
                   )}
                 >
                   Hubi Jawaabta
