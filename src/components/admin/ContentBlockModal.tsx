@@ -6,7 +6,7 @@ import { ContentBlockData } from '@/app/admin/types/content';
 interface ContentBlockModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    onSubmit: (e: React.FormEvent<HTMLFormElement>, content: ContentBlockData) => Promise<void>;
     title: string;
     content: ContentBlockData;
     setContent: (content: ContentBlockData) => void;
@@ -32,7 +32,7 @@ export function ContentBlockModal({
 }: ContentBlockModalProps) {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} fullScreen={fullScreen}>
-            <form onSubmit={onSubmit} className="flex flex-col h-full">
+            <form onSubmit={(e) => { e.preventDefault(); onSubmit(e, content); }} className="flex flex-col h-full">
                 <div className="flex-1 overflow-y-auto px-6 py-3">
                     <div className="space-y-3">
                         {renderContentForm(content, setContent)}

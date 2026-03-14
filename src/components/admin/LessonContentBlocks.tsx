@@ -357,8 +357,9 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
         }
     };
 
-    const handleAddBlock = async (e?: React.FormEvent, closeOnSuccess: boolean = true) => {
+    const handleAddBlock = async (e?: React.FormEvent, closeOnSuccess: boolean = true, contentOverride?: ContentBlockData) => {
         if (e) e.preventDefault();
+        const content = contentOverride ?? editingContent;
         setAdding(true);
         setError('');
 
@@ -366,9 +367,9 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
             const specifiedOrder = blocks.length;
             let blockData: any;
 
-            if (editingContent.type === 'problem') {
+            if (content.type === 'problem') {
                 const problemData: any = {
-                    ...editingContent,
+                    ...content,
                     lesson: lessonId,
                     order: specifiedOrder
                 };
@@ -381,23 +382,23 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                 blockData = {
                     block_type: 'problem',
                     content: {
-                        points: editingContent.xp || editingContent.points || 10
+                        points: content.xp || content.points || 10
                     },
                     order: specifiedOrder,
                     lesson: lessonId,
                     problem: problemRes.data.id
                 };
-            } else if (editingContent.type === 'video') {
-                let videoUrl = editingContent.url || '';
-                let videoTitle = editingContent.title || '';
+            } else if (content.type === 'video') {
+                let videoUrl = content.url || '';
+                let videoTitle = content.title || '';
 
-                if (editingContent.isDirectUpload && editingContent.directFile) {
+                if (content.isDirectUpload !== false && content.directFile) {
                     setVideoUploading(true);
                     setUploadProgress(0);
                     try {
                         const formData = new FormData();
-                        formData.append('video', editingContent.directFile);
-                        formData.append('title', videoTitle || editingContent.directFile.name);
+                        formData.append('video', content.directFile);
+                        formData.append('title', videoTitle || content.directFile.name);
 
                         const uploadRes = await api.post('lms/videos/', formData, {
                             headers: { "Content-Type": "multipart/form-data" },
@@ -407,16 +408,23 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                                 }
                             },
                         });
-                        videoUrl = uploadRes.data.url;
-                        videoTitle = uploadRes.data.title;
-                    } catch (uploadErr) {
+                        videoUrl = (uploadRes.data as any).video_url || (uploadRes.data as any).url || '';
+                        videoTitle = (uploadRes.data as any).title || videoTitle;
+                    } catch (uploadErr: any) {
                         console.error("Direct upload failed", uploadErr);
-                        setError("Waa la waayay soo gelinta muuqaalka.");
+                        const msg = uploadErr?.response?.data?.detail ?? "Waa la waayay soo gelinta muuqaalka.";
+                        setError(typeof msg === 'string' ? msg : 'Waa la waayay soo gelinta muuqaalka.');
                         setVideoUploading(false);
                         setAdding(false);
                         return;
                     }
                     setVideoUploading(false);
+                }
+
+                if (!videoUrl || !videoUrl.trim()) {
+                    setError("Soo geli URL muuqaal ah ama dooro fayl muuqaal ah.");
+                    setAdding(false);
+                    return;
                 }
 
                 blockData = {
@@ -425,22 +433,22 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                         source: videoUrl,
                         url: videoUrl,
                         title: videoTitle,
-                        video_source_type: editingContent.video_source_type || 'upload'
+                        video_source_type: content.video_source_type || 'upload'
                     },
                     order: specifiedOrder,
                     lesson: lessonId
                 };
             } else {
                 // Determine if it should be an image or text block based on content
-                const isImageOnly = editingContent.img_url && !editingContent.text;
+                const isImageOnly = content.img_url && !content.text;
 
                 blockData = {
                     block_type: isImageOnly ? 'image' : 'text',
                     content: {
-                        ...editingContent,
+                        ...content,
                         // Map frontend img_url back to backend url if it's an image block
-                        url: isImageOnly ? editingContent.img_url : editingContent.url,
-                        format: editingContent.format || 'markdown'
+                        url: isImageOnly ? content.img_url : content.url,
+                        format: content.format || 'markdown'
                     },
                     order: specifiedOrder,
                     lesson: lessonId
@@ -511,22 +519,23 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
         setShowEditBlock(true);
     };
 
-    const handleUpdateBlock = async (e?: React.FormEvent) => {
+    const handleUpdateBlock = async (e?: React.FormEvent, contentOverride?: ContentBlockData) => {
         if (e) e.preventDefault();
         if (!editingBlock) return;
+        const content = contentOverride ?? editingContent;
         setAdding(true);
         setError('');
 
-        const isTypeChanged = editingBlock.block_type !== editingContent.type;
+        const isTypeChanged = editingBlock.block_type !== content.type;
         let blockData: any;
 
-        if (editingContent.type === 'problem') {
+        if (content.type === 'problem') {
             let problemId = editingBlock.problem;
 
             // If we changed to problem and don't have one, create it
             // Or if we already have one, update it
             const problemData: any = {
-                ...editingContent,
+                ...content,
                 lesson: lessonId,
             };
             if (!problemData.img) problemData.img = null;
@@ -545,22 +554,22 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
             blockData = {
                 block_type: 'problem',
                 content: {
-                    points: editingContent.xp || editingContent.points || 10
+                    points: content.xp || content.points || 10
                 },
                 problem: problemId
             };
-        } else if (editingContent.type === 'video') {
-            let videoUrl = editingContent.url || '';
-            let videoTitle = editingContent.title || '';
+        } else if (content.type === 'video') {
+            let videoUrl = content.url || '';
+            let videoTitle = content.title || '';
 
             // If user uploaded a new video to replace the existing one, upload it first
-            if (editingContent.directFile) {
+            if (content.directFile) {
                 setVideoUploading(true);
                 setUploadProgress(0);
                 try {
                     const formData = new FormData();
-                    formData.append('video', editingContent.directFile);
-                    formData.append('title', videoTitle || editingContent.directFile.name);
+                    formData.append('video', content.directFile);
+                    formData.append('title', videoTitle || content.directFile.name);
 
                     const uploadRes = await api.post('lms/videos/', formData, {
                         headers: { "Content-Type": "multipart/form-data" },
@@ -570,16 +579,23 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                             }
                         },
                     });
-                    videoUrl = uploadRes.data.url;
-                    videoTitle = uploadRes.data.title || videoTitle;
-                } catch (uploadErr) {
+                    videoUrl = (uploadRes.data as any).video_url || (uploadRes.data as any).url || '';
+                    videoTitle = (uploadRes.data as any).title || videoTitle;
+                } catch (uploadErr: any) {
                     console.error("Video replace upload failed", uploadErr);
-                    setError("Muuqaalka cusub lama soo gelin karin.");
+                    const msg = uploadErr?.response?.data?.detail ?? "Muuqaalka cusub lama soo gelin karin.";
+                    setError(typeof msg === 'string' ? msg : "Muuqaalka cusub lama soo gelin karin.");
                     setVideoUploading(false);
                     setAdding(false);
                     return;
                 }
                 setVideoUploading(false);
+            }
+
+            if (!videoUrl || !videoUrl.trim()) {
+                setError("Soo geli URL muuqaal ah ama dooro fayl muuqaal ah.");
+                setAdding(false);
+                return;
             }
 
             blockData = {
@@ -588,22 +604,22 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                     source: videoUrl,
                     url: videoUrl,
                     title: videoTitle,
-                    video_source_type: editingContent.video_source_type || 'upload'
+                    video_source_type: content.video_source_type || 'upload'
                 },
                 problem: null // Clear problem if changing from problem to video
             };
         } else {
             // Determine if it should be an image or text block based on content
-            const isImageOnly = editingContent.img_url && !editingContent.text;
+            const isImageOnly = content.img_url && !content.text;
             const targetType = isImageOnly ? 'image' : 'text';
 
             blockData = {
                 block_type: targetType,
                 content: {
-                    ...editingContent,
+                    ...content,
                     // Map frontend img_url back to backend url if it's an image block
-                    url: isImageOnly ? editingContent.img_url : editingContent.url,
-                    format: editingContent.format || 'markdown'
+                    url: isImageOnly ? content.img_url : content.url,
+                    format: content.format || 'markdown'
                 },
                 problem: null // Clear problem if changing from problem to text/image
             };
@@ -809,7 +825,7 @@ export default function LessonContentBlocks({ lessonId, onUpdate }: LessonConten
                     setEditingBlock(null);
                     setEditingContent(DEFAULT_CONTENT);
                 }}
-                onSubmit={showEditBlock ? handleUpdateBlock : handleAddBlock}
+                onSubmit={(e, content) => showEditBlock ? handleUpdateBlock(e, content) : handleAddBlock(e, true, content)}
                 title={showEditBlock ? "Wax ka badal Qeybta" : "Ku dar Qeyb Cusub"}
                 content={editingContent}
                 setContent={setEditingContent}
